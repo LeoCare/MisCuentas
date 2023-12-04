@@ -3,7 +3,8 @@
  Almacena los gastos y genera un resumen final.
  
  Detallado: el usuario de la aplicacion genera 'Hojas de gastos', las cuales pueden ser compartidas con otros usuarios
- que tengan instalada la App. En esta 'Hoja de gastos' se definen variables como fecha de cierre, linmite de gastos, 
+ que tengan instalada la App. 
+ En esta 'Hoja de gastos' se definen variables como fecha de cierre, linmite de gastos, 
  participantes, etc.
  Luego, cada usuario ingresa (en su hoja correspondiente) los nuevos 'Gastos' que realize. 
  Estos 'Gastos' se deben reflejar en la App de todos los miembros de la hoja.
