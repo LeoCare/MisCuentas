@@ -91,7 +91,7 @@ fun Login(align: Modifier, viewModel: LoginViewModel) {
 @Composable
 fun HeaderImage(modifier: Modifier) {
     Image(
-        painter = painterResource(id = R.drawable.mis_hojas),
+        painter = painterResource(id = R.drawable.logologin),
         contentDescription = "Logo",
         modifier = modifier
             .fillMaxWidth()
