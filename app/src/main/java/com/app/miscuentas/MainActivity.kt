@@ -7,9 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.app.miscuentas.ui.inicio.ui.ScaffoldContent
+import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.ui.login.LoginContent
 import com.app.miscuentas.ui.login.LoginViewModel
+import com.app.miscuentas.ui.navegacion.AppNavHost
 import com.app.miscuentas.ui.theme.MisCuentasTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +22,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LoginContent(LoginViewModel())
+                    //LoginContent(LoginViewModel(), this)
+                    val navController = rememberNavController()
+                    AppNavHost(navController = navController)
                 }
             }
         }

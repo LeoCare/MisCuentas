@@ -6,80 +6,76 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.miscuentas.R
 
-@Preview()
-@Composable
-fun prev(){
-    LoginContent(LoginViewModel())
-}
+//@Preview()
+//@Composable
+//fun Prev(){
+//    LoginContent(LoginViewModel())
+//}
 
 @Composable
-fun LoginContent(viewModel: LoginViewModel){
+fun LoginContent(viewModel: LoginViewModel, onNavigate: () -> Unit){
+
     Box(
         Modifier
             .fillMaxSize()
+            .background(Color(color = 0xFFE6DCDC))
     ) {
-        Login(Modifier.align(Alignment.Center), viewModel)
+        Login(Modifier.align(Alignment.Center), viewModel, onNavigate)
     }
 }
 
 
 @Composable
-fun Login(align: Modifier, viewModel: LoginViewModel) {
+fun Login(modifier: Modifier, viewModel: LoginViewModel, onNavigate: () -> Unit) {
+
+    //variables que delegan sus valores al cambio del viewModel
+    val statusUsuario :String by viewModel.usuario.observeAsState(initial = "")
+    val statusContrasenna :String by viewModel.contrasenna.observeAsState(initial = "")
+    val statusEmail :String by viewModel.email.observeAsState(initial = "")
+    val mensajeClick :String by viewModel.mensaje.observeAsState(initial = "")
+
+    val loginState by viewModel.login.observeAsState(initial = false)
+    LaunchedEffect(loginState) {
+        if (loginState) onNavigate()
+    }
+
 
     Column(
 
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        HeaderImage(align)
-
-        Text(
-            text = "Registrar / Iniciar",
-            fontSize = 30.sp,
-            color = Color.Black,
-            textAlign = TextAlign.Center
-        )
-
-        Text(
-            text = stringResource(R.string.noPublicidad),
-            fontSize = 18.sp,
-            color = Color.Black,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-
-        )
-
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .background(Color.White)
-                .padding(top = 15.dp)
-        )
-        UsuarioField()
-
-        ContraseñaField()
-
-        EmailField()
-
-        BotonInicio()
-
+        HeaderImage(modifier)
+        CustomSpacer(40.dp)
+        TextoLogin()
+        CustomSpacer(24.dp)
+        UsuarioField(statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
+        CustomSpacer(24.dp)
+        ContrasennaField(statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
+        CustomSpacer(24.dp)
+        EmailField(statusEmail) { viewModel.onEmailFieldChanged(it) }
+        CustomSpacer(30.dp)
+        BotonInicio(mensajeClick) { viewModel.MensajeLoginClick() }
     }
 }
 
@@ -90,23 +86,53 @@ fun Login(align: Modifier, viewModel: LoginViewModel) {
 //IMAGEN LOGO
 @Composable
 fun HeaderImage(modifier: Modifier) {
+    val robotoBlack = FontFamily(Font(R.font.roboto_black))
     Image(
         painter = painterResource(id = R.drawable.logologin),
         contentDescription = "Logo",
         modifier = modifier
             .fillMaxWidth()
-            .height(290.dp)
+            .height(220.dp)
+    )
+    Text(
+        text = "Mis Cuentas",
+        Modifier.fillMaxWidth(),
+        fontSize = 40.sp,
+        fontFamily = robotoBlack,
+        color = Color.Black,
+        textAlign = TextAlign.Center
+    )
+}
+
+//CAMPO TEXTO AVISO
+@Composable
+fun TextoLogin(){
+    val robotoBold = FontFamily(Font(R.font.roboto_bold))
+    Text(
+        text = "Registrar / Iniciar",
+        fontSize = 20.sp,
+        fontFamily = robotoBold,
+        color = Color.Black,
+        textAlign = TextAlign.Center
+    )
+
+    Text(
+        text = stringResource(R.string.noPublicidad),
+        fontSize = 15.sp,
+        color = Color.Black,
+        textAlign = TextAlign.Center
     )
 }
 
 //CAMPO USUARIO
 @Composable
-fun UsuarioField() {
+fun UsuarioField(usuario: String, onUsuarioFieldChanged: (String) -> Unit) {
+
     TextField(
-        value = "",
-        onValueChange = {},
+        value = usuario,
+        onValueChange = { onUsuarioFieldChanged(it) }, //cada vez que el valor cambia, se llama a la funcion lambda, pasandole el valor actual (it). Este valor sera tratado en el viewModel.
         Modifier.fillMaxWidth(),
-        placeholder = { Text(text = "usuario")},
+        placeholder = { Text(text = "usuario") },
         singleLine = true, //en una misma linea
         maxLines = 1,
         colors = TextFieldDefaults.textFieldColors(
@@ -118,13 +144,15 @@ fun UsuarioField() {
 
 //CAMPO CONTRASEÑA
 @Composable
-fun ContraseñaField() {
+fun ContrasennaField(contrasenna: String, onContrasennaFieldChanged: (String) -> Unit) {
+
     TextField(
-        value = "",
-        onValueChange = {},
+        value = contrasenna,
+        onValueChange = { onContrasennaFieldChanged(it) },
         Modifier.fillMaxWidth(),
-        placeholder = { Text(text = "contraseña")},
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), //comprobara que la sintaxis sea correcta
+        placeholder = { Text(text = "contraseña") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        visualTransformation = PasswordVisualTransformation(), //transforma el valor en *
         singleLine = true, //en una misma linea
         maxLines = 1,
         colors = TextFieldDefaults.textFieldColors(
@@ -136,10 +164,11 @@ fun ContraseñaField() {
 
 //CAMPO EMAIL
 @Composable
-fun EmailField() {
+fun EmailField(email: String, onEmailFieldChange: (String) -> Unit) {
+
     TextField(
-        value = "",
-        onValueChange = {},
+        value = email,
+        onValueChange = { onEmailFieldChange(it) },
         Modifier.fillMaxWidth(),
         placeholder = { Text(text = "email")},
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), //comprobara que la sintaxis sea correcta
@@ -154,20 +183,40 @@ fun EmailField() {
 
 //BOTON INICIO
 @Composable
-fun BotonInicio() {
+fun BotonInicio(mensaje: String, loginOk: () -> Unit) {
+    val robotoBold = FontFamily(Font(R.font.roboto_bold))
+
+    Text(
+        mensaje,
+        fontSize = 20.sp,
+        fontFamily = robotoBold,
+        color = Color(color = 0xFFEE1808)
+    )
     Button(
-        onClick = { /* TODO: Handle click */ },
+        onClick = { loginOk() },
         modifier = Modifier
             .height(60.dp)
             .width(190.dp),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor =  Color(0xFFB3E4B5),
-            disabledBackgroundColor = Color(0xFF87E61A)
-        )
+            backgroundColor = Color(0xFFB3E4B5),
+            disabledBackgroundColor = Color(0xFF87E61A))
+
 
     ) {
-        Text("INICIAR")
+        Text(
+            "INICIAR",
+            fontSize = 20.sp,
+            fontFamily = robotoBold)
     }
 }
 
+//ESPACIADOR
+@Composable
+fun CustomSpacer(size: Dp) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(size)
+    )
+}
 
