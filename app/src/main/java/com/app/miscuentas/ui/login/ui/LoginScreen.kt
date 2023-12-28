@@ -1,12 +1,20 @@
-package com.app.miscuentas.ui.login
+package com.app.miscuentas.ui.login.ui
 
-import android.content.ClipData
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,40 +29,46 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 
-//@Preview()
-//@Composable
-//fun Prev(){
-//    LoginContent(LoginViewModel())
-//}
+//BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
+@Preview
+@Composable
+fun Prev(){
+    val navController = rememberNavController()
+    Login(onNavigate = { navController.navigate("inicio") })
+}
 
 @Composable
-fun LoginContent(viewModel: LoginViewModel, onNavigate: () -> Unit){
+fun Login(onNavigate: () -> Unit){
 
     Box(
         Modifier
             .fillMaxSize()
             .background(Color(color = 0xFFF5EFEF))
     ) {
-        Login(Modifier.align(Alignment.Center), viewModel, onNavigate)
+        LoginContent(Modifier.align(Alignment.Center), onNavigate)
     }
 }
 
 
 @Composable
-fun Login(modifier: Modifier, viewModel: LoginViewModel, onNavigate: () -> Unit) {
+fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
+    val viewModel: LoginViewModel = viewModel()
     //variables que delegan sus valores al cambio del viewModel
     val statusUsuario :String by viewModel.usuario.collectAsState()
     val statusContrasenna :String by viewModel.contrasenna.collectAsState()
     val statusEmail :String by viewModel.email.collectAsState()
     val mensajeClick :String by viewModel.mensaje.collectAsState()
-
     val loginState :Boolean by viewModel.login.collectAsState()
+
     LaunchedEffect(loginState) {
         if (loginState) onNavigate()
     }

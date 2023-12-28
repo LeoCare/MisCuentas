@@ -22,8 +22,6 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    //LoginContent(LoginViewModel(), this)
-
                     //Navegacion con el componente de Composable
                     val navController = rememberNavController()
                     AppNavHost(navController = navController)

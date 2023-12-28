@@ -1,4 +1,4 @@
-package com.app.miscuentas.ui.login
+package com.app.miscuentas.ui.login.ui
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
