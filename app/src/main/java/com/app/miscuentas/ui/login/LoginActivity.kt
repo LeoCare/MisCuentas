@@ -1,14 +1,16 @@
 package com.app.miscuentas.ui.login
 
+import android.content.ClipData
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,7 +38,7 @@ fun LoginContent(viewModel: LoginViewModel, onNavigate: () -> Unit){
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color(color = 0xFFE6DCDC))
+            .background(Color(color = 0xFFF5EFEF))
     ) {
         Login(Modifier.align(Alignment.Center), viewModel, onNavigate)
     }
@@ -47,35 +49,39 @@ fun LoginContent(viewModel: LoginViewModel, onNavigate: () -> Unit){
 fun Login(modifier: Modifier, viewModel: LoginViewModel, onNavigate: () -> Unit) {
 
     //variables que delegan sus valores al cambio del viewModel
-    val statusUsuario :String by viewModel.usuario.observeAsState(initial = "")
-    val statusContrasenna :String by viewModel.contrasenna.observeAsState(initial = "")
-    val statusEmail :String by viewModel.email.observeAsState(initial = "")
-    val mensajeClick :String by viewModel.mensaje.observeAsState(initial = "")
+    val statusUsuario :String by viewModel.usuario.collectAsState()
+    val statusContrasenna :String by viewModel.contrasenna.collectAsState()
+    val statusEmail :String by viewModel.email.collectAsState()
+    val mensajeClick :String by viewModel.mensaje.collectAsState()
 
-    val loginState by viewModel.login.observeAsState(initial = false)
+    val loginState :Boolean by viewModel.login.collectAsState()
     LaunchedEffect(loginState) {
         if (loginState) onNavigate()
     }
 
-
-    Column(
+    LazyColumn(
 
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        HeaderImage(modifier)
-        CustomSpacer(40.dp)
-        TextoLogin()
-        CustomSpacer(24.dp)
-        UsuarioField(statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
-        CustomSpacer(24.dp)
-        ContrasennaField(statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
-        CustomSpacer(24.dp)
-        EmailField(statusEmail) { viewModel.onEmailFieldChanged(it) }
-        CustomSpacer(30.dp)
-        BotonInicio(mensajeClick) { viewModel.MensajeLoginClick() }
+    )
+    {
+        item {
+
+            HeaderImage(modifier)
+            CustomSpacer(40.dp)
+            TextoLogin()
+            CustomSpacer(24.dp)
+            UsuarioField(statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
+            CustomSpacer(24.dp)
+            ContrasennaField(statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
+            CustomSpacer(24.dp)
+            EmailField(statusEmail) { viewModel.onEmailFieldChanged(it) }
+            CustomSpacer(30.dp)
+            BotonInicio(mensajeClick) { viewModel.MensajeLoginClick() }
+
+        }
     }
 }
 
@@ -99,7 +105,6 @@ fun HeaderImage(modifier: Modifier) {
         Modifier.fillMaxWidth(),
         fontSize = 40.sp,
         fontFamily = robotoBlack,
-        color = Color.Black,
         textAlign = TextAlign.Center
     )
 }
@@ -112,14 +117,12 @@ fun TextoLogin(){
         text = "Registrar / Iniciar",
         fontSize = 20.sp,
         fontFamily = robotoBold,
-        color = Color.Black,
         textAlign = TextAlign.Center
     )
 
     Text(
         text = stringResource(R.string.noPublicidad),
         fontSize = 15.sp,
-        color = Color.Black,
         textAlign = TextAlign.Center
     )
 }
@@ -196,12 +199,7 @@ fun BotonInicio(mensaje: String, loginOk: () -> Unit) {
         onClick = { loginOk() },
         modifier = Modifier
             .height(60.dp)
-            .width(190.dp),
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = Color(0xFFB3E4B5),
-            disabledBackgroundColor = Color(0xFF87E61A))
-
-
+            .width(190.dp)
     ) {
         Text(
             "INICIAR",

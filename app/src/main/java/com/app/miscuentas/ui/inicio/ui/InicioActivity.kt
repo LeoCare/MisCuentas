@@ -148,7 +148,7 @@ fun MiDialogo(cerrar: () -> Unit, aceptar: () -> Unit) {
             }
         },
         title = { Text(text = "Mi Diaologo") },
-        text = { "Este es un dialogo de prueba" }
+
     )
 
 }

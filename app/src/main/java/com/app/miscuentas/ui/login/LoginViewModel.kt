@@ -1,25 +1,25 @@
 package com.app.miscuentas.ui.login
 
 import android.util.Patterns
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class LoginViewModel : ViewModel(){
 
     //variables para ser trabajadas desde la clase
-    private val _usuario = MutableLiveData("")
-    private val _contrasenna = MutableLiveData("")
-    private val _email = MutableLiveData("")
-    private val _mensaje = MutableLiveData("")
-    private val _login = MutableLiveData(false)
+    private val _usuario = MutableStateFlow("")
+    private val _contrasenna = MutableStateFlow("")
+    private val _email = MutableStateFlow("")
+    private val _mensaje = MutableStateFlow("")
+    private val _login = MutableStateFlow(false)
 
     //variables para ser usadas desde fuera de la clase
-    val usuario : LiveData<String> = _usuario
-    val contrasenna : LiveData<String> = _contrasenna
-    val email : LiveData<String> = _email
-    val mensaje : LiveData<String> = _mensaje
-    val login : LiveData<Boolean> = _login
+    val usuario : StateFlow<String> = _usuario
+    val contrasenna : StateFlow<String> = _contrasenna
+    val email : StateFlow<String> = _email
+    val mensaje : StateFlow<String> = _mensaje
+    val login : StateFlow<Boolean> = _login
 
     //Metodos que asignan valor a las variables privadas.
     fun onUsuarioFieldChanged(usuario :String){
@@ -33,9 +33,9 @@ class LoginViewModel : ViewModel(){
     }
 
     //Propiedades
-    fun getUsuario(): String = _usuario.value!!
-    fun getContrasenna(): String = _contrasenna.value!!
-    fun getEmail(): String = _email.value!!
+    fun getUsuario(): String = _usuario.value
+    fun getContrasenna(): String = _contrasenna.value
+    fun getEmail(): String = _email.value
 
 
     //Metodo que se ejecuta al hacer click al boton del login
