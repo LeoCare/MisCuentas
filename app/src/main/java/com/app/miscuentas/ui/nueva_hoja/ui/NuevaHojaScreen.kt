@@ -15,16 +15,39 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
+import com.app.miscuentas.ui.inicio.ui.Inicio
 import com.app.miscuentas.ui.navegacion.MiTopBar
 import com.app.miscuentas.ui.navegacion.MisCuentasScreem
+
+//BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
+@Preview
+@Composable
+fun Prev(){
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = MisCuentasScreem.valueOf(
+        backStackEntry?.destination?.route ?: MisCuentasScreem.Nueva_Hoja.name
+    )
+
+    NuevaHoja(
+        currentScreen,
+        navController,
+        onNavMisHojas = { navController.navigate(MisCuentasScreem.Mis_Hojas.name) }
+    )
+}
+
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable

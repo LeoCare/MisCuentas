@@ -8,23 +8,45 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.ui.navegacion.MiTopBar
 import com.app.miscuentas.ui.navegacion.MisCuentasScreem
 
+//BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
+@Preview
+@Composable
+fun Prev(){
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = MisCuentasScreem.valueOf(
+        backStackEntry?.destination?.route ?: MisCuentasScreem.Inicio.name
+    )
+
+    Inicio(
+        currentScreen,
+        navController,
+        onNavNuevaHoja = { navController.navigate(MisCuentasScreem.Nueva_Hoja.name) },
+        onNavMisHojas = { navController.navigate(MisCuentasScreem.Mis_Hojas.name) }
+    )
+}
+
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
-//@Preview(
-//    showBackground = true,
-//    name = "Funcion principal"
-//)
 @Composable
 fun Inicio(
     currentScreen: MisCuentasScreem,
@@ -65,31 +87,66 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
 
     ) {
 
-        Column(
+        LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally, // Alinear horizontalmente en la columna
             verticalArrangement = Arrangement.spacedBy(26.dp), // Espacio entre elementos de la columna
         ) {
+            val robotoItalic = FontFamily(Font(R.font.roboto_bolditalic))
 
-            Spacer(modifier = Modifier.padding(40.dp))
+            item {
+                CustomSpacer(40.dp)
 
-            //COMPONENTE IMAGEN
-            Image(
-                painter = painterResource(id = R.drawable.nueva_hoja),
-                contentDescription = "Boton de Nueva_Hoja",
-                modifier = Modifier
-                    .fillMaxWidth() //estira el largo al maximo
-                    .height(180.dp) //estira el ancho a 80 dp
-                    .clickable { onNavNuevaHoja() }
-            )
+                Row {
+                    Text(
+                        text = "Crear...",
+                        modifier = Modifier
+                            .align(Alignment.Bottom),
+                        fontSize = 30.sp,
+                        fontFamily = robotoItalic
+                    )
+                    ImagenClicker(R.drawable.nueva_hoja, "Boton de Nueva_Hoja", onNavNuevaHoja )
+                }
 
-            Image(
-                painter = painterResource(id = R.drawable.mis_hojas),
-                contentDescription = "Boton de Mis_Hojas",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-                    .clickable { onNavMisHojas() }
-            )
+                CustomSpacer(50.dp)
+
+                Row {
+                    Text(
+                        text = "Ver...",
+                        modifier = Modifier
+                            .align(Alignment.Bottom),
+                        fontSize = 30.sp,
+                        fontFamily = robotoItalic
+                    )
+                    ImagenClicker(R.drawable.mis_hojas, "Boton de Mis_Hojas", onNavMisHojas )
+                }
+            }
         }
     }
+}
+
+//ESPACIADOR
+@Composable
+fun CustomSpacer(padding: Dp) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(padding)
+    )
+}
+
+
+//COMPONENTE IMAGEN
+@Composable
+fun ImagenClicker(
+    imagen: Int,
+    descript: String,
+    onNavNextPage: () -> Unit){
+    Image(
+        painter = painterResource(id = imagen),
+        contentDescription = descript,
+        modifier = Modifier
+            .width(180.dp)
+            .height(180.dp)
+            .clickable { onNavNextPage() }
+    )
 }

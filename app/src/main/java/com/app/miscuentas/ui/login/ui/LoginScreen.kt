@@ -3,6 +3,7 @@ package com.app.miscuentas.ui.login.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
@@ -20,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -67,6 +70,7 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
     val statusContrasenna :String by viewModel.contrasenna.collectAsState()
     val statusEmail :String by viewModel.email.collectAsState()
     val mensajeClick :String by viewModel.mensaje.collectAsState()
+    val registroState :Boolean by viewModel.registro.collectAsState()
     val loginState :Boolean by viewModel.login.collectAsState()
 
     LaunchedEffect(loginState) {
@@ -85,15 +89,22 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
             HeaderImage(modifier)
             CustomSpacer(40.dp)
-            TextoLogin()
+            TextoLogin(registroState)
             CustomSpacer(24.dp)
             UsuarioField(statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
             CustomSpacer(24.dp)
             ContrasennaField(statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
-            EmailField(statusEmail) { viewModel.onEmailFieldChanged(it) }
-            CustomSpacer(30.dp)
-            BotonInicio(mensajeClick) { viewModel.MensajeLoginClick() }
+            EmailField(
+                registroState,
+                statusEmail,
+                onEmailFieldChange = { viewModel.onEmailFieldChanged(it) },
+                onRegistroCheckChange = { viewModel.onRegistroCheckChanged(it) }
+            )
+            //CustomSpacer(30.dp)
+            BotonInicio(
+                registroState,
+                mensajeClick) { viewModel.MensajeLoginClick() }
 
         }
     }
@@ -125,7 +136,7 @@ fun HeaderImage(modifier: Modifier) {
 
 //CAMPO TEXTO AVISO
 @Composable
-fun TextoLogin(){
+fun TextoLogin(registroState: Boolean) {
     val robotoBold = FontFamily(Font(R.font.roboto_bold))
     Text(
         text = "Registrar / Iniciar",
@@ -134,11 +145,13 @@ fun TextoLogin(){
         textAlign = TextAlign.Center
     )
 
-    Text(
-        text = stringResource(R.string.noPublicidad),
-        fontSize = 15.sp,
-        textAlign = TextAlign.Center
-    )
+    if( registroState){
+        Text(
+            text = stringResource(R.string.noPublicidad),
+            fontSize = 15.sp,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 //CAMPO USUARIO
@@ -181,45 +194,59 @@ fun ContrasennaField(contrasenna: String, onContrasennaFieldChanged: (String) ->
 
 //CAMPO EMAIL
 @Composable
-fun EmailField(email: String, onEmailFieldChange: (String) -> Unit) {
+fun EmailField(registroState: Boolean, email: String, onEmailFieldChange: (String) -> Unit, onRegistroCheckChange: (Boolean) -> Unit) {
 
-    TextField(
-        value = email,
-        onValueChange = { onEmailFieldChange(it) },
-        Modifier.fillMaxWidth(),
-        placeholder = { Text(text = "email")},
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), //comprobara que la sintaxis sea correcta
-        singleLine = true, //en una misma linea
-        maxLines = 1,
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = Color(0xFF233CDA),
-            backgroundColor = Color(0xFFB1CDE2)
+    if (registroState){
+        TextField(
+            value = email,
+            onValueChange = { onEmailFieldChange(it) },
+            Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "email")},
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), //comprobara que la sintaxis sea correcta
+            singleLine = true, //en una misma linea
+            maxLines = 1,
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color(0xFF233CDA),
+                backgroundColor = Color(0xFFB1CDE2)
+            )
         )
-    )
+    }
+
+    Row {
+        Checkbox(
+            checked = registroState,
+            onCheckedChange = { onRegistroCheckChange(it) })
+        Text(
+            text = "Registrarme",
+            modifier = Modifier.align(CenterVertically))
+    }
 }
 
 //BOTON INICIO
 @Composable
-fun BotonInicio(mensaje: String, loginOk: () -> Unit) {
-    val robotoBold = FontFamily(Font(R.font.roboto_bold))
+fun BotonInicio(registroState: Boolean, mensaje: String, loginOk: () -> Unit) {
 
-    Text(
-        mensaje,
-        fontSize = 20.sp,
-        fontFamily = robotoBold,
-        color = Color(color = 0xFFEE1808)
-    )
+    var texto = "INICIAR"
+    val robotoBold = FontFamily(Font(R.font.roboto_bold))
     Button(
         onClick = { loginOk() },
         modifier = Modifier
             .height(60.dp)
             .width(190.dp)
     ) {
+
+        if(registroState) texto = "REGISTRAR"
         Text(
-            "INICIAR",
+            texto,
             fontSize = 20.sp,
             fontFamily = robotoBold)
     }
+    Text(
+        mensaje,
+        fontSize = 20.sp,
+        fontFamily = robotoBold,
+        color = Color(color = 0xFFEE1808)
+    )
 }
 
 //ESPACIADOR
