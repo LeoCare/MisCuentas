@@ -1,6 +1,7 @@
 package com.app.miscuentas.ui.navegacion
 
 import android.widget.Toast
+import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Icon
@@ -19,7 +20,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -128,7 +131,8 @@ fun MiTopBar(
             ) {
                 Icon(Icons.Filled.Info, contentDescription = "Informacion")
             }
-        }
+        },
+        backgroundColor = Color(color = 0xFFA397E6)
     )
 }
 

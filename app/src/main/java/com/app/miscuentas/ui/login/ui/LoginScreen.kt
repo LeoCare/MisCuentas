@@ -3,6 +3,7 @@ package com.app.miscuentas.ui.login.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,8 +30,10 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
@@ -93,19 +96,22 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
             HeaderImage(modifier)
             CustomSpacer(40.dp)
+
             TextoLogin(registroState)
             CustomSpacer(24.dp)
-            UsuarioField(statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
+
+            CustomTextField("Usuario", value = statusUsuario, onTextFieldChange = { viewModel.onUsuarioFieldChanged(it) })
             CustomSpacer(24.dp)
-            ContrasennaField(statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
+            
+            CustomTextField("Contraseña", value = statusContrasenna, onTextFieldChange = { viewModel.onContrasennaFieldChanged(it) })
             CustomSpacer(24.dp)
-            EmailField(
-                registroState,
-                statusEmail,
-                onEmailFieldChange = { viewModel.onEmailFieldChanged(it) },
-                onRegistroCheckChange = { viewModel.onRegistroCheckChanged(it) }
-            )
-            //CustomSpacer(30.dp)
+
+            if (registroState){
+                CustomTextField("Email", value = statusEmail, onTextFieldChange = { viewModel.onEmailFieldChanged(it) })
+            }
+
+            CustomCkeckbox(registroState = registroState, onRegistroCheckChange = { viewModel.onRegistroCheckChanged(it) })
+
             BotonInicio(
                 registroState,
                 mensajeClick) { viewModel.MensajeLoginClick() }
@@ -158,72 +164,37 @@ fun TextoLogin(registroState: Boolean) {
     }
 }
 
-//CAMPO USUARIO
+
 @Composable
-fun UsuarioField(usuario: String, onUsuarioFieldChanged: (String) -> Unit) {
+fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (String) -> Unit) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
-    TextField(
-        value = usuario,
-        onValueChange = { onUsuarioFieldChanged(it) }, //cada vez que el valor cambia, se llama a la funcion lambda, pasandole el valor actual (it). Este valor sera tratado en el viewModel.
-        Modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-            },
-        placeholder = { Text(text = "usuario") },
-        singleLine = true, //en una misma linea
-        maxLines = 1,
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = Color(0xFF233CDA),
-            backgroundColor = if (isFocused) Color(0xFFC0D6E7) else Color(0xFFC7CED3)
-        )
-    )
-}
 
-//CAMPO CONTRASEÑA
-@Composable
-fun ContrasennaField(contrasenna: String, onContrasennaFieldChanged: (String) -> Unit) {
-    var isFocused by rememberSaveable { mutableStateOf(false) }
-    TextField(
-        value = contrasenna,
-        onValueChange = { onContrasennaFieldChanged(it) },
-        Modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-            isFocused = focusState.isFocused
-        },
-        placeholder = { Text(text = "contraseña") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = PasswordVisualTransformation(), //transforma el valor en *
-        singleLine = true, //en una misma linea
-        maxLines = 1,
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = Color(0xFF233CDA),
-            backgroundColor = if (isFocused) Color(0xFFC0D6E7) else Color(0xFFC7CED3)
-        )
-    )
-}
-
-//CAMPO EMAIL
-@Composable
-fun EmailField(registroState: Boolean, email: String, onEmailFieldChange: (String) -> Unit, onRegistroCheckChange: (Boolean) -> Unit) {
-
-    if (registroState){
         TextField(
-            value = email,
-            onValueChange = { onEmailFieldChange(it) },
-            Modifier.fillMaxWidth(),
-            placeholder = { Text(text = "email")},
+            value = value,
+            onValueChange = { onTextFieldChange(it) },
+            Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                },
+            placeholder = { Text(text = placeholder)},
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), //comprobara que la sintaxis sea correcta
             singleLine = true, //en una misma linea
             maxLines = 1,
+            textStyle = TextStyle(
+                fontSize = 20.sp,
+                color = colorResource(id = R.color.purple_500)
+            ),
             colors = TextFieldDefaults.textFieldColors(
-                textColor = Color(0xFF233CDA),
-                backgroundColor = Color(0xFFB1CDE2)
+                backgroundColor = if (isFocused) Color(0xFFC0D6E7) else Color(0xFFC7CED3)
             )
         )
-    }
 
+}
+
+@Composable
+fun CustomCkeckbox(registroState: Boolean, onRegistroCheckChange: (Boolean) -> Unit){
     Row {
         Checkbox(
             checked = registroState,

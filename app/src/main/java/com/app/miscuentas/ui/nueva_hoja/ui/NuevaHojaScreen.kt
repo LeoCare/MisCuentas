@@ -1,23 +1,37 @@
 package com.app.miscuentas.ui.nueva_hoja.ui
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -26,16 +40,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -111,37 +131,74 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
         contentPadding = innerPadding,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(color = 0xFFF5EFEF)) // Usa el color definido en los recursos
-            .padding(top = 20.dp)
+            .background(Color(color = 0xFFE5E7F0))
+            .padding(top = 10.dp)
     ) {
 
         item {
+            Text(
+                text = "CREAR NUEVA HOJA",
+                fontSize = 25.sp,
+                fontFamily = robotoBold,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+            CustomSpacer(size = 20.dp)
 
-            Titulo(_titulo, robotoBold)
+            Surface(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.35f),
+                shape = CutCornerShape(7.dp),
+                color = Color(0xFFDDD1F0),
+                border = BorderStroke(7.dp, color = Color(0xFFDDD1F0))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(10.dp)
+                ) {
+                    Titulo(_titulo, robotoBold)
 
-            Paraticipantes(_numParticipantes, robotoBold)
-
+                    Paraticipantes(_numParticipantes, _participantes, robotoBold)
+                }
+            }
         }
 
+        //BORRAR ESTA LISTA, NO ME COMVENCE!!
         //mostrar lista de participantes
         items(_participantes) { participante ->
             Text(
                 text = participante,
                 modifier = Modifier
-                    .padding(start = 10.dp),
-                color = Color(0xFF254204)
+                    .padding(start = 40.dp),
+                color = colorResource(id = R.color.purple_500)
             )
         }
 
         item{
+            Surface(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.35f),
+                shape = CutCornerShape(7.dp),
+                color = Color(0xFFDDD1F0),
+                border = BorderStroke(7.dp, color = Color(0xFFDDD1F0))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(10.dp)
+                ) {
+                    LimiteGasto(limiteGastos, tieneLimite, robotoMedItalic)
 
-            LimiteGasto(limiteGastos, tieneLimite, robotoMedItalic)
+                    LimiteFecha(fechaCierre, tieneFecha, robotoMedItalic)
 
-            LimiteFecha(fechaCierre, tieneFecha, robotoMedItalic)
+                }
+            }
 
-            CustomSpacer(30.dp)
+            CustomSpacer(20.dp)
 
-            BotonCrear(_numParticipantes, _participantes)
+            BotonCrear()
         }
     }
 }
@@ -149,9 +206,10 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
 @Composable
 fun Titulo(titulo: MutableState<String>, robotoBold: FontFamily) {
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
         text = stringResource(R.string.titulo),
-        fontSize = 25.sp,
+        fontSize = 20.sp,
         color = Color.Black,
         fontFamily = robotoBold, // Ajusta según tu fuente
         modifier = Modifier.padding(start = 10.dp)
@@ -162,11 +220,14 @@ fun Titulo(titulo: MutableState<String>, robotoBold: FontFamily) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 10.dp)
-            .height(50.dp),
+            .height(IntrinsicSize.Min),
         textStyle = TextStyle(
-            fontSize = 15.sp,
+            fontSize = 17.sp,
             textAlign = TextAlign.Start,
             color = colorResource(id = R.color.purple_500)
+        ),
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
         ),
         singleLine = true,
         maxLines = 1
@@ -175,37 +236,61 @@ fun Titulo(titulo: MutableState<String>, robotoBold: FontFamily) {
 
 
 @Composable
-fun Paraticipantes(_numParticipantes: MutableState<String>, robotoBold: FontFamily) {
+fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: SnapshotStateList<String>, robotoBold: FontFamily) {
+    var isFocused by rememberSaveable { mutableStateOf(false) }
+    Text(
+        text = "Participantes",
+        fontSize = 20.sp,
+        color = Color.Black,
+        fontFamily = robotoBold,
+        modifier = Modifier.padding(start = 10.dp, top = 10.dp)
+    )
+
     Row(
         modifier = Modifier.padding(start = 10.dp, top = 10.dp)
     ) {
-        Text(
-            text = "PARTICIPANTES",
-            fontSize = 25.sp,
-            color = Color.Black,
-            fontFamily = robotoBold
+        TextField(
+            value = _numParticipantes.value,
+            onValueChange = { _numParticipantes.value = it },
+            modifier = Modifier
+                .width(220.dp)
+                .height(IntrinsicSize.Min),
+            textStyle = TextStyle(
+                fontSize = 17.sp,
+                color = colorResource(id = R.color.purple_500)
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
+            ),
+            singleLine = true,
+            maxLines = 1
         )
-        Spacer(modifier = Modifier.width(10.dp))
-//                Image(
-//                    painter = painterResource(id = R.drawable.logologin),
-//                    contentDescription = "Icono Participantes"
-//                )
+        Spacer(modifier = Modifier.width(30.dp))
+        Image(
+            painter = painterResource(id = R.drawable.icon_add),
+            contentDescription = "Icono de agregar Participantes",
+            modifier = Modifier
+                .align(CenterVertically)
+                .clickable {
+                    if (_numParticipantes.value.isNotBlank()) {
+                        _participantes.add(_numParticipantes.value)
+                        _numParticipantes.value = ""
+                    }
+                }
+        )
+        Spacer(modifier = Modifier.width(20.dp))
+        Image(
+            painter = painterResource(id = R.drawable.icon_rest),
+            contentDescription = "Icono de agregar Participantes",
+            modifier = Modifier
+                .align(CenterVertically)
+                .clickable {
+                    if (!_participantes.isEmpty()) {
+                        _participantes.remove(_participantes.last())
+                    }
+                }
+        )
     }
-    TextField(
-        value = _numParticipantes.value,
-        onValueChange = { _numParticipantes.value = it },
-        modifier = Modifier
-            .padding(start = 10.dp, top = 10.dp)
-            .width(220.dp)
-            .height(50.dp),
-        textStyle = TextStyle(
-            fontSize = 15.sp,
-            textAlign = TextAlign.Start,
-            color = colorResource(id = R.color.purple_500)
-        ),
-        singleLine = true,
-        maxLines = 1
-    )
 }
 
 
@@ -215,9 +300,10 @@ fun LimiteGasto(
     tieneLimite: MutableState<Boolean>,
     robotoMedItalic: FontFamily
 ) {
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
-        text = "LIMITE DE GASTOS",
-        fontSize = 25.sp,
+        text = "Limite de gastos",
+        fontSize = 20.sp,
         color = Color.Black,
         modifier = Modifier
             .padding(start = 10.dp, top = 20.dp)
@@ -225,7 +311,7 @@ fun LimiteGasto(
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = CenterVertically
     ) {
         TextField(
             value = limiteGastos.value,
@@ -233,18 +319,22 @@ fun LimiteGasto(
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
                 .width(100.dp)
-                .height(50.dp),
+                .height(IntrinsicSize.Min),
             textStyle = TextStyle(
-                fontSize = 15.sp,
+                fontSize = 17.sp,
                 textAlign = TextAlign.Start,
                 color = colorResource(id = R.color.purple_500)
             ),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             maxLines = 1
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
             Spacer(modifier = Modifier.width(10.dp))
@@ -255,7 +345,7 @@ fun LimiteGasto(
             )
             Text(
                 text = "Sin Límite\n(sobra el dinero)",
-                fontSize = 15.sp,
+                fontSize = 13.sp,
                 fontFamily = robotoMedItalic
             )
         }
@@ -265,16 +355,17 @@ fun LimiteGasto(
 
 @Composable
 fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Boolean>, robotoMedItalic: FontFamily) {
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
-        text = "FECHA CIERRE",
-        fontSize = 25.sp,
+        text = "Fecha cierre",
+        fontSize = 20.sp,
         color = Color.Black,
         modifier = Modifier
             .padding(start = 10.dp, top = 10.dp)
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = CenterVertically
     ) {
         TextField(
             value = fechaCierre.value,
@@ -282,18 +373,21 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
                 .width(220.dp)
-                .height(50.dp),
+                .height(IntrinsicSize.Min),
             textStyle = TextStyle(
-                fontSize = 15.sp,
+                fontSize = 17.sp,
                 textAlign = TextAlign.Start,
                 color = colorResource(id = R.color.purple_500)
+            ),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
             ),
             singleLine = true,
             maxLines = 1
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
             Spacer(modifier = Modifier.width(10.dp))
@@ -303,7 +397,7 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
             )
             Text(
                 text = "Sin fecha\n(yo decido cuando)",
-                fontSize = 15.sp,
+                fontSize = 13.sp,
                 fontFamily = robotoMedItalic
             )
         }
@@ -311,7 +405,7 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
 }
 
 @Composable
-fun BotonCrear(_numParticipantes: MutableState<String>, _participantes: SnapshotStateList<String>) {
+fun BotonCrear() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -319,20 +413,15 @@ fun BotonCrear(_numParticipantes: MutableState<String>, _participantes: Snapshot
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
-            onClick = {
-                if (_numParticipantes.value.isNotBlank()) {
-                    _participantes.add(_numParticipantes.value)
-                    _numParticipantes.value = "" // Limpia el TextField después de agregar
-                }
-            },
+            onClick = { },
             modifier = Modifier
-                .height(70.dp)
-                .width(200.dp)
+                .height(60.dp)
+                .width(180.dp)
                 .fillMaxWidth()
         ) {
             Text(
                 text = "CREAR",
-                fontSize = 25.sp,
+                fontSize = 20.sp,
                 color = Color.White
             )
         }
