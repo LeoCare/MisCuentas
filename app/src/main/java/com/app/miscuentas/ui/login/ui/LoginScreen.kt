@@ -21,9 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -157,17 +161,21 @@ fun TextoLogin(registroState: Boolean) {
 //CAMPO USUARIO
 @Composable
 fun UsuarioField(usuario: String, onUsuarioFieldChanged: (String) -> Unit) {
-
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     TextField(
         value = usuario,
         onValueChange = { onUsuarioFieldChanged(it) }, //cada vez que el valor cambia, se llama a la funcion lambda, pasandole el valor actual (it). Este valor sera tratado en el viewModel.
-        Modifier.fillMaxWidth(),
+        Modifier
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                isFocused = focusState.isFocused
+            },
         placeholder = { Text(text = "usuario") },
         singleLine = true, //en una misma linea
         maxLines = 1,
         colors = TextFieldDefaults.textFieldColors(
             textColor = Color(0xFF233CDA),
-            backgroundColor = Color(0xFFB1CDE2)
+            backgroundColor = if (isFocused) Color(0xFFC0D6E7) else Color(0xFFC7CED3)
         )
     )
 }
@@ -175,11 +183,15 @@ fun UsuarioField(usuario: String, onUsuarioFieldChanged: (String) -> Unit) {
 //CAMPO CONTRASEÑA
 @Composable
 fun ContrasennaField(contrasenna: String, onContrasennaFieldChanged: (String) -> Unit) {
-
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     TextField(
         value = contrasenna,
         onValueChange = { onContrasennaFieldChanged(it) },
-        Modifier.fillMaxWidth(),
+        Modifier
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+            isFocused = focusState.isFocused
+        },
         placeholder = { Text(text = "contraseña") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = PasswordVisualTransformation(), //transforma el valor en *
@@ -187,7 +199,7 @@ fun ContrasennaField(contrasenna: String, onContrasennaFieldChanged: (String) ->
         maxLines = 1,
         colors = TextFieldDefaults.textFieldColors(
             textColor = Color(0xFF233CDA),
-            backgroundColor = Color(0xFFB1CDE2)
+            backgroundColor = if (isFocused) Color(0xFFC0D6E7) else Color(0xFFC7CED3)
         )
     )
 }

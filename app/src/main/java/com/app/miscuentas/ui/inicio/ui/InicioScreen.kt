@@ -83,7 +83,7 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
         contentAlignment = Alignment.TopCenter,
         modifier = Modifier
             .fillMaxSize() //estira al maximo
-            .background(Color.LightGray)
+            .background(Color(color = 0xFFF5EFEF))
 
     ) {
 
