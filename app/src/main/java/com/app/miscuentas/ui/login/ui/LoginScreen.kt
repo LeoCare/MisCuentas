@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -172,14 +173,22 @@ fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (Stri
         TextField(
             value = value,
             onValueChange = { onTextFieldChange(it) },
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
                 .onFocusChanged { focusState ->
                     isFocused = focusState.isFocused
                 },
             placeholder = { Text(text = placeholder)},
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), //comprobara que la sintaxis sea correcta
+            keyboardOptions = when (placeholder) {
+                "Email" -> KeyboardOptions(keyboardType = KeyboardType.Email)
+                "Contraseña" -> KeyboardOptions(keyboardType = KeyboardType.Password)
+                else -> KeyboardOptions(keyboardType = KeyboardType.Text)
+            },
+            visualTransformation = when (placeholder) {
+                "Contraseña" -> PasswordVisualTransformation()
+                else -> VisualTransformation.None
+            },
             singleLine = true, //en una misma linea
             maxLines = 1,
             textStyle = TextStyle(
@@ -187,7 +196,7 @@ fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (Stri
                 color = colorResource(id = R.color.purple_500)
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFC0D6E7) else Color(0xFFC7CED3)
+                backgroundColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
             )
         )
 
@@ -198,10 +207,16 @@ fun CustomCkeckbox(registroState: Boolean, onRegistroCheckChange: (Boolean) -> U
     Row {
         Checkbox(
             checked = registroState,
-            onCheckedChange = { onRegistroCheckChange(it) })
+            onCheckedChange = { onRegistroCheckChange(it) },
+            modifier = Modifier
+                .padding(bottom = 7.dp)
+        )
         Text(
             text = "Registrarme",
-            modifier = Modifier.align(CenterVertically))
+            modifier = Modifier
+                .align(CenterVertically)
+                .padding(bottom = 7.dp)
+        )
     }
 }
 

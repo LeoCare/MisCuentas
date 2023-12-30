@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -115,23 +116,23 @@ fun NuevaHoja(
 @Composable
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
-    //CAMBIAR ESTO
+    //CAMBIAR ESTO, ES SOLO PARA PRUEBA!!!
     var limiteGastos = remember { mutableStateOf("") }
     var fechaCierre = remember { mutableStateOf("") }
     var tieneLimite = remember { mutableStateOf(true) }
     var tieneFecha = remember { mutableStateOf(true) }
-    val _participantes = remember { mutableStateListOf<String>("LEO","ANA","SAMY") }
+    val _participantes = remember { mutableStateListOf<String>("LEO","ANA","SAMY","ANA","SAMY","ANA","SAMY","ANA","SAMY") }
     val _titulo = remember { mutableStateOf("") }
     val _numParticipantes = remember { mutableStateOf("") }
 
-    val robotoBold = FontFamily(Font(R.font.roboto_bold))
+    val robotoBlack = FontFamily(Font(R.font.roboto_black))
     val robotoMedItalic = FontFamily(Font(R.font.roboto_mediumitalic))
 
     LazyColumn(
         contentPadding = innerPadding,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(color = 0xFFE5E7F0))
+            .background(Color(color = 0xFFF5EFEF))
             .padding(top = 10.dp)
     ) {
 
@@ -139,7 +140,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
             Text(
                 text = "CREAR NUEVA HOJA",
                 fontSize = 25.sp,
-                fontFamily = robotoBold,
+                fontFamily = robotoBlack,
                 modifier = Modifier.padding(start = 10.dp)
             )
             CustomSpacer(size = 20.dp)
@@ -148,31 +149,50 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight(0.35f),
+                    .fillMaxHeight(0.25f),
                 shape = CutCornerShape(7.dp),
-                color = Color(0xFFDDD1F0),
-                border = BorderStroke(7.dp, color = Color(0xFFDDD1F0))
+                color = Color(0xFFC0D6E7),
+                border = BorderStroke(7.dp, color = Color(0xFFC0D6E7))
             ) {
                 Column(
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    Titulo(_titulo, robotoBold)
-
-                    Paraticipantes(_numParticipantes, _participantes, robotoBold)
+                    Titulo(_titulo, robotoBlack)
                 }
             }
-        }
 
-        //BORRAR ESTA LISTA, NO ME COMVENCE!!
-        //mostrar lista de participantes
-        items(_participantes) { participante ->
-            Text(
-                text = participante,
+            Surface(
                 modifier = Modifier
-                    .padding(start = 40.dp),
-                color = colorResource(id = R.color.purple_500)
-            )
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f),
+                shape = CutCornerShape(7.dp),
+                color = Color(0xFFC0D6E7),
+                border = BorderStroke(7.dp, color = Color(0xFFC0D6E7))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(10.dp)
+                ) {
+                    Paraticipantes(_numParticipantes, _participantes, robotoBlack)
+                    LazyRow(
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxWidth()
+                    ) {
+                        //mostrar lista de participantes
+                        items(_participantes) { participante ->
+                            Text(
+                                text = participante,
+                                modifier = Modifier
+                                    .padding(start = 20.dp),
+                                color = colorResource(id = R.color.purple_500)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         item{
@@ -182,8 +202,8 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .fillMaxWidth()
                     .fillMaxHeight(0.35f),
                 shape = CutCornerShape(7.dp),
-                color = Color(0xFFDDD1F0),
-                border = BorderStroke(7.dp, color = Color(0xFFDDD1F0))
+                color = Color(0xFFC0D6E7),
+                border = BorderStroke(7.dp, color = Color(0xFFC0D6E7))
             ) {
                 Column(
                     modifier = Modifier
@@ -205,13 +225,13 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
 
 @Composable
-fun Titulo(titulo: MutableState<String>, robotoBold: FontFamily) {
+fun Titulo(titulo: MutableState<String>, robotoBlack: FontFamily) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
         text = stringResource(R.string.titulo),
         fontSize = 20.sp,
         color = Color.Black,
-        fontFamily = robotoBold, // Ajusta según tu fuente
+        fontFamily = robotoBlack, // Ajusta según tu fuente
         modifier = Modifier.padding(start = 10.dp)
     )
     TextField(
@@ -227,7 +247,7 @@ fun Titulo(titulo: MutableState<String>, robotoBold: FontFamily) {
             color = colorResource(id = R.color.purple_500)
         ),
         colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
+            backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
         ),
         singleLine = true,
         maxLines = 1
@@ -236,14 +256,14 @@ fun Titulo(titulo: MutableState<String>, robotoBold: FontFamily) {
 
 
 @Composable
-fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: SnapshotStateList<String>, robotoBold: FontFamily) {
+fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: SnapshotStateList<String>, robotoBlack: FontFamily) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
         text = "Participantes",
         fontSize = 20.sp,
         color = Color.Black,
-        fontFamily = robotoBold,
-        modifier = Modifier.padding(start = 10.dp, top = 10.dp)
+        fontFamily = robotoBlack,
+        modifier = Modifier.padding(start = 10.dp)
     )
 
     Row(
@@ -260,7 +280,7 @@ fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: Snap
                 color = colorResource(id = R.color.purple_500)
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
+                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
             ),
             singleLine = true,
             maxLines = 1
@@ -306,7 +326,7 @@ fun LimiteGasto(
         fontSize = 20.sp,
         color = Color.Black,
         modifier = Modifier
-            .padding(start = 10.dp, top = 20.dp)
+            .padding(start = 10.dp)
 //                fontFamily = FontFamily.Roboto
     )
     Row(
@@ -326,7 +346,7 @@ fun LimiteGasto(
                 color = colorResource(id = R.color.purple_500)
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
+                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -372,7 +392,7 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
             onValueChange = { fechaCierre.value = it },
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
-                .width(220.dp)
+                .width(200.dp)
                 .height(IntrinsicSize.Min),
             textStyle = TextStyle(
                 fontSize = 17.sp,
@@ -380,7 +400,7 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
                 color = colorResource(id = R.color.purple_500)
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFCCD2D8)
+                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
             ),
             singleLine = true,
             maxLines = 1
