@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.app.miscuentas.ui.navegacion
 
 import android.widget.Toast
@@ -9,12 +11,15 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +86,7 @@ fun AppNavHost(navController: NavHostController) {
 }
 
 
+
 @Composable
 fun MiTopBar(
     currentScreen: MisCuentasScreem,
@@ -97,6 +103,9 @@ fun MiTopBar(
 
     TopAppBar(
         title = { Text(stringResource(currentScreen.title)) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         navigationIcon = {
             if (canNavigateBack) { //muestra la flecha para volver atras
                 androidx.compose.material3.IconButton(onClick = navigateUp) {
@@ -131,8 +140,8 @@ fun MiTopBar(
             ) {
                 Icon(Icons.Filled.Info, contentDescription = "Informacion")
             }
-        },
-        backgroundColor = Color(color = 0xFFA397E6)
+        }
+
     )
 }
 

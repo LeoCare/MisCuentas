@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.app.miscuentas.ui.nueva_hoja.ui
 
 import androidx.compose.animation.animateContentSize
@@ -22,22 +24,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -156,7 +155,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.small)
+                    .clip(MaterialTheme.shapes.large)
                     .fillMaxHeight(0.25f),
 
             ) {
@@ -173,7 +172,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .padding(10.dp)
                     .fillMaxWidth()
                     .fillMaxHeight(0.5f)
-                    .clip(MaterialTheme.shapes.small)
+                    .clip(MaterialTheme.shapes.large)
                     .animateContentSize(
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -196,7 +195,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.small)
+                    .clip(MaterialTheme.shapes.large)
                     .fillMaxHeight(0.35f)
             ) {
                 Column(
@@ -238,10 +237,10 @@ fun Titulo(titulo: MutableState<String>, robotoBlack: FontFamily) {
         textStyle = TextStyle(
             fontSize = 17.sp,
             textAlign = TextAlign.Start,
-            color = colorResource(id = R.color.purple_500)
+            color = MaterialTheme.colorScheme.onTertiaryContainer
         ),
         colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
+            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
         ),
         singleLine = true,
         maxLines = 1
@@ -301,10 +300,10 @@ fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: Snap
                 .height(IntrinsicSize.Min),
             textStyle = TextStyle(
                 fontSize = 17.sp,
-                color = colorResource(id = R.color.purple_500)
+                color = MaterialTheme.colorScheme.onTertiaryContainer
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
             ),
             singleLine = true,
             maxLines = 1
@@ -352,7 +351,7 @@ fun ListaParticipantes(mostrarParticipantes: Boolean, _participantes: SnapshotSt
                     text = participante,
                     modifier = Modifier
                         .padding(start = 10.dp),
-                    color = colorResource(id = R.color.purple_500)
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
         }
@@ -389,10 +388,10 @@ fun LimiteGasto(
             textStyle = TextStyle(
                 fontSize = 17.sp,
                 textAlign = TextAlign.Start,
-                color = colorResource(id = R.color.purple_500)
+                color = MaterialTheme.colorScheme.onTertiaryContainer
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -443,10 +442,10 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
             textStyle = TextStyle(
                 fontSize = 17.sp,
                 textAlign = TextAlign.Start,
-                color = colorResource(id = R.color.purple_500)
+                color = MaterialTheme.colorScheme.onTertiaryContainer
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFDFECF7)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
             ),
             singleLine = true,
             maxLines = 1
@@ -504,6 +503,7 @@ fun BotonCrear() {
                 .height(60.dp)
                 .width(180.dp)
                 .fillMaxWidth()
+
         ) {
             Text(
                 text = "CREAR",

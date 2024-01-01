@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.app.miscuentas.ui.login.ui
 
 import androidx.compose.foundation.Image
@@ -13,11 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,7 +34,6 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -166,6 +169,7 @@ fun TextoLogin(registroState: Boolean) {
 }
 
 
+
 @Composable
 fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (String) -> Unit) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
@@ -193,10 +197,10 @@ fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (Stri
             maxLines = 1,
             textStyle = TextStyle(
                 fontSize = 20.sp,
-                color = colorResource(id = R.color.purple_500)
+                color = MaterialTheme.colorScheme.onTertiaryContainer
             ),
             colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
+                containerColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
             )
         )
 
