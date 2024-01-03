@@ -16,12 +16,12 @@ class LoginViewModel : ViewModel(){
     private val _login = MutableStateFlow(false)
 
     //variables para ser usadas desde fuera de la clase
-    val usuario : StateFlow<String> = _usuario
-    val contrasenna : StateFlow<String> = _contrasenna
-    val email : StateFlow<String> = _email
-    val mensaje : StateFlow<String> = _mensaje
-    val registro : StateFlow<Boolean> = _registro
-    val login : StateFlow<Boolean> = _login
+    val usuario: StateFlow<String> = _usuario
+    val contrasenna: StateFlow<String> = _contrasenna
+    val email: StateFlow<String> = _email
+    val mensaje: StateFlow<String> = _mensaje
+    val registro: StateFlow<Boolean> = _registro
+    val login: StateFlow<Boolean> = _login
 
     //Metodos (para ser llamadas desde la vista) que asignan valor a las variables privadas.
     fun onUsuarioFieldChanged(usuario :String){

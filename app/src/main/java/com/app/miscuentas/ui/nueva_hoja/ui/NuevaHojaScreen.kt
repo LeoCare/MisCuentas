@@ -5,7 +5,6 @@ package com.app.miscuentas.ui.nueva_hoja.ui
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +31,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,21 +42,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -67,6 +65,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -121,15 +120,19 @@ fun NuevaHoja(
 @Composable
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
-    //CAMBIAR ESTO, ES SOLO PARA PRUEBA!!!
-    var limiteGastos = remember { mutableStateOf("") }
+    val viewModel: NuevaHojaViewModel = viewModel()
+    //variables que delegan sus valores al cambio del viewModel
+    val statusTitulo by viewModel.titulo.collectAsState()
+    val statusParticipante by viewModel.participante.collectAsState()
+    val statusLimiteGasto by viewModel.limiteGasto.collectAsState()
+    val listParticipantes by viewModel.listaParticipantes.collectAsState() //lista de participantes
+
+    //Provisional
     var fechaCierre = remember { mutableStateOf("") }
     var tieneLimite = remember { mutableStateOf(true) }
     var tieneFecha = remember { mutableStateOf(true) }
-    val _participantes = remember { mutableStateListOf<String>("LEO","ANA","SAMY","ANA","SAMY","ANA","SAMY","ANA","SAMY") }
-    val _titulo = remember { mutableStateOf("") }
-    val _numParticipantes = remember { mutableStateOf("") }
 
+    //Tipo letra
     val robotoBlack = FontFamily(Font(R.font.roboto_black))
     val robotoMedItalic = FontFamily(Font(R.font.roboto_mediumitalic))
 
@@ -163,7 +166,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    Titulo(_titulo, robotoBlack)
+                    Titulo(robotoBlack, value = statusTitulo) { viewModel.onTituloFieldChanged(it) }
                 }
             }
 
@@ -184,7 +187,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    Paraticipantes(_numParticipantes, _participantes, robotoBlack)
+                    Paraticipantes(robotoBlack, listParticipantes, statusParticipante) { viewModel.onParticipanteFieldChanged(it) }
 
                 }
             }
@@ -202,7 +205,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    LimiteGasto(limiteGastos, tieneLimite, robotoMedItalic)
+                    LimiteGasto(robotoMedItalic, tieneLimite, statusLimiteGasto) { viewModel.onLimiteGastoFieldChanged(it) }
 
                     LimiteFecha(fechaCierre, tieneFecha, robotoMedItalic)
 
@@ -218,7 +221,10 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
 
 @Composable
-fun Titulo(titulo: MutableState<String>, robotoBlack: FontFamily) {
+fun Titulo(
+    robotoBlack: FontFamily,
+    value: String,
+    onTituloFieldChange: (String) -> Unit) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
         text = stringResource(R.string.titulo),
@@ -228,8 +234,8 @@ fun Titulo(titulo: MutableState<String>, robotoBlack: FontFamily) {
         modifier = Modifier.padding(start = 10.dp)
     )
     TextField(
-        value = titulo.value,
-        onValueChange = { titulo.value = it },
+        value = value,
+        onValueChange = { onTituloFieldChange(it) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 10.dp)
@@ -249,14 +255,20 @@ fun Titulo(titulo: MutableState<String>, robotoBlack: FontFamily) {
 
 
 @Composable
-fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: SnapshotStateList<String>, robotoBlack: FontFamily) {
-    var isFocused by rememberSaveable { mutableStateOf(false) }
-    var mostrarParticipantes by remember { mutableStateOf(false) }
+fun Paraticipantes(
+    robotoBlack: FontFamily,
+    listParticipantes: List<String>,
+    statusParticipante: String,
+    onParticipanteFieldChange: (String) -> Unit
+    ) {
+    val viewModel: NuevaHojaViewModel = viewModel()
+    val isFocused by rememberSaveable { mutableStateOf(false) }
+    var mostrarParticipantes by rememberSaveable { mutableStateOf(true) }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 10.dp),
+            .padding(start = 10.dp, end = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
 
     ) {
@@ -270,31 +282,31 @@ fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: Snap
         )
         Spacer(Modifier.weight(1f))
         Text(
-            text = "0",
+            text = viewModel.getTotalParticipantes().toString(),
             fontSize = 15.sp,
             color = Color.Black,
             fontFamily = robotoBlack,
             modifier = Modifier
                 .align(CenterVertically)
         )
-        IconButton(onClick = { mostrarParticipantes = !mostrarParticipantes }) {
-            Icon(
-                imageVector = Icons.Filled.AccountCircle,
-                contentDescription = "Ver participantes",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .align(CenterVertically)
 
-            )
-        }
+        Icon(
+            imageVector = Icons.Filled.AccountCircle,
+            contentDescription = "Ver participantes",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .align(CenterVertically)
+
+        )
+
     }
 
     Row(
-        modifier = Modifier.padding(start = 10.dp, top = 10.dp)
+        modifier = Modifier.padding(10.dp)
     ) {
         TextField(
-            value = _numParticipantes.value,
-            onValueChange = { _numParticipantes.value = it },
+            value = statusParticipante,
+            onValueChange = { onParticipanteFieldChange(it) },
             modifier = Modifier
                 .width(220.dp)
                 .height(IntrinsicSize.Min),
@@ -308,37 +320,48 @@ fun Paraticipantes(_numParticipantes: MutableState<String>, _participantes: Snap
             singleLine = true,
             maxLines = 1
         )
-        Spacer(modifier = Modifier.width(30.dp))
+        Spacer(Modifier.weight(1f))
         Image(
             painter = painterResource(id = R.drawable.icon_add),
             contentDescription = "Icono de agregar Participantes",
             modifier = Modifier
                 .align(CenterVertically)
                 .clickable {
-                    if (_numParticipantes.value.isNotBlank()) {
-                        _participantes.add(_numParticipantes.value)
-                        _numParticipantes.value = ""
+                    if (statusParticipante.isNotBlank()) {
+                        viewModel.addParticipante(statusParticipante)
+                        onParticipanteFieldChange("")
                     }
                 }
         )
-        Spacer(modifier = Modifier.width(20.dp))
+        Spacer(Modifier.weight(1f))
         Image(
             painter = painterResource(id = R.drawable.icon_rest),
-            contentDescription = "Icono de agregar Participantes",
+            contentDescription = "Icono de quitar Participantes",
             modifier = Modifier
                 .align(CenterVertically)
                 .clickable {
-                    if (!_participantes.isEmpty()) {
-                        _participantes.remove(_participantes.last())
+                    if (!listParticipantes.isEmpty()) {
+                        viewModel.deleteUltimoParticipante()
                     }
                 }
         )
     }
-    ListaParticipantes(mostrarParticipantes, _participantes)
+    Column {
+        IconButton(onClick = { mostrarParticipantes = !mostrarParticipantes }) {
+            Icon(
+                imageVector = if(mostrarParticipantes) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore ,
+                contentDescription = "Ver participantes",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        ListaParticipantes(mostrarParticipantes, listParticipantes)
+    }
+
 }
 
 @Composable
-fun ListaParticipantes(mostrarParticipantes: Boolean, _participantes: SnapshotStateList<String>){
+fun ListaParticipantes(mostrarParticipantes: Boolean, listParticipantes: List<String>){
+
     if (mostrarParticipantes) {
         LazyRow(
             modifier = Modifier
@@ -346,7 +369,7 @@ fun ListaParticipantes(mostrarParticipantes: Boolean, _participantes: SnapshotSt
                 .fillMaxWidth()
         ) {
             //mostrar lista de participantes
-            items(_participantes) { participante ->
+            items(listParticipantes) { participante ->
                 Text(
                     text = participante,
                     modifier = Modifier
@@ -355,15 +378,15 @@ fun ListaParticipantes(mostrarParticipantes: Boolean, _participantes: SnapshotSt
                 )
             }
         }
-
     }
 }
 
 @Composable
 fun LimiteGasto(
-    limiteGastos: MutableState<String>,
+    robotoMedItalic: FontFamily,
     tieneLimite: MutableState<Boolean>,
-    robotoMedItalic: FontFamily
+    statusLimiteGasto: String,
+    onLimiteGastoFieldChange: (String) -> Unit
 ) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
@@ -379,8 +402,8 @@ fun LimiteGasto(
         verticalAlignment = CenterVertically
     ) {
         TextField(
-            value = limiteGastos.value,
-            onValueChange = { limiteGastos.value = it },
+            value = statusLimiteGasto,
+            onValueChange = { onLimiteGastoFieldChange(it) },
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
                 .width(100.dp)
@@ -400,9 +423,9 @@ fun LimiteGasto(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = CenterVertically,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.weight(1f))
             Checkbox(
                 modifier = Modifier.align(Alignment.Bottom),
                 checked = tieneLimite.value,
@@ -430,14 +453,15 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = CenterVertically
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextField(
             value = fechaCierre.value,
             onValueChange = { fechaCierre.value = it },
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
-                .width(200.dp)
+                .width(180.dp)
                 .height(IntrinsicSize.Min),
             textStyle = TextStyle(
                 fontSize = 17.sp,
@@ -455,7 +479,7 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
             verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(Modifier.weight(1f))
             Checkbox(
                 checked = tieneFecha.value,
                 onCheckedChange = { tieneFecha.value = it }

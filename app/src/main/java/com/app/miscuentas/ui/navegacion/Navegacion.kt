@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -102,7 +103,12 @@ fun MiTopBar(
     if (showDialog) MiDialogo({showDialog =  false}, { showDialog = true}) //esta funcion tiene como parametro dos funciones lambda que cambian el valor de una variable.
 
     TopAppBar(
-        title = { Text(stringResource(currentScreen.title)) },
+        title = {
+            Text(
+                stringResource(currentScreen.title),
+                fontSize = 25.sp
+            )
+        },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),

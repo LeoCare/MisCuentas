@@ -77,12 +77,12 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
     val viewModel: LoginViewModel = viewModel()
     //variables que delegan sus valores al cambio del viewModel
-    val statusUsuario :String by viewModel.usuario.collectAsState()
-    val statusContrasenna :String by viewModel.contrasenna.collectAsState()
-    val statusEmail :String by viewModel.email.collectAsState()
-    val mensajeClick :String by viewModel.mensaje.collectAsState()
-    val registroState :Boolean by viewModel.registro.collectAsState()
-    val loginState :Boolean by viewModel.login.collectAsState()
+    val statusUsuario by viewModel.usuario.collectAsState()
+    val statusContrasenna by viewModel.contrasenna.collectAsState()
+    val statusEmail by viewModel.email.collectAsState()
+    val mensajeClick by viewModel.mensaje.collectAsState()
+    val registroState by viewModel.registro.collectAsState()
+    val loginState by viewModel.login.collectAsState()
 
     LaunchedEffect(loginState) {
         if (loginState) onNavigate()
@@ -104,17 +104,17 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
             TextoLogin(registroState)
             CustomSpacer(24.dp)
 
-            CustomTextField("Usuario", value = statusUsuario, onTextFieldChange = { viewModel.onUsuarioFieldChanged(it) })
+            CustomTextField("Usuario", value = statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
             CustomSpacer(24.dp)
             
-            CustomTextField("Contraseña", value = statusContrasenna, onTextFieldChange = { viewModel.onContrasennaFieldChanged(it) })
+            CustomTextField("Contraseña", value = statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
 
             if (registroState){
-                CustomTextField("Email", value = statusEmail, onTextFieldChange = { viewModel.onEmailFieldChanged(it) })
+                CustomTextField("Email", value = statusEmail) { viewModel.onEmailFieldChanged(it) }
             }
 
-            CustomCkeckbox(registroState = registroState, onRegistroCheckChange = { viewModel.onRegistroCheckChanged(it) })
+            CustomCkeckbox(registroState = registroState) { viewModel.onRegistroCheckChanged(it) }
 
             BotonInicio(
                 registroState,
