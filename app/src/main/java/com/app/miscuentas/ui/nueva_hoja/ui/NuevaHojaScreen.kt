@@ -37,6 +37,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -128,12 +130,9 @@ fun NuevaHoja(
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
     val viewModel: NuevaHojaViewModel = viewModel()
-    //variables que delegan sus valores al cambio del viewModel
-    val statusTitulo by viewModel.titulo.collectAsState()
-    val statusParticipante by viewModel.participante.collectAsState()
-    val listParticipantes by viewModel.listaParticipantes.collectAsState()
-    val statusLimiteGasto by viewModel.limiteGasto.collectAsState()
-    val statusFechaCierre by viewModel.fechaCierre.collectAsState()
+
+    // Observa el estado completo del evento
+    val eventoState by viewModel.eventoState.collectAsState()
 
     //Provisional
 
@@ -169,12 +168,20 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .clip(MaterialTheme.shapes.large)
                     .fillMaxHeight(0.25f),
 
-                ) {
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
                 Column(
                     modifier = Modifier
                         .padding(10.dp)
+
                 ) {
-                    Titulo(robotoBlack, value = statusTitulo) { viewModel.onTituloFieldChanged(it) }
+                    Titulo(
+                        robotoBlack,
+                        value = eventoState.titulo
+                    ) { viewModel.onTituloFieldChanged(it) }
                 }
             }
 
@@ -189,7 +196,11 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                             dampingRatio = Spring.DampingRatioLowBouncy,
                             stiffness = Spring.StiffnessLow
                         )
-                    )
+                    ),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -197,8 +208,8 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                 ) {
                     Paraticipantes(
                         robotoBlack,
-                        listParticipantes,
-                        statusParticipante) { viewModel.onParticipanteFieldChanged(it) }
+                        eventoState.listaParticipantes,
+                        eventoState.participante) { viewModel.onParticipanteFieldChanged(it) }
 
                 }
             }
@@ -210,7 +221,11 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .padding(10.dp)
                     .fillMaxWidth()
                     .clip(MaterialTheme.shapes.large)
-                    .fillMaxHeight(0.35f)
+                    .fillMaxHeight(0.35f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -219,10 +234,10 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     LimiteGasto(
                         robotoMedItalic,
                         tieneLimite,
-                        statusLimiteGasto) { viewModel.onLimiteGastoFieldChanged(it) }
+                        eventoState.limiteGasto) { viewModel.onLimiteGastoFieldChanged(it) }
 
                     LimiteFecha(
-                        statusFechaCierre,
+                        eventoState.fechaCierre,
                         tieneFecha,
                         robotoMedItalic) { viewModel.onFechaCierreFieldChanged(it) }
 
@@ -261,8 +276,7 @@ fun Titulo(
             .height(IntrinsicSize.Min),
         textStyle = TextStyle(
             fontSize = 17.sp,
-            textAlign = TextAlign.Start,
-            color = MaterialTheme.colorScheme.onTertiaryContainer
+            textAlign = TextAlign.Start
         ),
         colors = TextFieldDefaults.textFieldColors(
             containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
@@ -331,8 +345,7 @@ fun Paraticipantes(
                 .width(220.dp)
                 .height(IntrinsicSize.Min),
             textStyle = TextStyle(
-                fontSize = 17.sp,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                fontSize = 17.sp
             ),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
@@ -394,7 +407,7 @@ fun ListaParticipantes(
                     text = participante,
                     modifier = Modifier
                         .padding(start = 10.dp),
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -438,8 +451,7 @@ fun LimiteGasto(
                 .height(IntrinsicSize.Min),
             textStyle = TextStyle(
                 fontSize = 17.sp,
-                textAlign = TextAlign.Start,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
@@ -515,8 +527,7 @@ fun LimiteFecha(
             enabled = false,
             textStyle = TextStyle(
                 fontSize = 17.sp,
-                textAlign = TextAlign.Start,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor =  Color(0xFFD3D7DA)

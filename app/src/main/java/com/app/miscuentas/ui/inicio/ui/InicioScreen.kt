@@ -60,10 +60,6 @@ fun Inicio(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    // Determinar si se puede navegar hacia atrás
-    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-    val canNavigateBack = navBackStackEntry != null
-
     Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
         scaffoldState = scaffoldState,
         drawerContent = { Text("Menu lateral") },
@@ -72,7 +68,7 @@ fun Inicio(
             currentScreen,
             scope = scope,
             scaffoldState = scaffoldState,
-            canNavigateBack = canNavigateBack,
+            canNavigateBack = false,
             navigateUp = { navController.navigateUp() })
         },
         content = { InicioContent(onNavMisHojas, onNavNuevaHoja) }

@@ -2,66 +2,40 @@ package com.app.miscuentas.ui.login.ui
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import com.app.miscuentas.ui.login.data.LoginState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class LoginViewModel : ViewModel(){
 
-    //variables para ser trabajadas desde la clase
-    private val _usuario = MutableStateFlow("")
-    private val _contrasenna = MutableStateFlow("")
-    private val _email = MutableStateFlow("")
-    private val _mensaje = MutableStateFlow("")
-    private val _registro = MutableStateFlow(false)
-    private val _login = MutableStateFlow(false)
-
-    //variables para ser usadas desde fuera de la clase
-    val usuario: StateFlow<String> = _usuario
-    val contrasenna: StateFlow<String> = _contrasenna
-    val email: StateFlow<String> = _email
-    val mensaje: StateFlow<String> = _mensaje
-    val registro: StateFlow<Boolean> = _registro
-    val login: StateFlow<Boolean> = _login
+    private val _loginState = MutableStateFlow(LoginState())
+    val loginState: StateFlow<LoginState> = _loginState
 
     //Metodos (para ser llamadas desde la vista) que asignan valor a las variables privadas.
     fun onUsuarioFieldChanged(usuario :String){
-        _usuario.value = usuario
+        _loginState.value = _loginState.value.copy(usuario = usuario)
     }
-    fun onContrasennaFieldChanged(contrasenna :String) {
-        _contrasenna.value = contrasenna
+    fun onContrasennaFieldChanged(contrasenna: String) {
+        _loginState.value = _loginState.value.copy(contrasena = contrasenna)
     }
-    fun onEmailFieldChanged(email :String){
-        _email.value = email
+    fun onEmailFieldChanged(email: String) {
+        _loginState.value = _loginState.value.copy(email = email)
     }
-    fun onRegistroCheckChanged(registrarme :Boolean){
-        _registro.value = registrarme
+    fun onRegistroCheckChanged(registrarme: Boolean) {
+        _loginState.value = _loginState.value.copy(registro = registrarme)
     }
-
-
-    //Metodo que se ejecuta al hacer click al boton del login
-    fun mensajeLoginClick(){
-        if (_usuario.value == "") _mensaje.value = "Falta Usuario"
-        else if( !contrasennaOk() ) _mensaje.value = "Pass con 6 digitos minimo (num, mayusc. y minusc.)"
-
-        else if(_registro.value){ //Si el check de registrar esta marcado....
-            if( !emailOk() ) _mensaje.value = "Email incorrecto"
-            else {
-                _mensaje.value = ""
-                _login.value = true
-            }
-        }
-
-        else {
-            _mensaje.value = ""
-            _login.value = true
-        }
+    fun onMensajeChanged(mensaje: String) {
+        _loginState.value = _loginState.value.copy(mensaje = mensaje)
+    }
+    fun onLoginOkChanged(loginOk: Boolean) {
+        _loginState.value = _loginState.value.copy(loginOk = loginOk)
     }
 
     //Metodos que comprueban la sintaxis del correo y la contraseña
-    private fun emailOk() : Boolean = Patterns.EMAIL_ADDRESS.matcher(_email.value).matches()
+    fun emailOk(email: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
-    private fun contrasennaOk() : Boolean {
-        if (_contrasenna.value.length < 6) {
+    fun contrasennaOk(contrasena: String): Boolean {
+        if (contrasena.length < 6) {
             return false
         }
 
@@ -69,7 +43,7 @@ class LoginViewModel : ViewModel(){
         var tieneMayus = false
         var tieneMinus = false
 
-        for (char in _contrasenna.value) {
+        for (char in contrasena) {
             when {
                 char.isDigit() -> tieneNumero = true
                 char.isUpperCase() -> tieneMayus = true

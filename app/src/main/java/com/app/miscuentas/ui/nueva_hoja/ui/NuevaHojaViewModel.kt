@@ -1,63 +1,47 @@
 package com.app.miscuentas.ui.nueva_hoja.ui
 
 import androidx.lifecycle.ViewModel
+import com.app.miscuentas.ui.nueva_hoja.data.NuevaHojaState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.onEmpty
 
 class NuevaHojaViewModel: ViewModel() {
 
-    //Variables de clase -privadas-
-    private val _titulo = MutableStateFlow("")
-    private val _participante = MutableStateFlow("")
-    private val _listaParticipantes = MutableStateFlow<List<String>>(listOf())
-    private val _limiteGasto = MutableStateFlow("")
-    private val _fechaCierre = MutableStateFlow("")
+    private val _eventoState = MutableStateFlow(NuevaHojaState())
+    val eventoState: StateFlow<NuevaHojaState> = _eventoState
 
-
-    //-publicas-
-    val titulo: StateFlow<String> = _titulo
-    val participante: StateFlow<String> = _participante
-    val listaParticipantes: StateFlow<List<String>> = _listaParticipantes
-    val limiteGasto: StateFlow<String> = _limiteGasto
-    val fechaCierre: StateFlow<String> = _fechaCierre
-
-
-    //Metodos (para ser llamadas desde la vista)
-    fun onTituloFieldChanged(titulo: String){
-        _titulo.value = titulo
+    fun onTituloFieldChanged(titulo: String) {
+        _eventoState.value = _eventoState.value.copy(titulo = titulo)
     }
-    fun onParticipanteFieldChanged(participante: String){
-        _participante.value = participante
+
+    fun onParticipanteFieldChanged(participante: String) {
+        _eventoState.value = _eventoState.value.copy(participante = participante)
     }
-    fun onLimiteGastoFieldChanged(limiteGasto: String){
-        _limiteGasto.value = limiteGasto
+
+    fun onLimiteGastoFieldChanged(limiteGasto: String) {
+        _eventoState.value = _eventoState.value.copy(limiteGasto = limiteGasto)
     }
+
     fun onFechaCierreFieldChanged(fechaCierre: String) {
-        _fechaCierre.value = fechaCierre
+        _eventoState.value = _eventoState.value.copy(fechaCierre = fechaCierre)
     }
 
-
-
-
-    // Añadir un participante a la lista
     fun addParticipante(participante: String) {
         if (participante.isNotBlank()) {
-            _listaParticipantes.value = _listaParticipantes.value + participante
-            _participante.value = "" // Resetea el campo después de añadir
+            val updatedList = _eventoState.value.listaParticipantes + participante
+            _eventoState.value = _eventoState.value.copy(listaParticipantes = updatedList, participante = "")
         }
     }
 
-    // Quitar un participante a la lista
     fun deleteUltimoParticipante() {
-        if (_listaParticipantes.value.isNotEmpty()) {
-            _listaParticipantes.value = _listaParticipantes.value.dropLast(1)
+        if (_eventoState.value.listaParticipantes.isNotEmpty()) {
+            val updatedList = _eventoState.value.listaParticipantes.dropLast(1)
+            _eventoState.value = _eventoState.value.copy(listaParticipantes = updatedList)
         }
     }
 
-    // Total participantes
-    fun getTotalParticipantes(): Int{
-        return _listaParticipantes.value.size
+    fun getTotalParticipantes(): Int {
+        return _eventoState.value.listaParticipantes.size
     }
 
 }

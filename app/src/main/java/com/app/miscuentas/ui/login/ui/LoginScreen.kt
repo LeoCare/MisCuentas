@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -77,15 +78,28 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
     val viewModel: LoginViewModel = viewModel()
     //variables que delegan sus valores al cambio del viewModel
-    val statusUsuario by viewModel.usuario.collectAsState()
-    val statusContrasenna by viewModel.contrasenna.collectAsState()
-    val statusEmail by viewModel.email.collectAsState()
-    val mensajeClick by viewModel.mensaje.collectAsState()
-    val registroState by viewModel.registro.collectAsState()
-    val loginState by viewModel.login.collectAsState()
+    val loginState by viewModel.loginState.collectAsState()
 
-    LaunchedEffect(loginState) {
-        if (loginState) onNavigate()
+    // Estado para manejar mensajes de error al presionar Boton de inicio
+    val uiErrorMessage = remember { mutableStateOf("") }
+
+    //Si el login es correcto, navega a la siguiente pagina
+    LaunchedEffect(loginState.loginOk) {
+        if (loginState.loginOk) onNavigate()
+    }
+
+    // Actualiza el mensaje de error, al presionar el boton, si corresponde actualiza el estado de 'loginOk'.
+    val onBotonInicioClick = {
+        when {
+            loginState.usuario.isEmpty() -> uiErrorMessage.value = "Falta usuario"
+            !viewModel.contrasennaOk(loginState.contrasena) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
+            loginState.registro && !viewModel.emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
+            else -> {
+                uiErrorMessage.value = ""
+                viewModel.onLoginOkChanged(true)
+            }
+        }
+        viewModel.onMensajeChanged(uiErrorMessage.value)
     }
 
     LazyColumn(
@@ -101,24 +115,25 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
             HeaderImage(modifier)
             CustomSpacer(40.dp)
 
-            TextoLogin(registroState)
+            TextoLogin(loginState.registro)
             CustomSpacer(24.dp)
 
-            CustomTextField("Usuario", value = statusUsuario) { viewModel.onUsuarioFieldChanged(it) }
+            CustomTextField("Usuario", value = loginState.usuario) { viewModel.onUsuarioFieldChanged(it) }
             CustomSpacer(24.dp)
             
-            CustomTextField("Contraseña", value = statusContrasenna) { viewModel.onContrasennaFieldChanged(it) }
+            CustomTextField("Contraseña", value = loginState.contrasena) { viewModel.onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
 
-            if (registroState){
-                CustomTextField("Email", value = statusEmail) { viewModel.onEmailFieldChanged(it) }
+            if (loginState.registro){
+                CustomTextField("Email", value = loginState.email) { viewModel.onEmailFieldChanged(it) }
             }
 
-            CustomCkeckbox(registroState = registroState) { viewModel.onRegistroCheckChanged(it) }
+            CustomCkeckbox(registroState = loginState.registro) { viewModel.onRegistroCheckChanged(it) }
 
             BotonInicio(
-                registroState,
-                mensajeClick) { viewModel.mensajeLoginClick() }
+                loginState.registro,
+                loginState.mensaje,
+                loginOk =  onBotonInicioClick)
 
         }
     }
@@ -170,6 +185,7 @@ fun TextoLogin(registroState: Boolean) {
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (String) -> Unit) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
@@ -196,8 +212,7 @@ fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (Stri
             singleLine = true, //en una misma linea
             maxLines = 1,
             textStyle = TextStyle(
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                fontSize = 20.sp
             ),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
@@ -226,8 +241,11 @@ fun CustomCkeckbox(registroState: Boolean, onRegistroCheckChange: (Boolean) -> U
 
 //BOTON INICIO
 @Composable
-fun BotonInicio(registroState: Boolean, mensaje: String, loginOk: () -> Unit) {
-
+fun BotonInicio(
+    registroState: Boolean,
+    mensaje: String,
+    loginOk: () -> Unit
+) {
     var texto = "INICIAR"
     val robotoBold = FontFamily(Font(R.font.roboto_bold))
     Button(

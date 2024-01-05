@@ -7,4 +7,5 @@
     <string name="mis_hojas">Mis Hojas</string>
     <string name="back_button">Back</string>
     <string name="titulo">Titulo</string>
+    <string name="error_falta_usuario">Falta Usuario</string>
 </resources>
