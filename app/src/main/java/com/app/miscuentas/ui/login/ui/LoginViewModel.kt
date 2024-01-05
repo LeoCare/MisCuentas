@@ -39,12 +39,12 @@ class LoginViewModel : ViewModel(){
 
 
     //Metodo que se ejecuta al hacer click al boton del login
-    fun MensajeLoginClick(){
+    fun mensajeLoginClick(){
         if (_usuario.value == "") _mensaje.value = "Falta Usuario"
-        else if( !ContrasennaOk() ) _mensaje.value = "Pass con 6 digitos minimo (num, mayusc. y minusc.)"
+        else if( !contrasennaOk() ) _mensaje.value = "Pass con 6 digitos minimo (num, mayusc. y minusc.)"
 
         else if(_registro.value){ //Si el check de registrar esta marcado....
-            if( !EmailOk() ) _mensaje.value = "Email incorrecto"
+            if( !emailOk() ) _mensaje.value = "Email incorrecto"
             else {
                 _mensaje.value = ""
                 _login.value = true
@@ -58,9 +58,9 @@ class LoginViewModel : ViewModel(){
     }
 
     //Metodos que comprueban la sintaxis del correo y la contraseña
-    fun EmailOk() : Boolean = Patterns.EMAIL_ADDRESS.matcher(_email.value).matches()
+    private fun emailOk() : Boolean = Patterns.EMAIL_ADDRESS.matcher(_email.value).matches()
 
-    fun ContrasennaOk() : Boolean {
+    private fun contrasennaOk() : Boolean {
         if (_contrasenna.value.length < 6) {
             return false
         }

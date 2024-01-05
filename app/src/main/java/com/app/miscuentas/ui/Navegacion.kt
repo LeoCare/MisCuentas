@@ -1,9 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.app.miscuentas.ui.navegacion
+package com.app.miscuentas.ui
 
 import android.widget.Toast
-import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Icon
@@ -25,9 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -37,6 +34,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.miscuentas.R
 import com.app.miscuentas.ui.inicio.ui.Inicio
 import com.app.miscuentas.ui.login.ui.Login
+import com.app.miscuentas.ui.mis_hojas.ui.MisHojas
 import com.app.miscuentas.ui.nueva_hoja.ui.NuevaHoja
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -81,7 +79,10 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
         composable(MisCuentasScreem.Mis_Hojas.name) {
-
+            MisHojas(
+                currentScreen,
+                navController
+            )
         }
     }
 }

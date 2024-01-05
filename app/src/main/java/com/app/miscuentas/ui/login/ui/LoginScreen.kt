@@ -118,7 +118,7 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
             BotonInicio(
                 registroState,
-                mensajeClick) { viewModel.MensajeLoginClick() }
+                mensajeClick) { viewModel.mensajeLoginClick() }
 
         }
     }

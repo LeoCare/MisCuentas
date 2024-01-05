@@ -56,15 +56,13 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -75,10 +73,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
-import com.app.miscuentas.ui.Validaciones
+import com.app.miscuentas.ui.Desing.Companion.showDatePickerDialog
 import com.app.miscuentas.ui.Validaciones.Companion.isValid
-import com.app.miscuentas.ui.navegacion.MiTopBar
-import com.app.miscuentas.ui.navegacion.MisCuentasScreem
+import com.app.miscuentas.ui.MiTopBar
+import com.app.miscuentas.ui.MisCuentasScreem
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
@@ -108,6 +106,10 @@ fun NuevaHoja(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
+    // Determinar si se puede navegar hacia atrás
+    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
+    val canNavigateBack = navBackStackEntry != null
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
@@ -115,14 +117,12 @@ fun NuevaHoja(
                 currentScreen,
                 scope = scope,
                 scaffoldState = scaffoldState,
-                canNavigateBack = true,
-                navigateUp = { navController.navigateUp() })},
+                canNavigateBack = canNavigateBack,
+                navigateUp = { navController.navigateUp() })
+        },
         content = { innerPadding -> NuevaHojaScreen(innerPadding) }
     )
 }
-
-
-/** CONTENIDO GENERAL DE ESTA SCREEN **/
 
 @Composable
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
@@ -131,13 +131,14 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
     //variables que delegan sus valores al cambio del viewModel
     val statusTitulo by viewModel.titulo.collectAsState()
     val statusParticipante by viewModel.participante.collectAsState()
+    val listParticipantes by viewModel.listaParticipantes.collectAsState()
     val statusLimiteGasto by viewModel.limiteGasto.collectAsState()
-    val listParticipantes by viewModel.listaParticipantes.collectAsState() //lista de participantes
+    val statusFechaCierre by viewModel.fechaCierre.collectAsState()
 
     //Provisional
-    var fechaCierre = remember { mutableStateOf("") }
-    var tieneLimite = remember { mutableStateOf(true) }
-    var tieneFecha = remember { mutableStateOf(true) }
+
+    val tieneLimite = remember { mutableStateOf(true) }
+    val tieneFecha = remember { mutableStateOf(true) }
 
     //Tipo letra
     val robotoBlack = FontFamily(Font(R.font.roboto_black))
@@ -168,7 +169,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .clip(MaterialTheme.shapes.large)
                     .fillMaxHeight(0.25f),
 
-            ) {
+                ) {
                 Column(
                     modifier = Modifier
                         .padding(10.dp)
@@ -194,7 +195,10 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    Paraticipantes(robotoBlack, listParticipantes, statusParticipante) { viewModel.onParticipanteFieldChanged(it) }
+                    Paraticipantes(
+                        robotoBlack,
+                        listParticipantes,
+                        statusParticipante) { viewModel.onParticipanteFieldChanged(it) }
 
                 }
             }
@@ -212,9 +216,15 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    LimiteGasto(robotoMedItalic, tieneLimite, statusLimiteGasto) { viewModel.onLimiteGastoFieldChanged(it) }
+                    LimiteGasto(
+                        robotoMedItalic,
+                        tieneLimite,
+                        statusLimiteGasto) { viewModel.onLimiteGastoFieldChanged(it) }
 
-                    LimiteFecha(fechaCierre, tieneFecha, robotoMedItalic)
+                    LimiteFecha(
+                        statusFechaCierre,
+                        tieneFecha,
+                        robotoMedItalic) { viewModel.onFechaCierreFieldChanged(it) }
 
                 }
             }
@@ -232,7 +242,9 @@ fun Titulo(
     robotoBlack: FontFamily,
     value: String,
     onTituloFieldChange: (String) -> Unit) {
-    var isFocused by rememberSaveable { mutableStateOf(false) }
+
+    val isFocused by rememberSaveable { mutableStateOf(false) }
+
     Text(
         text = stringResource(R.string.titulo),
         fontSize = 20.sp,
@@ -261,6 +273,7 @@ fun Titulo(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Paraticipantes(
     robotoBlack: FontFamily,
@@ -347,27 +360,27 @@ fun Paraticipantes(
             modifier = Modifier
                 .align(CenterVertically)
                 .clickable {
-                    if (!listParticipantes.isEmpty()) {
+                    if (listParticipantes.isNotEmpty()) {
                         viewModel.deleteUltimoParticipante()
                     }
                 }
         )
     }
     Column {
-        IconButton(onClick = { mostrarParticipantes = !mostrarParticipantes }) {
-            Icon(
-                imageVector = if(mostrarParticipantes) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore ,
-                contentDescription = "Ver participantes",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        ListaParticipantes(mostrarParticipantes, listParticipantes)
+        IconoVerParticipantes(
+            mostrarParticipantes) { mostrarParticipantes = !mostrarParticipantes }
+
+        ListaParticipantes(
+            mostrarParticipantes,
+            listParticipantes)
     }
 
 }
 
 @Composable
-fun ListaParticipantes(mostrarParticipantes: Boolean, listParticipantes: List<String>){
+fun ListaParticipantes(
+    mostrarParticipantes: Boolean,
+    listParticipantes: List<String>){
 
     if (mostrarParticipantes) {
         LazyRow(
@@ -393,16 +406,14 @@ fun LimiteGasto(
     robotoMedItalic: FontFamily,
     tieneLimite: MutableState<Boolean>,
     statusLimiteGasto: String,
-    onLimiteGastoFieldChange: (String) -> Unit
-) {
-    var isFocused by rememberSaveable { mutableStateOf(false) }
+    onLimiteGastoFieldChange: (String) -> Unit) {
+    val isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
         text = "Limite de gastos",
         fontSize = 20.sp,
         color = Color.Black,
         modifier = Modifier
             .padding(start = 10.dp)
-//                fontFamily = FontFamily.Roboto
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -411,8 +422,14 @@ fun LimiteGasto(
         TextField(
             value = statusLimiteGasto,
             onValueChange = { newValue ->
-                if (isValid(newValue, 2)) {
+                //Marca o desmarca el check:
+                if (newValue == "") {
                     onLimiteGastoFieldChange(newValue)
+                    tieneLimite.value = true
+                }
+                else if (isValid(newValue, 2)) {
+                    onLimiteGastoFieldChange(newValue)
+                    tieneLimite.value = false
                 }
             },
             modifier = Modifier
@@ -435,7 +452,6 @@ fun LimiteGasto(
             painterResource(id = R.drawable.icon_euro),
             contentDescription = "Euro",
             modifier = Modifier
-                .align(Bottom)
                 .padding(start = 10.dp)
                 .size(30.dp)
         )
@@ -446,9 +462,16 @@ fun LimiteGasto(
         ) {
             Spacer(Modifier.weight(1f))
             Checkbox(
-                modifier = Modifier.align(Alignment.Bottom),
+                modifier = Modifier.align(Bottom),
                 checked = tieneLimite.value,
-                onCheckedChange = { tieneLimite.value = it }
+                onCheckedChange = {
+                    //Poner un limite al desmarcar el check:
+                    tieneLimite.value = it
+                    if(!tieneLimite.value && statusLimiteGasto == ""){
+                        onLimiteGastoFieldChange("500")
+                    }
+                    else if (tieneLimite.value) onLimiteGastoFieldChange("")
+                }
             )
             Text(
                 text = "Sin Límite\n(sobra el dinero)",
@@ -460,9 +483,16 @@ fun LimiteGasto(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Boolean>, robotoMedItalic: FontFamily) {
-    var isFocused by rememberSaveable { mutableStateOf(false) }
+fun LimiteFecha(
+    fechaCierre: String,
+    tieneFecha: MutableState<Boolean>,
+    robotoMedItalic: FontFamily,
+    onFechaCierreFieldChanged: (String) -> Unit) {
+
+    val context = LocalContext.current
+
     Text(
         text = "Fecha cierre",
         fontSize = 20.sp,
@@ -476,19 +506,20 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextField(
-            value = fechaCierre.value,
-            onValueChange = { fechaCierre.value = it },
+            value = fechaCierre,
+            onValueChange = {  },
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
                 .width(180.dp)
                 .height(IntrinsicSize.Min),
+            enabled = false,
             textStyle = TextStyle(
                 fontSize = 17.sp,
                 textAlign = TextAlign.Start,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
+                containerColor =  Color(0xFFD3D7DA)
             ),
             singleLine = true,
             maxLines = 1
@@ -501,7 +532,11 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
             Spacer(Modifier.weight(1f))
             Checkbox(
                 checked = tieneFecha.value,
-                onCheckedChange = { tieneFecha.value = it }
+                onCheckedChange = {
+                    tieneFecha.value = it
+                    if(!tieneFecha.value) showDatePickerDialog(context, onFechaCierreFieldChanged)
+                    else onFechaCierreFieldChanged("")
+                }
             )
             Text(
                 text = "Sin fecha\n(yo decido cuando)",
@@ -514,18 +549,17 @@ fun LimiteFecha(fechaCierre: MutableState<String>, tieneFecha: MutableState<Bool
 
 //BOTON EXPANDIR PARTICIPANTES
 @Composable
-fun VerParticipantes(
+fun IconoVerParticipantes(
     expanded: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
-    androidx.compose.material3.IconButton(
+    IconButton(
         onClick = onClick,
-        modifier = modifier
     ) {
-        androidx.compose.material3.Icon(
-            imageVector = Icons.Filled.AccountCircle,
-            contentDescription = "Ver participantes"
+        Icon(
+            imageVector = if(expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore ,
+            contentDescription = "Ver participantes",
+            tint = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -546,7 +580,6 @@ fun BotonCrear() {
                 .height(60.dp)
                 .width(180.dp)
                 .fillMaxWidth()
-
         ) {
             Text(
                 text = "CREAR",
