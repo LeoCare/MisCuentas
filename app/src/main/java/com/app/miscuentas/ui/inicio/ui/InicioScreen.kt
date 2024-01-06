@@ -101,10 +101,11 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
 
                 Card(
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(20.dp)
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraLarge)
                         .fillMaxHeight(0.20f)
+                        .clickable { onNavMisHojas() }
                 ) {
                     Row(
                         modifier = Modifier
@@ -120,16 +121,17 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
                             fontSize = 30.sp,
                             fontFamily = robotoItalic
                         )
-                        ImagenClicker(R.drawable.mis_hojas, "Boton de Mis_Hojas", onNavMisHojas)
+                        ImagenCustom(R.drawable.mis_hojas, "Boton de Mis_Hojas")
                     }
                 }
                 CustomSpacer (30.dp)
                 Card(
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(20.dp)
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraLarge)
                         .fillMaxHeight(0.20f)
+                        .clickable { onNavNuevaHoja() }
                 ) {
                     Row(
                         modifier = Modifier
@@ -145,7 +147,7 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
                             fontSize = 30.sp,
                             fontFamily = robotoItalic
                         )
-                        ImagenClicker(R.drawable.nueva_hoja, "Boton de Nueva_Hoja", onNavNuevaHoja)
+                        ImagenCustom(R.drawable.nueva_hoja, "Boton de Nueva_Hoja")
                     }
                 }
             }
@@ -166,16 +168,15 @@ fun CustomSpacer(padding: Dp) {
 
 //COMPONENTE IMAGEN
 @Composable
-fun ImagenClicker(
+fun ImagenCustom(
     imagen: Int,
-    descript: String,
-    onNavNextPage: () -> Unit){
+    descript: String
+){
     Image(
         painter = painterResource(id = imagen),
         contentDescription = descript,
         modifier = Modifier
             .width(180.dp)
             .height(180.dp)
-            .clickable { onNavNextPage() }
     )
 }

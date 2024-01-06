@@ -2,6 +2,9 @@
 
 package com.app.miscuentas.ui.login.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -46,6 +49,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -76,8 +80,12 @@ fun Login(onNavigate: () -> Unit){
 @Composable
 fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
+    //Estado para animacion del texfield 'email'
+    var visible by remember { mutableStateOf(false) }
+    val density = LocalDensity.current
+
+    //variable que delega su valor al cambio del viewModel
     val viewModel: LoginViewModel = viewModel()
-    //variables que delegan sus valores al cambio del viewModel
     val loginState by viewModel.loginState.collectAsState()
 
     // Estado para manejar mensajes de error al presionar Boton de inicio
@@ -112,24 +120,50 @@ fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
     {
         item {
 
+            //Imagen y texto
             HeaderImage(modifier)
             CustomSpacer(40.dp)
 
             TextoLogin(loginState.registro)
             CustomSpacer(24.dp)
 
-            CustomTextField("Usuario", value = loginState.usuario) { viewModel.onUsuarioFieldChanged(it) }
-            CustomSpacer(24.dp)
-            
-            CustomTextField("Contraseña", value = loginState.contrasena) { viewModel.onContrasennaFieldChanged(it) }
+            //TextFiedl Usuario
+            CustomTextField(
+                "Usuario",
+                value = loginState.usuario
+            ) { viewModel.onUsuarioFieldChanged(it) }
             CustomSpacer(24.dp)
 
-            if (loginState.registro){
-                CustomTextField("Email", value = loginState.email) { viewModel.onEmailFieldChanged(it) }
+            //TextFiedl Contraseña
+            CustomTextField(
+                "Contraseña",
+                value = loginState.contrasena
+            ) { viewModel.onContrasennaFieldChanged(it) }
+            CustomSpacer(24.dp)
+
+            //TextFiedl Email
+            AnimatedVisibility(
+                visible = loginState.registro,
+                enter = expandIn(
+                    animationSpec = tween(600, easing = EaseInOutBack),
+                    expandFrom = Alignment.TopStart
+                ),
+                exit = shrinkOut(
+                    tween(600, easing = EaseInBack),
+                    shrinkTowards = Alignment.TopStart
+                )
+            ) {
+                CustomTextField(
+                    "Email",
+                    value = loginState.email
+                ) { viewModel.onEmailFieldChanged(it) }
             }
 
-            CustomCkeckbox(registroState = loginState.registro) { viewModel.onRegistroCheckChanged(it) }
+            //CheckBox Registro
+            CustomCkeckbox(registroState = loginState.registro) {viewModel.onRegistroCheckChanged(it)
+            }
 
+            //Boton comprobacion
             BotonInicio(
                 loginState.registro,
                 loginState.mensaje,
@@ -184,45 +218,50 @@ fun TextoLogin(registroState: Boolean) {
 }
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTextField(placeholder: String, value: String, onTextFieldChange: (String) -> Unit) {
+fun CustomTextField(
+    placeholder: String,
+    value: String,
+    onTextFieldChange: (String) -> Unit
+) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
 
-        TextField(
-            value = value,
-            onValueChange = { onTextFieldChange(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .onFocusChanged { focusState ->
-                    isFocused = focusState.isFocused
-                },
-            placeholder = { Text(text = placeholder)},
-            keyboardOptions = when (placeholder) {
-                "Email" -> KeyboardOptions(keyboardType = KeyboardType.Email)
-                "Contraseña" -> KeyboardOptions(keyboardType = KeyboardType.Password)
-                else -> KeyboardOptions(keyboardType = KeyboardType.Text)
+    TextField(
+        value = value,
+        onValueChange = { onTextFieldChange(it) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .onFocusChanged { focusState ->
+                isFocused = focusState.isFocused
             },
-            visualTransformation = when (placeholder) {
-                "Contraseña" -> PasswordVisualTransformation()
-                else -> VisualTransformation.None
-            },
-            singleLine = true, //en una misma linea
-            maxLines = 1,
-            textStyle = TextStyle(
-                fontSize = 20.sp
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
-            )
+        placeholder = { Text(text = placeholder) },
+        keyboardOptions = when (placeholder) {
+            "Email" -> KeyboardOptions(keyboardType = KeyboardType.Email)
+            "Contraseña" -> KeyboardOptions(keyboardType = KeyboardType.Password)
+            else -> KeyboardOptions(keyboardType = KeyboardType.Text)
+        },
+        visualTransformation = when (placeholder) {
+            "Contraseña" -> PasswordVisualTransformation()
+            else -> VisualTransformation.None
+        },
+        singleLine = true, //en una misma linea
+        maxLines = 1,
+        textStyle = TextStyle(
+            fontSize = 20.sp
+        ),
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
         )
-
+    )
 }
 
 @Composable
-fun CustomCkeckbox(registroState: Boolean, onRegistroCheckChange: (Boolean) -> Unit){
+fun CustomCkeckbox(
+    registroState: Boolean,
+    onRegistroCheckChange: (Boolean) -> Unit){
+
     Row {
         Checkbox(
             checked = registroState,

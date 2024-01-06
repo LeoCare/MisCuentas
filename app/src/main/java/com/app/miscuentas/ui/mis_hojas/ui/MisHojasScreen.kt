@@ -5,8 +5,11 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Difference
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,8 +32,9 @@ import com.app.miscuentas.ui.MisCuentasScreem
 sealed class MisHojasScreen (val route: String, val icon: ImageVector, val title: String) {
 
     //Provisional!!
-    object Home : MisHojasScreen("home", Icons.Default.Home, "Home")
-    object Profile : MisHojasScreen("profile", Icons.Default.Person, "Profile")
+    object Hojas : MisHojasScreen("hojas", Icons.Default.Difference, "Hojas")
+    object Gastos : MisHojasScreen("gastos", Icons.Default.ShoppingCart, "Gastos")
+    object Participantes : MisHojasScreen("participantes", Icons.Default.Person, "Participantes")
 
 }
 
@@ -75,10 +79,10 @@ fun MisHojas(
         },
         bottomBar = { BottomNavigationBar(navController) }
     ) {
-        NavHost(navController = navControllerMisHojas, startDestination = MisHojasScreen.Home.route) {
-            composable(MisHojasScreen.Home.route) { HomeScreen(navControllerMisHojas) }
-            composable(MisHojasScreen.Profile.route) { ProfileScreen(navControllerMisHojas) }
-
+        NavHost(navController = navControllerMisHojas, startDestination = MisHojasScreen.Hojas.route) {
+            composable(MisHojasScreen.Hojas.route) { HojasScreen(navControllerMisHojas) }
+            composable(MisHojasScreen.Gastos.route) { GastosScreen(navControllerMisHojas) }
+            composable(MisHojasScreen.Participantes.route) { ParticipantesScreen(navControllerMisHojas) }
         }
     }
 }
@@ -87,9 +91,9 @@ fun MisHojas(
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
-        MisHojasScreen.Home,
-        MisHojasScreen.Profile
-
+        MisHojasScreen.Hojas,
+        MisHojasScreen.Gastos,
+        MisHojasScreen.Participantes
     )
     BottomNavigation(
         backgroundColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -114,11 +118,16 @@ fun BottomNavigationBar(navController: NavController) {
 }
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HojasScreen(navController: NavController) {
     // UI para HomeScreen
 }
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun GastosScreen(navController: NavController) {
+    // UI para ProfileScreen
+}
+
+@Composable
+fun ParticipantesScreen(navController: NavController) {
     // UI para ProfileScreen
 }

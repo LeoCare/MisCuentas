@@ -8,19 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -37,7 +25,6 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +44,7 @@ import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -148,8 +136,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(color = 0xFFF5EFEF))
-            .padding(top = 10.dp)
-
+            .padding(15.dp)
     ) {
 
         item {
@@ -159,7 +146,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                 fontFamily = robotoBlack,
                 modifier = Modifier.padding(start = 10.dp)
             )
-            CustomSpacer(size = 20.dp)
+            CustomSpacer(size = 10.dp)
 
             Card(
                 modifier = Modifier
@@ -258,7 +245,7 @@ fun Titulo(
     value: String,
     onTituloFieldChange: (String) -> Unit) {
 
-    val isFocused by rememberSaveable { mutableStateOf(false) }
+    var isFocused by rememberSaveable { mutableStateOf(false) }
 
     Text(
         text = stringResource(R.string.titulo),
@@ -273,13 +260,16 @@ fun Titulo(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 10.dp)
-            .height(IntrinsicSize.Min),
+            .height(IntrinsicSize.Min)
+            .onFocusChanged { focusState ->
+                isFocused = focusState.isFocused
+            },
         textStyle = TextStyle(
             fontSize = 17.sp,
             textAlign = TextAlign.Start
         ),
         colors = TextFieldDefaults.textFieldColors(
-            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
+            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFE7EBEE)
         ),
         singleLine = true,
         maxLines = 1
@@ -296,7 +286,7 @@ fun Paraticipantes(
     onParticipanteFieldChange: (String) -> Unit
     ) {
     val viewModel: NuevaHojaViewModel = viewModel()
-    val isFocused by rememberSaveable { mutableStateOf(false) }
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     var mostrarParticipantes by rememberSaveable { mutableStateOf(true) }
 
     Row(
@@ -327,7 +317,7 @@ fun Paraticipantes(
         Icon(
             imageVector = Icons.Filled.AccountCircle,
             contentDescription = "Ver participantes",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = Color.Black,
             modifier = Modifier
                 .align(CenterVertically)
 
@@ -343,12 +333,15 @@ fun Paraticipantes(
             onValueChange = { onParticipanteFieldChange(it) },
             modifier = Modifier
                 .width(220.dp)
-                .height(IntrinsicSize.Min),
+                .height(IntrinsicSize.Min)
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                },
             textStyle = TextStyle(
                 fontSize = 17.sp
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFE7EBEE)
             ),
             singleLine = true,
             maxLines = 1
@@ -398,7 +391,7 @@ fun ListaParticipantes(
     if (mostrarParticipantes) {
         LazyRow(
             modifier = Modifier
-                .padding(top = 10.dp)
+//                .padding(top = 10.dp)
                 .fillMaxWidth()
         ) {
             //mostrar lista de participantes
@@ -420,7 +413,7 @@ fun LimiteGasto(
     tieneLimite: MutableState<Boolean>,
     statusLimiteGasto: String,
     onLimiteGastoFieldChange: (String) -> Unit) {
-    val isFocused by rememberSaveable { mutableStateOf(false) }
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     Text(
         text = "Limite de gastos",
         fontSize = 20.sp,
@@ -448,13 +441,16 @@ fun LimiteGasto(
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
                 .width(100.dp)
-                .height(IntrinsicSize.Min),
+                .height(IntrinsicSize.Min)
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                },
             textStyle = TextStyle(
                 fontSize = 17.sp,
                 textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFD3D7DA)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFE7EBEE)
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -530,7 +526,7 @@ fun LimiteFecha(
                 textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor =  Color(0xFFD3D7DA)
+                containerColor =  Color(0xFFE7EBEE)
             ),
             singleLine = true,
             maxLines = 1
