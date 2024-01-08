@@ -156,7 +156,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .fillMaxHeight(0.25f),
 
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
@@ -185,7 +185,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                         )
                     ),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
@@ -210,7 +210,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     .clip(MaterialTheme.shapes.large)
                     .fillMaxHeight(0.35f),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
@@ -517,7 +517,7 @@ fun LimiteFecha(
             value = fechaCierre,
             onValueChange = {  },
             modifier = Modifier
-                .padding(start = 10.dp, top = 10.dp)
+                .padding(horizontal = 10.dp, vertical = 10.dp)
                 .width(180.dp)
                 .height(IntrinsicSize.Min),
             enabled = false,

@@ -4,10 +4,14 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.material.*
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -104,14 +108,18 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
                         .padding(20.dp)
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraLarge)
-                        .fillMaxHeight(0.20f)
-                        .clickable { onNavMisHojas() }
+                        .height(IntrinsicSize.Min)
+                        .clickable { onNavMisHojas() },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.Black
+                    )
                 ) {
                     Row(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.tertiaryContainer)
-                            .size(250.dp, 150.dp)
-                            .padding(20.dp),
+                            .size(330.dp, 150.dp)
+                            .padding(start = 20.dp, top = 20.dp, bottom = 20.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
@@ -130,14 +138,18 @@ fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
                         .padding(20.dp)
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraLarge)
-                        .fillMaxHeight(0.20f)
-                        .clickable { onNavNuevaHoja() }
+                        .height(IntrinsicSize.Min)
+                        .clickable { onNavNuevaHoja() },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.Black
+                    )
                 ) {
                     Row(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.outlineVariant)
-                            .size(250.dp, 150.dp)
-                            .padding(20.dp),
+                            .size(330.dp, 150.dp)
+                            .padding(start = 20.dp, top = 20.dp, bottom = 20.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(

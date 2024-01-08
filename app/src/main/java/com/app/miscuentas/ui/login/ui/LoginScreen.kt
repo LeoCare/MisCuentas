@@ -80,10 +80,6 @@ fun Login(onNavigate: () -> Unit){
 @Composable
 fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
-    //Estado para animacion del texfield 'email'
-    var visible by remember { mutableStateOf(false) }
-    val density = LocalDensity.current
-
     //variable que delega su valor al cambio del viewModel
     val viewModel: LoginViewModel = viewModel()
     val loginState by viewModel.loginState.collectAsState()

@@ -1,7 +1,7 @@
 package com.app.miscuentas.ui.theme
 import androidx.compose.ui.graphics.Color
 
-val md_theme_light_primary = Color(0xFF5896B3)
+val md_theme_light_primary = Color(0xFF4E95B6)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFF90CAF9)
 val md_theme_light_onPrimaryContainer = Color(0xFF027279)
@@ -21,7 +21,7 @@ val md_theme_light_background = Color(0xFFFAFDFC)
 val md_theme_light_onBackground = Color(0xFF191C1C)
 val md_theme_light_surface = Color(0xFFFAFDFC)
 val md_theme_light_onSurface = Color(0xFF191C1C)
-val md_theme_light_surfaceVariant = Color(0xFFC8DDDF)
+val md_theme_light_surfaceVariant = Color(0xFFCED1D1)
 val md_theme_light_onSurfaceVariant = Color(0xFF3F4849)
 val md_theme_light_outline = Color(0xFF6F797A)
 val md_theme_light_inverseOnSurface = Color(0xFFEFF1F1)

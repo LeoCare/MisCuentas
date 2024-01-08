@@ -1,25 +1,51 @@
 package com.app.miscuentas.ui.mis_hojas.ui
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseInBack
+import androidx.compose.animation.core.EaseInOutBack
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Difference
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -96,7 +122,7 @@ fun BottomNavigationBar(navController: NavController) {
         MisHojasScreen.Participantes
     )
     BottomNavigation(
-        backgroundColor = MaterialTheme.colorScheme.onTertiaryContainer
+        backgroundColor = MaterialTheme.colorScheme.primary
 
     ) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
@@ -119,15 +145,95 @@ fun BottomNavigationBar(navController: NavController) {
 
 @Composable
 fun HojasScreen(navController: NavController) {
-    // UI para HomeScreen
+    // Screen con las hojas creadas
+    //Provisional!!!
+    val itemsTipo = listOf("Activas", "Finalizadas", "Todas")
+    val itemsOrden = listOf("Fecha creacion", "Gasto total")
+
+
+    Box{
+        LazyColumn {
+            item {
+
+                Row(modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    SpinnerCustoms(itemsTipo, "Filtrar por tipo")
+                    //CustomSpacer(10.dp)
+                    SpinnerCustoms(itemsOrden, "Opcion de ordenacion")
+
+                }
+            }
+        }
+    }
+
 }
 
 @Composable
 fun GastosScreen(navController: NavController) {
-    // UI para ProfileScreen
+    // Screen con la lista de los gastos de la hoja seleccionada
 }
 
 @Composable
 fun ParticipantesScreen(navController: NavController) {
-    // UI para ProfileScreen
+    // Participantes y estadisticas de la hoja seleccionada
+}
+
+
+//Metodo para los menus de opciones de filtrado
+@Composable
+fun SpinnerCustoms(items: List<String>, contentDescription: String) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+
+    Card(
+        modifier = Modifier
+            .padding(20.dp)
+            .height(IntrinsicSize.Min)
+            .clip(MaterialTheme.shapes.extraSmall)
+            .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = Color.Black
+        )
+    ) {
+
+        Row(modifier = Modifier.padding(6.dp))
+        {
+            Text(text = AnnotatedString(items[selectedIndex]))
+            Icon(
+                imageVector = Icons.Filled.ExpandMore,
+                contentDescription = contentDescription,
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                items.forEachIndexed { index, item ->
+
+                    DropdownMenuItem(onClick = {
+                        selectedIndex = index
+                        expanded = false
+                    }) {
+                        Text(text = item)
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+//ESPACIADOR
+@Composable
+fun CustomSpacer(size: Dp) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(size)
+    )
 }
