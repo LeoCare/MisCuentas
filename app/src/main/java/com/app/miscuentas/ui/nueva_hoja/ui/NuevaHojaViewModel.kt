@@ -2,10 +2,13 @@ package com.app.miscuentas.ui.nueva_hoja.ui
 
 import androidx.lifecycle.ViewModel
 import com.app.miscuentas.ui.nueva_hoja.data.NuevaHojaState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 
-class NuevaHojaViewModel: ViewModel() {
+@HiltViewModel
+class NuevaHojaViewModel @Inject constructor(): ViewModel() {
 
     private val _eventoState = MutableStateFlow(NuevaHojaState())
     val eventoState: StateFlow<NuevaHojaState> = _eventoState

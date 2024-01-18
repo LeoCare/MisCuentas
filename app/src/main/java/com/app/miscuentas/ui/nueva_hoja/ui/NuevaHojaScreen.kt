@@ -58,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -92,13 +93,11 @@ fun NuevaHoja(
     navController: NavHostController,
     onNavMisHojas: () -> Unit
 ){
-
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    // Determinar si se puede navegar hacia atrás
     val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-    val canNavigateBack = navBackStackEntry != null
+    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -117,13 +116,11 @@ fun NuevaHoja(
 @Composable
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
-    val viewModel: NuevaHojaViewModel = viewModel()
-
     // Observa el estado completo del evento
+    val viewModel: NuevaHojaViewModel = hiltViewModel()
     val eventoState by viewModel.eventoState.collectAsState()
 
     //Provisional
-
     val tieneLimite = remember { mutableStateOf(true) }
     val tieneFecha = remember { mutableStateOf(true) }
 

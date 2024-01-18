@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -84,6 +85,8 @@ fun Inicio(
 /** CONTENIDO GENERAL DE ESTA SCREEN **/
 @Composable
 fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
+
+    val viewModel: InicioViewModel = hiltViewModel()
 
     /** CAJA CON COLUMNAS: **/
     Box(

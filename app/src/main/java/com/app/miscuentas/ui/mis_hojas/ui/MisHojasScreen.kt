@@ -35,9 +35,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -50,7 +52,7 @@ import com.app.miscuentas.ui.MisCuentasScreem
 sealed class MisHojasScreen (val route: String, val icon: ImageVector, val title: String) {
 
     //Provisional!!
-    object Hojas : MisHojasScreen("hojas", Icons.Default.Difference, "Hojas")
+    object Hojas : MisHojasScreen("hojas", Icons.Default.Difference, "Hojas", )
     object Gastos : MisHojasScreen("gastos", Icons.Default.ShoppingCart, "Gastos")
     object Participantes : MisHojasScreen("participantes", Icons.Default.Person, "Participantes")
 
@@ -81,9 +83,8 @@ fun MisHojas(
     val scope = rememberCoroutineScope()
     val navControllerMisHojas = rememberNavController()
 
-    // Determinar si se puede navegar hacia atrás
     val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-    val canNavigateBack = navBackStackEntry != null
+    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -95,9 +96,13 @@ fun MisHojas(
                 canNavigateBack = canNavigateBack,
                 navigateUp = { navController.navigateUp() })
         },
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = { BottomNavigationBar(navControllerMisHojas) }
     ) {
-        NavHost(navController = navControllerMisHojas, startDestination = MisHojasScreen.Hojas.route) {
+
+        NavHost(
+            navController = navControllerMisHojas,
+            startDestination = MisHojasScreen.Hojas.route
+        ) {
             composable(MisHojasScreen.Hojas.route) { HojasScreen(navControllerMisHojas) }
             composable(MisHojasScreen.Gastos.route) { GastosScreen(navControllerMisHojas) }
             composable(MisHojasScreen.Participantes.route) { ParticipantesScreen(navControllerMisHojas) }
@@ -114,22 +119,26 @@ fun BottomNavigationBar(navController: NavController) {
         MisHojasScreen.Participantes
     )
     BottomNavigation(
-        backgroundColor = MaterialTheme.colorScheme.primary
-
+        backgroundColor = MaterialTheme.colorScheme.primaryContainer
     ) {
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
+        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
         items.forEach { screen ->
+            val isSelected = currentRoute == screen.route //ruta seleccionada para resaltar
+            val colorSeleccionado = if (isSelected) MaterialTheme.colorScheme.tertiary else Color.White //resaltar
+
             BottomNavigationItem(
-                icon = { Icon(screen.icon, contentDescription = null, tint = Color.White) },
-                label = { Text(screen.title, color = Color.White) },
-                selected = currentRoute == screen.route,
+                icon = { Icon(screen.icon, contentDescription = null, tint =  colorSeleccionado) },
+                label = { Text(screen.title,color =  colorSeleccionado) },
+                selected = isSelected,
                 onClick = {
                     navController.navigate(screen.route) {
                         // Evitar recrear la pantalla si ya está en la pila
                         popUpTo(navController.graph.startDestinationId)
                         launchSingleTop = true
                     }
-                }
+                },
+                selectedContentColor = MaterialTheme.colorScheme.tertiary
             )
         }
     }
@@ -142,6 +151,7 @@ fun HojasScreen(navController: NavController) {
     val itemsTipo = listOf("Activas", "Finalizadas", "Todas")
     val itemsOrden = listOf("Fecha creacion", "Gasto total")
 
+    val viewModel: MisHojasViewModel = hiltViewModel()
 
     Box{
         LazyColumn {
@@ -165,12 +175,46 @@ fun HojasScreen(navController: NavController) {
 
 @Composable
 fun GastosScreen(navController: NavController) {
-    // Screen con la lista de los gastos de la hoja seleccionada
+    Box{
+        LazyColumn {
+            item {
+
+                Row(modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Text(
+                        text = "Screen de Gastos",
+                        textAlign = TextAlign.Center
+                    )
+
+                }
+            }
+        }
+    }
 }
 
 @Composable
 fun ParticipantesScreen(navController: NavController) {
-    // Participantes y estadisticas de la hoja seleccionada
+    Box{
+        LazyColumn {
+            item {
+
+                Row(modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Text(
+                        text = "Screen de Participantes",
+                        textAlign = TextAlign.Center
+                    )
+
+                }
+            }
+        }
+    }
 }
 
 

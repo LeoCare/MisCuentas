@@ -1,5 +1,8 @@
 package com.app.miscuentas.ui.mis_hojas.ui
 
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class MisHojasViewModel: ViewModel()
+@HiltViewModel
+class MisHojasViewModel @Inject constructor(): ViewModel()
