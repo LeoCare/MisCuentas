@@ -46,8 +46,8 @@ fun Prev(){
     Inicio(
         currentScreen,
         navController,
-        onNavNuevaHoja = { navController.navigate(MisCuentasScreem.Nueva_Hoja.name) },
-        onNavMisHojas = { navController.navigate(MisCuentasScreem.Mis_Hojas.name) }
+        onNavNuevaHoja = { navController.navigate(MisCuentasScreem.NuevaHoja.name) },
+        onNavMisHojas = { navController.navigate(MisCuentasScreem.MisHojas.name) }
     )
 }
 

@@ -1,24 +1,16 @@
 package com.app.miscuentas.ui.mis_hojas.ui
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.EaseInBack
-import androidx.compose.animation.core.EaseInOutBack
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.DropdownMenuItem
@@ -71,7 +63,7 @@ fun Prev(){
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = MisCuentasScreem.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreem.Mis_Hojas.name
+        backStackEntry?.destination?.route ?: MisCuentasScreem.MisHojas.name
     )
     MisHojas(
         currentScreen,

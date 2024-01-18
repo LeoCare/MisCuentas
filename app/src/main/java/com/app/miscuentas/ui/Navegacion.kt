@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.miscuentas.R
 import com.app.miscuentas.ui.inicio.ui.Inicio
 import com.app.miscuentas.ui.login.ui.Login
+import com.app.miscuentas.ui.login.ui.LoginViewModel
 import com.app.miscuentas.ui.mis_hojas.ui.MisHojas
 import com.app.miscuentas.ui.nueva_hoja.ui.NuevaHoja
 import kotlinx.coroutines.CoroutineScope
@@ -42,8 +44,8 @@ import kotlinx.coroutines.launch
 enum class MisCuentasScreem(@StringRes val title: Int){
     Login(title = R.string.login),
     Inicio(title = R.string.inicio),
-    Nueva_Hoja(title = R.string.nueva_hoja),
-    Mis_Hojas(title = R.string.mis_hojas)
+    NuevaHoja(title = R.string.nueva_hoja),
+    MisHojas(title = R.string.mis_hojas)
 }
 
 @Composable
@@ -67,18 +69,18 @@ fun AppNavHost(navController: NavHostController) {
             Inicio(
                 currentScreen,
                 navController,
-                onNavNuevaHoja = { navController.navigate(MisCuentasScreem.Nueva_Hoja.name) },
-                onNavMisHojas = { navController.navigate(MisCuentasScreem.Mis_Hojas.name) }
+                onNavNuevaHoja = { navController.navigate(MisCuentasScreem.NuevaHoja.name) },
+                onNavMisHojas = { navController.navigate(MisCuentasScreem.MisHojas.name) }
             )
         }
-        composable(MisCuentasScreem.Nueva_Hoja.name) {
+        composable(MisCuentasScreem.NuevaHoja.name) {
             NuevaHoja(
                 currentScreen,
                 navController,
-                onNavMisHojas = { navController.navigate(MisCuentasScreem.Mis_Hojas.name) }
+                onNavMisHojas = { navController.navigate(MisCuentasScreem.MisHojas.name) }
             )
         }
-        composable(MisCuentasScreem.Mis_Hojas.name) {
+        composable(MisCuentasScreem.MisHojas.name) {
             MisHojas(
                 currentScreen,
                 navController
@@ -89,6 +91,7 @@ fun AppNavHost(navController: NavHostController) {
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiTopBar(
     currentScreen: MisCuentasScreem,

@@ -3,10 +3,13 @@ package com.app.miscuentas.ui.login.ui
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import com.app.miscuentas.ui.login.data.LoginState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel(){
+//@HiltViewModel
+class LoginViewModel @Inject constructor() : ViewModel(){
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState

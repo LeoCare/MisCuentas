@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -49,12 +48,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
+
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
@@ -78,10 +78,10 @@ fun Login(onNavigate: () -> Unit){
 
 
 @Composable
-fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
+private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
-    //variable que delega su valor al cambio del viewModel
-    val viewModel: LoginViewModel = viewModel()
+    //Uso de Hilt para el control de los estados del viewModel.
+    val viewModel: LoginViewModel = hiltViewModel()
     val loginState by viewModel.loginState.collectAsState()
 
     // Estado para manejar mensajes de error al presionar Boton de inicio

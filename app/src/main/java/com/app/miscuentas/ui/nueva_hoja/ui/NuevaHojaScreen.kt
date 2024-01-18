@@ -75,13 +75,13 @@ fun Prev(){
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = MisCuentasScreem.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreem.Nueva_Hoja.name
+        backStackEntry?.destination?.route ?: MisCuentasScreem.NuevaHoja.name
     )
 
     NuevaHoja(
         currentScreen,
         navController,
-        onNavMisHojas = { navController.navigate(MisCuentasScreem.Mis_Hojas.name) }
+        onNavMisHojas = { navController.navigate(MisCuentasScreem.MisHojas.name) }
     )
 }
 
@@ -239,6 +239,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Titulo(
     robotoBlack: FontFamily,
