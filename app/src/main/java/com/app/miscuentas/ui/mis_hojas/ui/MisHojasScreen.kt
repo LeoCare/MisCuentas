@@ -73,6 +73,7 @@ fun Prev(){
     )
 }
 
+/** Composable principal de la Screen **/
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MisHojas(
@@ -98,19 +99,25 @@ fun MisHojas(
         },
         bottomBar = { BottomNavigationBar(navControllerMisHojas) }
     ) {
-
-        NavHost(
-            navController = navControllerMisHojas,
-            startDestination = MisHojasScreen.Hojas.route
-        ) {
-            composable(MisHojasScreen.Hojas.route) { HojasScreen(navControllerMisHojas) }
-            composable(MisHojasScreen.Gastos.route) { GastosScreen(navControllerMisHojas) }
-            composable(MisHojasScreen.Participantes.route) { ParticipantesScreen(navControllerMisHojas) }
-        }
+        AppNavHost(navControllerMisHojas)
     }
 }
 
+/** Composable de navegacion **/
+@Composable
+fun AppNavHost(navControllerMisHojas: NavHostController) {
 
+    NavHost(
+        navController = navControllerMisHojas,
+        startDestination = MisHojasScreen.Hojas.route
+    ) {
+        composable(MisHojasScreen.Hojas.route) { HojasScreen(navControllerMisHojas) }
+        composable(MisHojasScreen.Gastos.route) { GastosScreen(navControllerMisHojas) }
+        composable(MisHojasScreen.Participantes.route) { ParticipantesScreen(navControllerMisHojas) }
+    }
+}
+
+/** Composable de Barra de navegacion inferior con las pestañas a mostrar **/
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
@@ -144,6 +151,7 @@ fun BottomNavigationBar(navController: NavController) {
     }
 }
 
+/** Contenedor del resto de elementos para la pestaña Hojas **/
 @Composable
 fun HojasScreen(navController: NavController) {
     // Screen con las hojas creadas
@@ -173,6 +181,7 @@ fun HojasScreen(navController: NavController) {
 
 }
 
+/** Contenedor del resto de elementos para la pestaña Gastos **/
 @Composable
 fun GastosScreen(navController: NavController) {
     Box{
@@ -195,6 +204,7 @@ fun GastosScreen(navController: NavController) {
     }
 }
 
+/** Contenedor del resto de elementos para la pestaña Participantes **/
 @Composable
 fun ParticipantesScreen(navController: NavController) {
     Box{
@@ -218,7 +228,7 @@ fun ParticipantesScreen(navController: NavController) {
 }
 
 
-//Metodo para los menus de opciones de filtrado
+/** Composable para las opciones de filtrado **/
 @Composable
 fun SpinnerCustoms(items: List<String>, contentDescription: String) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -264,7 +274,7 @@ fun SpinnerCustoms(items: List<String>, contentDescription: String) {
     }
 }
 
-//ESPACIADOR
+/** ESPACIADOR  **/
 @Composable
 fun CustomSpacer(size: Dp) {
     Spacer(

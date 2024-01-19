@@ -64,6 +64,7 @@ fun Prev(){
     Login(onNavigate = { navController.navigate("inicio") })
 }
 
+/** Composable principal de la Screen **/
 @Composable
 fun Login(onNavigate: () -> Unit){
 
@@ -76,7 +77,7 @@ fun Login(onNavigate: () -> Unit){
     }
 }
 
-
+/** Contenedor del resto de elementos para Login **/
 @Composable
 private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
@@ -170,10 +171,7 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 }
 
 
-/** COMPONENTES **/
-/** *********** **/
-
-//IMAGEN LOGO
+/** Composable para la imagen del logo **/
 @Composable
 fun HeaderImage(modifier: Modifier) {
     val robotoBlack = FontFamily(Font(R.font.roboto_black))
@@ -193,7 +191,7 @@ fun HeaderImage(modifier: Modifier) {
     )
 }
 
-//CAMPO TEXTO AVISO
+/** Composable para el texto inicial **/
 @Composable
 fun TextoLogin(registroState: Boolean) {
     val robotoBold = FontFamily(Font(R.font.roboto_bold))
@@ -213,7 +211,7 @@ fun TextoLogin(registroState: Boolean) {
     }
 }
 
-
+/** Composable para la creacion de los TextField **/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(
@@ -253,6 +251,7 @@ fun CustomTextField(
     )
 }
 
+/** Composable para el TextBox de opcion a registro **/
 @Composable
 fun CustomCkeckbox(
     registroState: Boolean,
@@ -274,7 +273,7 @@ fun CustomCkeckbox(
     }
 }
 
-//BOTON INICIO
+/** Boton de inicio **/
 @Composable
 fun BotonInicio(
     registroState: Boolean,
@@ -304,7 +303,7 @@ fun BotonInicio(
     )
 }
 
-//ESPACIADOR
+/** ESPACIADOR  **/
 @Composable
 fun CustomSpacer(size: Dp) {
     Spacer(

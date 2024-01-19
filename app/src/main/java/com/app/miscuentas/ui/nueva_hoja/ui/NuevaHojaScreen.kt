@@ -86,7 +86,7 @@ fun Prev(){
     )
 }
 
-
+/** Composable principal de la Screen **/
 @Composable
 fun NuevaHoja(
     currentScreen: MisCuentasScreem,
@@ -113,6 +113,7 @@ fun NuevaHoja(
     )
 }
 
+/** Contenedor del resto de elementos para la Screen**/
 @Composable
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
@@ -235,7 +236,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
     }
 }
 
-
+/** Composable para el recuadro de Titulo **/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Titulo(
@@ -274,7 +275,7 @@ fun Titulo(
     )
 }
 
-
+/** Composable para el recuadro de Paraticipantes **/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Paraticipantes(
@@ -378,9 +379,9 @@ fun Paraticipantes(
             mostrarParticipantes,
             listParticipantes)
     }
-
 }
 
+/** Composable que genera y mantiene la lista de participantes **/
 @Composable
 fun ListaParticipantes(
     mostrarParticipantes: Boolean,
@@ -405,6 +406,7 @@ fun ListaParticipantes(
     }
 }
 
+/** Composable para el recuadro de LimiteGasto **/
 @Composable
 fun LimiteGasto(
     robotoMedItalic: FontFamily,
@@ -488,7 +490,7 @@ fun LimiteGasto(
     }
 }
 
-
+/** Composable para el recuadro de LimiteFecha **/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimiteFecha(
@@ -552,7 +554,7 @@ fun LimiteFecha(
     }
 }
 
-//BOTON EXPANDIR PARTICIPANTES
+/** Boton de expandir participantes **/
 @Composable
 fun IconoVerParticipantes(
     expanded: Boolean,
@@ -570,7 +572,7 @@ fun IconoVerParticipantes(
 }
 
 
-//BOTON CREAR HOJA
+/** Composable para el boton de creacion de nueva hoja **/
 @Composable
 fun BotonCrear() {
     Column(
@@ -596,7 +598,7 @@ fun BotonCrear() {
 }
 
 
-//ESPACIADOR
+/** ESPACIADOR  **/
 @Composable
 fun CustomSpacer(size: Dp) {
     Spacer(
