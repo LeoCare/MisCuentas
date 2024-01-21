@@ -1,3 +1,3 @@
-package com.app.miscuentas.ui.nueva_hoja.data
+package com.app.miscuentas.repository
 
 data class ParticipantesList(val participante: String)

@@ -1,8 +1,12 @@
-package com.app.miscuentas.ui
+package com.app.miscuentas.model
 
 import android.app.DatePickerDialog
 import android.content.Context
 import android.graphics.Color
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import java.util.Calendar
 
 //Clase con diseños comunes a las Screen

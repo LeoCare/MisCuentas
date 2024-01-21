@@ -1,7 +1,7 @@
-package com.app.miscuentas.ui.nueva_hoja.ui
+package com.app.miscuentas.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.app.miscuentas.ui.nueva_hoja.data.NuevaHojaState
+import com.app.miscuentas.viewmodel.states.NuevaHojaState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

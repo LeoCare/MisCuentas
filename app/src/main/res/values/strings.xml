@@ -5,6 +5,9 @@
     <string name="inicio">Inicio</string>
     <string name="nueva_hoja">Nueva Hoja</string>
     <string name="mis_hojas">Mis Hojas</string>
+    <string name="hojas">Hojas</string>
+    <string name="gastos">Gastos</string>
+    <string name="participantes">Participantes</string>
     <string name="back_button">Back</string>
     <string name="titulo">Titulo</string>
     <string name="error_falta_usuario">Falta Usuario</string>

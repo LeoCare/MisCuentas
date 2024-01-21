@@ -1,8 +1,8 @@
-package com.app.miscuentas.ui.login.ui
+package com.app.miscuentas.viewmodel
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
-import com.app.miscuentas.ui.login.data.LoginState
+import com.app.miscuentas.viewmodel.states.LoginState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

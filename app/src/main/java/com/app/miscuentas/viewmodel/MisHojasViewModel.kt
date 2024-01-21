@@ -1,4 +1,4 @@
-package com.app.miscuentas.ui.mis_hojas.ui
+package com.app.miscuentas.viewmodel
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

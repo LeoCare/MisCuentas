@@ -1,4 +1,4 @@
-package com.app.miscuentas.ui.nueva_hoja.data
+package com.app.miscuentas.viewmodel.states
 
 data class NuevaHojaState(
     val titulo: String = "",

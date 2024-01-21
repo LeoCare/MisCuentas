@@ -7,6 +7,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -34,9 +35,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -51,9 +55,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
+import com.app.miscuentas.viewmodel.LoginViewModel
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -65,13 +69,22 @@ fun Prev(){
 }
 
 /** Composable principal de la Screen **/
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Login(onNavigate: () -> Unit){
 
+    val controlTeclado = LocalSoftwareKeyboardController.current
+
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Color(color = 0xFFF5EFEF))
+            .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
+                detectTapGestures(onPress = {
+                    controlTeclado?.hide()
+                    awaitRelease()
+                })
+            }
     ) {
         LoginContent(Modifier.align(Alignment.Center), onNavigate)
     }
@@ -302,6 +315,7 @@ fun BotonInicio(
         color = Color(color = 0xFFEE1808)
     )
 }
+
 
 /** ESPACIADOR  **/
 @Composable

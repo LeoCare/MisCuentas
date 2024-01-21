@@ -32,7 +32,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.ui.MiTopBar
-import com.app.miscuentas.ui.MisCuentasScreem
+import com.app.miscuentas.ui.MisCuentasScreen
+import com.app.miscuentas.viewmodel.InicioViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
@@ -40,15 +41,15 @@ import com.app.miscuentas.ui.MisCuentasScreem
 fun Prev(){
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = MisCuentasScreem.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreem.Inicio.name
+    val currentScreen = MisCuentasScreen.valueOf(
+        backStackEntry?.destination?.route ?: MisCuentasScreen.Inicio.name
     )
 
     Inicio(
         currentScreen,
         navController,
-        onNavNuevaHoja = { navController.navigate(MisCuentasScreem.NuevaHoja.name) },
-        onNavMisHojas = { navController.navigate(MisCuentasScreem.MisHojas.name) }
+        onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.name) },
+        onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
     )
 }
 
@@ -56,7 +57,7 @@ fun Prev(){
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun Inicio(
-    currentScreen: MisCuentasScreem,
+    currentScreen: MisCuentasScreen,
     navController: NavHostController,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit

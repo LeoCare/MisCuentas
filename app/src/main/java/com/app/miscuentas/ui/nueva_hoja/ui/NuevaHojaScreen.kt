@@ -8,6 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,11 +43,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -64,10 +68,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
-import com.app.miscuentas.ui.Desing.Companion.showDatePickerDialog
-import com.app.miscuentas.ui.Validaciones.Companion.isValid
+import com.app.miscuentas.model.Desing.Companion.showDatePickerDialog
+import com.app.miscuentas.model.Validaciones.Companion.isValid
 import com.app.miscuentas.ui.MiTopBar
-import com.app.miscuentas.ui.MisCuentasScreem
+import com.app.miscuentas.ui.MisCuentasScreen
+import com.app.miscuentas.viewmodel.NuevaHojaViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
@@ -75,21 +80,21 @@ import com.app.miscuentas.ui.MisCuentasScreem
 fun Prev(){
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = MisCuentasScreem.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreem.NuevaHoja.name
+    val currentScreen = MisCuentasScreen.valueOf(
+        backStackEntry?.destination?.route ?: MisCuentasScreen.NuevaHoja.name
     )
 
     NuevaHoja(
         currentScreen,
         navController,
-        onNavMisHojas = { navController.navigate(MisCuentasScreem.MisHojas.name) }
+        onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
     )
 }
 
 /** Composable principal de la Screen **/
 @Composable
 fun NuevaHoja(
-    currentScreen: MisCuentasScreem,
+    currentScreen: MisCuentasScreen,
     navController: NavHostController,
     onNavMisHojas: () -> Unit
 ){
@@ -114,6 +119,7 @@ fun NuevaHoja(
 }
 
 /** Contenedor del resto de elementos para la Screen**/
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
@@ -129,12 +135,21 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
     val robotoBlack = FontFamily(Font(R.font.roboto_black))
     val robotoMedItalic = FontFamily(Font(R.font.roboto_mediumitalic))
 
+    //Oculta Teclado
+    val controlTeclado = LocalSoftwareKeyboardController.current
+
     LazyColumn(
         contentPadding = innerPadding,
         modifier = Modifier
             .fillMaxSize()
             .background(Color(color = 0xFFF5EFEF))
             .padding(15.dp)
+            .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
+                detectTapGestures(onPress = {
+                    controlTeclado?.hide()
+                    awaitRelease()
+                })
+            }
     ) {
 
         item {
