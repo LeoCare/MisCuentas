@@ -1,6 +1,8 @@
 package com.app.miscuentas.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.app.miscuentas.db.dao.DbParticipantesDao
 import com.app.miscuentas.viewmodel.states.NuevaHojaState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,7 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class NuevaHojaViewModel @Inject constructor(): ViewModel() {
+class NuevaHojaViewModel @Inject constructor(
+    private val participantesDao: DbParticipantesDao //PRUEBA DE SQLITE!!
+) : ViewModel() {
 
     private val _eventoState = MutableStateFlow(NuevaHojaState())
     val eventoState: StateFlow<NuevaHojaState> = _eventoState
@@ -45,6 +49,16 @@ class NuevaHojaViewModel @Inject constructor(): ViewModel() {
 
     fun getTotalParticipantes(): Int {
         return _eventoState.value.listaParticipantes.size
+    }
+
+    //PRUEBA DE SQLITE, BORRAR LUEGO DE IMPLEMENTAR ROOM!!
+    fun getParticipantes(columna: String): String {
+        return participantesDao.getParticipantes(columna)
+    }
+    fun insertParticipantesDao(){ //Este metodo sera invocado al presionar la boton de Nueva_Hoja
+        eventoState.value.listaParticipantes.forEach{ participante ->
+            participantesDao.insertParticipante(participante)
+        }
     }
 
 }

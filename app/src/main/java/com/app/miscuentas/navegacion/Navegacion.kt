@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.app.miscuentas.ui
+package com.app.miscuentas.navegacion
 
 import android.widget.Toast
 import androidx.annotation.StringRes
@@ -182,7 +182,7 @@ fun MiTopBar(
 
     //Cuando showDialog cambia a true se ejecuta MiDialogo(), cuando cambia a false se cierra.
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    if (showDialog) MiDialogo({showDialog =  false}, { showDialog = true}) //esta funcion tiene como parametro dos funciones lambda que cambian el valor de una variable.
+    if (showDialog) MiDialogo("Proximo a gestionar", {showDialog =  false}, { showDialog = true}) //esta funcion tiene como parametro dos funciones lambda que cambian el valor de una variable.
 
     TopAppBar(
         title = {
@@ -239,7 +239,7 @@ fun MiTopBar(
 //Al recibir valores lambda, se entiende que el resultado de esas funciones lambda tienen sentido desde donde se llame a MiDialogo().
 //Es decir, dependiendo lo que pase en AlertDialog() ejecutara una lambda u otra (cerrar() o aceptar() )
 @Composable
-fun MiDialogo(cerrar: () -> Unit, aceptar: () -> Unit) {
+fun MiDialogo(texto: String, cerrar: () -> Unit, aceptar: () -> Unit) {
 
     AlertDialog(onDismissRequest = { cerrar() },
         confirmButton = {
@@ -253,6 +253,6 @@ fun MiDialogo(cerrar: () -> Unit, aceptar: () -> Unit) {
             }
         },
         title = { Text(text = "Mi Diaologo") },
-        text = { Text(text ="Contenido del mensaje a mostrar") }
+        text = { Text(text = texto) }
     )
 }

@@ -9,10 +9,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.app.miscuentas.ui.AppNavBar
-import com.app.miscuentas.ui.BottomNavigationBar
-import com.app.miscuentas.ui.MiTopBar
-import com.app.miscuentas.ui.MisCuentasScreen
+import com.app.miscuentas.navegacion.AppNavBar
+import com.app.miscuentas.navegacion.BottomNavigationBar
+import com.app.miscuentas.navegacion.MiTopBar
+import com.app.miscuentas.navegacion.MisCuentasScreen
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -57,7 +57,4 @@ fun MisHojas(
         bottomBar = { BottomNavigationBar(navControllerMisHojas) },
         content = { innerPadding -> AppNavBar(innerPadding,navControllerMisHojas) }
     )
-//    {
-//             AppNavBar(navControllerMisHojas)
-//    }
 }

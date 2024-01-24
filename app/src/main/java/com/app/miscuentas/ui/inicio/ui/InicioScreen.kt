@@ -31,8 +31,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
-import com.app.miscuentas.ui.MiTopBar
-import com.app.miscuentas.ui.MisCuentasScreen
+import com.app.miscuentas.navegacion.MiTopBar
+import com.app.miscuentas.navegacion.MisCuentasScreen
 import com.app.miscuentas.viewmodel.InicioViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -87,7 +87,7 @@ fun Inicio(
 @Composable
 fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
 
-    val viewModel: InicioViewModel = hiltViewModel()
+    val viewModel: InicioViewModel = hiltViewModel() //aun sin funcion, se usara para manejar los estados de los botones del menu lateral (menu hamburguesa)
 
     /** CAJA CON COLUMNAS: **/
     Box(

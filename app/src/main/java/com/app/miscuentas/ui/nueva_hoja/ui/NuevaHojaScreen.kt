@@ -6,7 +6,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -70,8 +69,9 @@ import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.model.Desing.Companion.showDatePickerDialog
 import com.app.miscuentas.model.Validaciones.Companion.isValid
-import com.app.miscuentas.ui.MiTopBar
-import com.app.miscuentas.ui.MisCuentasScreen
+import com.app.miscuentas.navegacion.MiDialogo
+import com.app.miscuentas.navegacion.MiTopBar
+import com.app.miscuentas.navegacion.MisCuentasScreen
 import com.app.miscuentas.viewmodel.NuevaHojaViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -142,7 +142,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
         contentPadding = innerPadding,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(color = 0xFFF5EFEF))
+
             .padding(15.dp)
             .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
                 detectTapGestures(onPress = {
@@ -170,7 +170,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.primary
+                    contentColor = Color.Black
                 )
             ) {
                 Column(
@@ -206,7 +206,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    Paraticipantes(
+                    Participantes(
                         robotoBlack,
                         eventoState.listaParticipantes,
                         eventoState.participante) { viewModel.onParticipanteFieldChanged(it) }
@@ -246,7 +246,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 
             CustomSpacer(20.dp)
 
-            BotonCrear()
+            BotonCrear(viewModel)
         }
     }
 }
@@ -293,7 +293,7 @@ fun Titulo(
 /** Composable para el recuadro de Paraticipantes **/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Paraticipantes(
+fun Participantes(
     robotoBlack: FontFamily,
     listParticipantes: List<String>,
     statusParticipante: String,
@@ -589,7 +589,12 @@ fun IconoVerParticipantes(
 
 /** Composable para el boton de creacion de nueva hoja **/
 @Composable
-fun BotonCrear() {
+fun BotonCrear(viewModel: NuevaHojaViewModel) {
+
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    //PRUEBA DE SQLITE, BORRAR LUEGO DE IMPLEMENTAR ROOM!!
+    if (showDialog) MiDialogo(viewModel.getParticipantes("nombre"), {showDialog =  false}, { showDialog = true}) //para mostrar los datos almacenados en SQLITE
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -597,7 +602,10 @@ fun BotonCrear() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
-            onClick = { },
+            onClick = {
+                viewModel.insertParticipantesDao()
+                showDialog = true
+                      }, //PRUEBA DE SQLITE, BORRAR LUEGO DE IMPLEMENTAR ROOM!!
             modifier = Modifier
                 .height(60.dp)
                 .width(180.dp)
