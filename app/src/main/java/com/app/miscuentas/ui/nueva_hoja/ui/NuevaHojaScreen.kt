@@ -68,6 +68,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.model.Desing.Companion.showDatePickerDialog
+import com.app.miscuentas.model.Participante
 import com.app.miscuentas.model.Validaciones.Companion.isValid
 import com.app.miscuentas.navegacion.MiDialogo
 import com.app.miscuentas.navegacion.MiTopBar
@@ -142,7 +143,6 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
         contentPadding = innerPadding,
         modifier = Modifier
             .fillMaxSize()
-
             .padding(15.dp)
             .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
                 detectTapGestures(onPress = {
@@ -207,6 +207,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                         .padding(10.dp)
                 ) {
                     Participantes(
+                        viewModel,
                         robotoBlack,
                         eventoState.listaParticipantes,
                         eventoState.participante) { viewModel.onParticipanteFieldChanged(it) }
@@ -294,12 +295,13 @@ fun Titulo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Participantes(
+    viewModel: NuevaHojaViewModel,
     robotoBlack: FontFamily,
     listParticipantes: List<String>,
     statusParticipante: String,
     onParticipanteFieldChange: (String) -> Unit
     ) {
-    val viewModel: NuevaHojaViewModel = viewModel()
+    //val viewModel: NuevaHojaViewModel = viewModel()
     var isFocused by rememberSaveable { mutableStateOf(false) }
     var mostrarParticipantes by rememberSaveable { mutableStateOf(true) }
 
@@ -592,8 +594,11 @@ fun IconoVerParticipantes(
 fun BotonCrear(viewModel: NuevaHojaViewModel) {
 
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    //PRUEBA DE SQLITE, BORRAR LUEGO DE IMPLEMENTAR ROOM!!
-    if (showDialog) MiDialogo(viewModel.getParticipantes("nombre"), {showDialog =  false}, { showDialog = true}) //para mostrar los datos almacenados en SQLITE
+
+    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
+    val nombreDeTodos = viewModel.getAllParticipantesToString() //Borrar!!
+    if (showDialog) MiDialogo(nombreDeTodos, {showDialog =  false}, { showDialog = true}) //Borrar!!
+
 
     Column(
         modifier = Modifier
@@ -603,9 +608,9 @@ fun BotonCrear(viewModel: NuevaHojaViewModel) {
     ) {
         Button(
             onClick = {
-                viewModel.insertParticipantesDao()
+                viewModel.insertAllParticipante()
                 showDialog = true
-                      }, //PRUEBA DE SQLITE, BORRAR LUEGO DE IMPLEMENTAR ROOM!!
+            }, // {viewModel.insertParticipantesDao()  showDialog = true}, //PRUEBA DE SQLITE, BORRAR LUEGO DE IMPLEMENTAR ROOM!!
             modifier = Modifier
                 .height(60.dp)
                 .width(180.dp)

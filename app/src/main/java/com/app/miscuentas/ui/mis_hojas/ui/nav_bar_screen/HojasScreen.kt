@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -46,7 +45,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.model.HojaCalculo
-import com.app.miscuentas.repository.HojasProvider
+import com.app.miscuentas.repository.provider.HojasProvider
 import com.app.miscuentas.viewmodel.MisHojasViewModel
 
 
@@ -80,13 +79,13 @@ fun HojasScreen(innerPadding: PaddingValues, navController: NavController) {
             SpinnerCustoms("ORDENAR POR:", itemsOrden, "Opcion de ordenacion")
         }
 
-        LazyColumn(
-            contentPadding = innerPadding,
-        ) {
-            items(HojasProvider.getListHoja()) { hoja ->
-                HojaDesing(hoja)
-            }
-        }
+//        LazyColumn(
+//            contentPadding = innerPadding,
+//        ) {
+//            items(HojasProvider.getListHoja()) { hoja ->
+//                HojaDesing(hoja)
+//            }
+//        }
     }
 
 }
