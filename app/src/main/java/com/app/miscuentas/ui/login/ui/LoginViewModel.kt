@@ -1,15 +1,17 @@
-package com.app.miscuentas.viewmodel
+package com.app.miscuentas.ui.login.ui
 
+import android.content.SharedPreferences
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
-import com.app.miscuentas.viewmodel.states.LoginState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel(){
+class LoginViewModel @Inject constructor(
+    private val sharedPreference: SharedPreferences
+) : ViewModel(){
 
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState
@@ -54,5 +56,22 @@ class LoginViewModel @Inject constructor() : ViewModel(){
             }
         }
         return tieneNumero && tieneMayus && tieneMinus
+    }
+
+    //PRUEBA DE SHAREDPREFERENCE, BORRAR!!
+    //Este metodo guarda los datos de inicio
+    fun guardarLogin(usuario: String, contrasenna: String){
+        sharedPreference.edit().apply{
+            putString("usuario", usuario)
+            putString("contrasenna", contrasenna)
+            apply()
+        }
+    }
+    //Si se guarda el usuario 'LEO' y la pass 'LEOleo1234' -> Iniciará la app evitando la screen de login
+    init {
+        val usuario = sharedPreference.getString("usuario", "")
+        val contrasenna = sharedPreference.getString("contrasenna", "")
+
+        if (usuario == "LEO" && contrasenna == "LEOleo1234" ) _loginState.value = _loginState.value.copy(loginOk = true)
     }
 }

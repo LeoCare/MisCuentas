@@ -1,6 +1,7 @@
 package com.app.miscuentas.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.app.miscuentas.db.DbMisCuentas
 import dagger.Module
@@ -8,6 +9,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -41,4 +43,11 @@ object DatabaseModule {
     @Provides
     fun provideParticipantesDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getParticipantesDao()
 
+
+    //PRUEBA DE SHAREDPREFERENCE, BORRAR!!
+    @Provides
+    @Singleton
+    fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
+        return appContext.getSharedPreferences("mis_cuentas_preferences", Context.MODE_PRIVATE)
+    }
 }

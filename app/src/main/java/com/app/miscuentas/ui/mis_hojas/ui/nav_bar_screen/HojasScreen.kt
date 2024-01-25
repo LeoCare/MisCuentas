@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
@@ -45,8 +43,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.model.HojaCalculo
-import com.app.miscuentas.repository.provider.HojasProvider
-import com.app.miscuentas.viewmodel.MisHojasViewModel
+import com.app.miscuentas.ui.mis_hojas.ui.MisHojasViewModel
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR

@@ -62,18 +62,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.model.Desing.Companion.showDatePickerDialog
-import com.app.miscuentas.model.Participante
 import com.app.miscuentas.model.Validaciones.Companion.isValid
 import com.app.miscuentas.navegacion.MiDialogo
 import com.app.miscuentas.navegacion.MiTopBar
 import com.app.miscuentas.navegacion.MisCuentasScreen
-import com.app.miscuentas.viewmodel.NuevaHojaViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview

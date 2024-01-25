@@ -1,4 +1,4 @@
-package com.app.miscuentas.viewmodel.states
+package com.app.miscuentas.ui.nueva_hoja.ui
 
 import com.app.miscuentas.model.Participante
 

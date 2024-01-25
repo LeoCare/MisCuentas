@@ -1,4 +1,4 @@
-package com.app.miscuentas.viewmodel.states
+package com.app.miscuentas.ui.login.ui
 
 data class LoginState(
     val usuario: String = "",

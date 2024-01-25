@@ -33,7 +33,6 @@ import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.navegacion.MiTopBar
 import com.app.miscuentas.navegacion.MisCuentasScreen
-import com.app.miscuentas.viewmodel.InicioViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview

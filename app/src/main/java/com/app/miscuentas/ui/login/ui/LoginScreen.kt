@@ -57,7 +57,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
-import com.app.miscuentas.viewmodel.LoginViewModel
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -114,6 +113,7 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
             loginState.registro && !viewModel.emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
             else -> {
                 uiErrorMessage.value = ""
+                viewModel.guardarLogin(loginState.usuario, loginState.contrasena)
                 viewModel.onLoginOkChanged(true)
             }
         }
