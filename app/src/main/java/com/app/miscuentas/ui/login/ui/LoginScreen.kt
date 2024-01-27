@@ -113,8 +113,9 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
             loginState.registro && !viewModel.emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
             else -> {
                 uiErrorMessage.value = ""
-                viewModel.guardarLogin(loginState.usuario, loginState.contrasena)
+                //viewModel.guardarLogin(loginState.usuario, loginState.contrasena) //PRUEBA DE SHAREDPREFERENCES, BORRAR!!
                 viewModel.onLoginOkChanged(true)
+                onNavigate()
             }
         }
         viewModel.onMensajeChanged(uiErrorMessage.value)

@@ -1,4 +1,4 @@
-package com.app.miscuentas
+package com.app.miscuentas.ui
 
 import android.content.ContentValues.TAG
 import android.content.Context
@@ -9,6 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.navegacion.AppNavHost
 import com.app.miscuentas.ui.theme.MisCuentasTheme
@@ -20,7 +23,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             MisCuentasTheme{
                 Surface(
                     modifier = Modifier.fillMaxSize()
@@ -28,6 +30,7 @@ class MainActivity : ComponentActivity() {
                     //Navegacion con el componente de Composable
                     val navController = rememberNavController()
                     AppNavHost(navController = navController)
+
                 }
             }
         }

@@ -68,7 +68,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
     // Lifecycle utilities for Compose
     implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion")
-
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
+//    // Corrutinas
+//    implementation("org.jetbrains.kotlin:kotlin-corrutines-core:1.6.1")
+//    implementation("org.jetbrains.kotlin:kotlin-corrutines-android:1.6.1")
     // Injeccion de dependencias HILT
     implementation("com.google.dagger:hilt-android-gradle-plugin:2.44")
     implementation("com.google.dagger:hilt-android:2.48")
@@ -79,6 +83,9 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
+
+    //DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     //Compose
     implementation("androidx.activity:activity-compose:1.8.2")

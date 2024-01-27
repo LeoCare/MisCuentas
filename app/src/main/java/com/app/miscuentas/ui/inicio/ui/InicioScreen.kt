@@ -1,24 +1,33 @@
 package com.app.miscuentas.ui.inicio.ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.ListItem
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -27,12 +36,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.navegacion.MiTopBar
 import com.app.miscuentas.navegacion.MisCuentasScreen
+import com.app.miscuentas.ui.MainActivity
+import com.app.miscuentas.ui.login.ui.LoginViewModel
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
@@ -61,13 +73,14 @@ fun Inicio(
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ){
+    val viewModel: LoginViewModel = hiltViewModel()
 
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
     Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
         scaffoldState = scaffoldState,
-        drawerContent = { Text("Menu lateral") },
+        drawerContent = { MyDrawer(viewModel, navController = navController, scaffoldState = scaffoldState) },
         topBar = {
             MiTopBar(
             currentScreen,
@@ -85,8 +98,6 @@ fun Inicio(
 /** CONTENIDO GENERAL DE ESTA SCREEN **/
 @Composable
 fun InicioContent(onNavMisHojas: () -> Unit, onNavNuevaHoja: () -> Unit) {
-
-    val viewModel: InicioViewModel = hiltViewModel() //aun sin funcion, se usara para manejar los estados de los botones del menu lateral (menu hamburguesa)
 
     /** CAJA CON COLUMNAS: **/
     Box(
@@ -193,5 +204,48 @@ fun ImagenCustom(
         modifier = Modifier
             .width(180.dp)
             .height(180.dp)
+    )
+}
+
+//MENU LATERAL
+@Composable
+fun MyDrawer(viewModel: LoginViewModel, navController: NavController, scaffoldState: ScaffoldState) {
+    val activity = (LocalContext.current as? Activity)
+
+    Column {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        DrawerItem(
+            icon = Icons.Default.Home,
+            text = "Salir",
+            onClick = {
+                // salimos de la app
+                activity?.finish()
+
+            }
+        )
+
+        DrawerItem(
+            icon = Icons.Default.Settings,
+            text = "Cerrar sesion",
+            onClick = {
+                viewModel.onLoginOkChanged(false)
+                // Navegar a la pantalla de login
+                val intent = Intent(activity, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                activity?.startActivity(intent)
+
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun DrawerItem(icon: ImageVector, text: String, onClick: () -> Unit) {
+    ListItem(
+        icon = { Icon(imageVector = icon, contentDescription = null) },
+        text = { Text(text) },
+        modifier = Modifier.clickable { onClick() }
     )
 }

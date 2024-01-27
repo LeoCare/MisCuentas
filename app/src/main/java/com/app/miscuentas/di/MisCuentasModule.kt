@@ -1,14 +1,22 @@
 package com.app.miscuentas.di
 
 import android.content.Context
-import android.content.SharedPreferences
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.app.miscuentas.db.DbMisCuentas
+import com.app.miscuentas.repository.DataStoreConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.io.Serializable
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Module
@@ -30,7 +38,7 @@ object DatabaseModule {
 
     const val DATABASE_NAME = "MisCuentasRoom.db"
 
-    //Usado automaticamente por el sistma!
+    //Usado automaticamente por el sistema!
     //Metodo que nos devuelve una instancia de la DDBB
     //Al marcarlo como @Provides, le indico a Hilt como dar una instancia de la base de datos
     @Provides
@@ -43,11 +51,22 @@ object DatabaseModule {
     @Provides
     fun provideParticipantesDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getParticipantesDao()
 
+}
 
+@Module
+@InstallIn(SingletonComponent::class)
+object PreferencesModule {
     //PRUEBA DE SHAREDPREFERENCE, BORRAR!!
+//    @Provides
+//    @Singleton
+//    fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
+//        return appContext.getSharedPreferences("mis_cuentas_preferences", Context.MODE_PRIVATE)
+//    }
+
+    //PRUEBA CON DATASTORE
     @Provides
     @Singleton
-    fun provideSharedPreferences(@ApplicationContext appContext: Context): SharedPreferences {
-        return appContext.getSharedPreferences("mis_cuentas_preferences", Context.MODE_PRIVATE)
-    }
+    fun provideDataStorePref(@ApplicationContext context: Context): DataStoreConfig =
+        DataStoreConfig(context)
+
 }
