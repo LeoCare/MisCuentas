@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.DrawerState
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.ScaffoldState
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
@@ -171,6 +173,7 @@ fun BottomNavigationBar(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiTopBar(
+    drawerState: androidx.compose.material3.DrawerState?,
     currentScreen: MisCuentasScreen,
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
@@ -205,7 +208,7 @@ fun MiTopBar(
             else { //si no, muestra el menu lateral
                 IconButton(
                     onClick = {
-                        scope.launch { scaffoldState.drawerState.open() }
+                        scope.launch { drawerState?.open() }
                     }
                 ) {
                     Icon(Icons.Filled.Menu, contentDescription = "Localized description")

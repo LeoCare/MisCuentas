@@ -15,7 +15,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -63,6 +71,7 @@ fun Prev(){
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
 //@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Inicio(
     currentScreen: MisCuentasScreen,
@@ -70,23 +79,30 @@ fun Inicio(
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ){
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val viewModel: LoginViewModel = hiltViewModel()
 
-    Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
-        scaffoldState = scaffoldState,
-        drawerContent = { MyDrawer(viewModel, navController = navController) },
-        topBar = {
-            MiTopBar(
-            currentScreen,
-            scope = scope,
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = { MyDrawer(viewModel, navController = navController) }
+    ) {
+        Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
             scaffoldState = scaffoldState,
-            canNavigateBack = false,
-            navigateUp = { navController.navigateUp() })
-        },
-        content = { innerPadding -> InicioContent(innerPadding, onNavMisHojas, onNavNuevaHoja) }
-    )
+            //drawerContent = { MyDrawer(viewModel, navController = navController) },
+            topBar = {
+                MiTopBar(
+                    drawerState,
+                    currentScreen,
+                    scope = scope,
+                    scaffoldState = scaffoldState,
+                    canNavigateBack = false
+                ) { navController.navigateUp() }
+            },
+            content = { innerPadding -> InicioContent(innerPadding, onNavMisHojas, onNavNuevaHoja) }
+        )
+    }
 }
 
 
@@ -181,7 +197,7 @@ fun InicioContent(
     }
 }
 
-//ESPACIADOR
+/** ESPACIADOR **/
 @Composable
 fun CustomSpacer(padding: Dp) {
     Spacer(
@@ -192,7 +208,7 @@ fun CustomSpacer(padding: Dp) {
 }
 
 
-//COMPONENTE IMAGEN
+/** COMPONENTE IMAGEN **/
 @Composable
 fun ImagenCustom(
     imagen: Int,
@@ -207,41 +223,123 @@ fun ImagenCustom(
     )
 }
 
-//MENU LATERAL
+
+/** MENU LATERAL **/
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDrawer(
     viewModel: LoginViewModel,
     navController: NavController
-) {
+)
+{
     val activity = (LocalContext.current as? Activity)
 
-    Column {
-        Spacer(modifier = Modifier.height(16.dp))
+    ModalDrawerSheet(
+        drawerShape = MaterialTheme.shapes.extraLarge,
+        drawerTonalElevation = 10.dp
+    ) {
+        Row (
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Image(
+                painter = painterResource(id = R.drawable.logo), // Reemplaza con tu recurso de icono de la aplicación
+                contentDescription = "Mis Cuentas",
+                modifier = Modifier.size(88.dp)
+            )
+            Text(
+                "Bienvenido",
+                modifier = Modifier.padding(10.dp),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
 
-        DrawerItem(
-            icon = Icons.Default.Home,
-            text = "Salir",
+        Text(
+            "PRINCIPAL",
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.titleMedium
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Calificar la APP (pendiente)") },
+            selected = false,
+            onClick = {  }, //PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.Star, contentDescription = "Calificar") }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Contactar (pendiente)") },
+            selected = false,
+            onClick = {  },//PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.Mail, contentDescription = "Contactar") }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Donar (pendiente)") },
+            selected = false,
+            onClick = {  },//PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.CardGiftcard, contentDescription = "Donar") }
+        )
+        Divider()
+
+        Text(
+            "DUDAS",
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.titleMedium
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Info (pendiente)") },
+            selected = false,
+            onClick = {  },//PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.Info, contentDescription = "Info") }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "FAQ (pendiente)") },
+            selected = false,
+            onClick = {  },//PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.QuestionMark, contentDescription = "FAQ") }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Politicas de privacidad (pendiente)") },
+            selected = false,
+            onClick = {  },//PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.Security, contentDescription = "Politicas") }
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Terminos y condiciones (pendiente)") },
+            selected = false,
+            onClick = {  },//PENDIENTE
+            icon =  { Icon(imageVector = Icons.Filled.MenuBook, contentDescription = "Condiciones") }
+        )
+        Divider()
+
+        Text(
+            "TERMINAR",
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.titleMedium
+        )
+        NavigationDrawerItem(
+            label = { Text(text = "Salir") },
+            selected = false,
             onClick = {
                 // salimos de la app
                 activity?.finish()
-
-            }
+            },
+            icon =  { Icon(imageVector = Icons.Filled.Output, contentDescription = "Salir") }
         )
-
-        DrawerItem(
-            icon = Icons.Default.Settings,
-            text = "Cerrar sesion",
+        NavigationDrawerItem(
+            label = { Text(text = "Cerrar sesion") },
+            selected = false,
             onClick = {
                 viewModel.onLoginOkChanged(false)
                 // Navegar a la pantalla de login
                 val intent = Intent(activity, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 activity?.startActivity(intent)
-
-            }
+            },
+            icon =  { Icon(imageVector = Icons.Filled.Close, contentDescription = "Cerrar") }
         )
     }
+
 }
+
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -250,5 +348,6 @@ fun DrawerItem(icon: ImageVector, text: String, onClick: () -> Unit) {
         icon = { Icon(imageVector = icon, contentDescription = null) },
         text = { Text(text) },
         modifier = Modifier.clickable { onClick() }
-    )
+
+  )
 }

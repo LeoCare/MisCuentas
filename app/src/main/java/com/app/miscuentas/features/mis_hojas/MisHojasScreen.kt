@@ -2,6 +2,7 @@ package com.app.miscuentas.features.mis_hojas
 
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,6 +33,7 @@ fun Prev(){
 
 /** Composable principal de la Screen **/
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisHojas(
     currentScreen: MisCuentasScreen, //para el topBar
@@ -48,11 +50,12 @@ fun MisHojas(
         scaffoldState = scaffoldState,
         topBar = {
             MiTopBar(
+                null,
                 currentScreen,
                 scope = scope,
                 scaffoldState = scaffoldState,
-                canNavigateBack = canNavigateBack,
-                navigateUp = { navController.navigateUp() })
+                canNavigateBack = canNavigateBack
+            ) { navController.navigateUp() }
         },
         bottomBar = { BottomNavigationBar(navControllerMisHojas) },
         content = { innerPadding -> AppNavBar(innerPadding,navControllerMisHojas) }
