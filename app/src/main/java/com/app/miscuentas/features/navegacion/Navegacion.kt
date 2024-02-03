@@ -49,6 +49,7 @@ import com.app.miscuentas.features.mis_hojas.nav_bar_screen.GastosScreen
 import com.app.miscuentas.features.mis_hojas.nav_bar_screen.HojasScreen
 import com.app.miscuentas.features.mis_hojas.nav_bar_screen.ParticipantesScreen
 import com.app.miscuentas.features.nueva_hoja.NuevaHoja
+import com.app.miscuentas.features.splash.SplashScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -57,6 +58,7 @@ import kotlinx.coroutines.launch
 /** NAVEGACION DEL MAIN ENTRE LAS DISTINTAS SCREEN DE LA APP **/
 /** ******************************************************** **/
 enum class MisCuentasScreen(@StringRes val title: Int){
+    Splash(title = R.string.splash),
     Login(title = R.string.login),
     Inicio(title = R.string.inicio),
     NuevaHoja(title = R.string.nueva_hoja),
@@ -74,8 +76,15 @@ fun AppNavHost(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = MisCuentasScreen.Login.name
+        startDestination = MisCuentasScreen.Splash.name
     ) {
+
+        composable(MisCuentasScreen.Splash.name) {
+            SplashScreen(
+                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.name)},
+                onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.name)}
+            )
+        }
         composable(MisCuentasScreen.Login.name) {
             Login(
                 onNavigate = { navController.navigate(MisCuentasScreen.Inicio.name) }) //Lambda de navegacion a Inicio, para ser usado desde LoginContent()
@@ -84,6 +93,7 @@ fun AppNavHost(navController: NavHostController) {
             Inicio(
                 currentScreen,
                 navController,
+                onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
                 onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.name) },
                 onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
             )

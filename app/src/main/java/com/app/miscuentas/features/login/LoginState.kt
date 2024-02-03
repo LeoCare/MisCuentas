@@ -6,5 +6,14 @@ data class LoginState(
     val email: String = "",
     val mensaje: String = "",
     val registro: Boolean = false,
-    val loginOk: Boolean = false
-)
+    val loginOk: Boolean = false,
+    val biometricAuthenticationState: BiometricAuthenticationState = BiometricAuthenticationState.Initial
+) {
+    sealed class BiometricAuthenticationState {
+        object Initial : BiometricAuthenticationState()
+        object Authenticating : BiometricAuthenticationState()
+        object Authenticated : BiometricAuthenticationState()
+        object AuthenticationFailed : BiometricAuthenticationState()
+    }
+}
+

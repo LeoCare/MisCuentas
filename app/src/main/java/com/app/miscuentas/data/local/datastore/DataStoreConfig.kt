@@ -17,11 +17,10 @@ class DataStoreConfig @Inject constructor(
 ) {
     //Metodo para guardar TRUE en caso de que se hayan registrado
     suspend fun putRegistroPreference(registradoOK: Boolean){
-        val preferenceKey = booleanPreferencesKey(name = "RegistroOk")
+        val preferenceRegistro = booleanPreferencesKey(name = "RegistroOk")
 
         context.dataStore.edit { preferences ->
-            preferences[preferenceKey] = registradoOK
-
+            preferences[preferenceRegistro] = registradoOK
         }
     }
 
@@ -32,6 +31,28 @@ class DataStoreConfig @Inject constructor(
             val preferences = context.dataStore.data.first()
 
             preferences[preferencesKey]
+
+        }catch (e: Exception){
+            null
+        }
+    }
+
+    //Metodo para guardar TRUE en caso de que se hayan registrado
+    suspend fun putInicoHuellaPreference(inicioHuella: Boolean){
+        val preferenceHuella = booleanPreferencesKey(name = "InicoHuella")
+
+        context.dataStore.edit { preferences ->
+            preferences[preferenceHuella] = inicioHuella
+        }
+    }
+
+    //Metodo que retorna el valor guardado en las preference
+    suspend fun getInicoHuellaPreference(): Boolean? {
+        return try {
+            val preferenceHuella = booleanPreferencesKey(name = "InicoHuella")
+            val preferences = context.dataStore.data.first()
+
+            preferences[preferenceHuella]
 
         }catch (e: Exception){
             null

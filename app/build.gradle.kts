@@ -70,9 +70,19 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion")
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
+
 //    // Corrutinas
 //    implementation("org.jetbrains.kotlin:kotlin-corrutines-core:1.6.1")
 //    implementation("org.jetbrains.kotlin:kotlin-corrutines-android:1.6.1")
+
+    /*Servicio Rest*/
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.google.code.gson:gson:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Biometric
+    implementation ("androidx.biometric:biometric-ktx:1.2.0-alpha05")
+
     // Injeccion de dependencias HILT
     implementation("com.google.dagger:hilt-android-gradle-plugin:2.44")
     implementation("com.google.dagger:hilt-android:2.48")

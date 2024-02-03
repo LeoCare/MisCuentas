@@ -1,7 +1,6 @@
 package com.app.miscuentas.features.inicio
 
 import android.app.Activity
-import android.content.Intent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -21,11 +20,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,12 +39,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -48,8 +52,14 @@ import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
-import com.app.miscuentas.features.MainActivity
 import com.app.miscuentas.features.login.LoginViewModel
+import com.app.miscuentas.util.MiAviso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
@@ -64,6 +74,7 @@ fun Prev(){
     Inicio(
         currentScreen,
         navController,
+        onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
         onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.name) },
         onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
     )
@@ -76,21 +87,22 @@ fun Prev(){
 fun Inicio(
     currentScreen: MisCuentasScreen,
     navController: NavHostController,
+    onNavSplash: () -> Unit,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ){
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-    val viewModel: LoginViewModel = hiltViewModel()
+    val viewModel: InicioViewModel = hiltViewModel()
+    val inicioState by viewModel.inicioState.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { MyDrawer(viewModel, navController = navController) }
+        drawerContent = { MyDrawer(viewModel, inicioState, onNavSplash) }
     ) {
         Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
             scaffoldState = scaffoldState,
-            //drawerContent = { MyDrawer(viewModel, navController = navController) },
             topBar = {
                 MiTopBar(
                     drawerState,
@@ -225,14 +237,22 @@ fun ImagenCustom(
 
 
 /** MENU LATERAL **/
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun MyDrawer(
-    viewModel: LoginViewModel,
-    navController: NavController
+    viewModel: InicioViewModel,
+    inicioState: InicoState,
+    onNavSplash: () -> Unit
 )
 {
+    //Para cierre de sesion y de app
     val activity = (LocalContext.current as? Activity)
+   // val loginViewModel: LoginViewModel = hiltViewModel()
+    val miCoroutine = CoroutineScope(Dispatchers.Main)
+
+    //Aviso de la huella digital
+    var showAviso by rememberSaveable { mutableStateOf(false) }
+    if (showAviso) MiAviso("Proximo a gestionar") { showAviso = false }
 
     ModalDrawerSheet(
         drawerShape = MaterialTheme.shapes.extraLarge,
@@ -240,7 +260,8 @@ fun MyDrawer(
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
+
             Image(
                 painter = painterResource(id = R.drawable.logo), // Reemplaza con tu recurso de icono de la aplicación
                 contentDescription = "Mis Cuentas",
@@ -253,101 +274,151 @@ fun MyDrawer(
                 color = MaterialTheme.colorScheme.primary
             )
         }
+        LazyColumn{
 
-        Text(
-            "PRINCIPAL",
-            modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleMedium
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Calificar la APP (pendiente)") },
-            selected = false,
-            onClick = {  }, //PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.Star, contentDescription = "Calificar") }
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Contactar (pendiente)") },
-            selected = false,
-            onClick = {  },//PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.Mail, contentDescription = "Contactar") }
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Donar (pendiente)") },
-            selected = false,
-            onClick = {  },//PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.CardGiftcard, contentDescription = "Donar") }
-        )
-        Divider()
+            item {
+                Divider()
+                Text(
+                    "OPCIONAL",
+                    modifier = Modifier.padding(start = 16.dp, top = 10.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Row {
+                    NavigationDrawerItem(
+                        label = {
+                            Text(text = "Inicio con huella")
+                                },
+                        selected = false,
+                        onClick = { showAviso = true },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Filled.Fingerprint,
+                                contentDescription = "Inicio con huella"
+                            )
+                        },
+                        badge = {
+                            Switch(
+                                checked = inicioState.huellaDigital,
+                                onCheckedChange = { viewModel.onInicioHuellaChanged(it) }
+                            )
+                        }
+                    )
+                }
+                Divider()
+                Text(
+                    "AYUDA",
+                    modifier = Modifier.padding(start = 16.dp, top = 10.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Calificar la APP (pendiente)") },
+                    selected = false,
+                    onClick = { }, //PENDIENTE
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = "Calificar"
+                        )
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Contactar (pendiente)") },
+                    selected = false,
+                    onClick = { },//PENDIENTE
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.Mail,
+                            contentDescription = "Contactar"
+                        )
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Donar (pendiente)") },
+                    selected = false,
+                    onClick = { },//PENDIENTE
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.CardGiftcard,
+                            contentDescription = "Donar"
+                        )
+                    }
+                )
+                Divider()
 
-        Text(
-            "DUDAS",
-            modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleMedium
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Info (pendiente)") },
-            selected = false,
-            onClick = {  },//PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.Info, contentDescription = "Info") }
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "FAQ (pendiente)") },
-            selected = false,
-            onClick = {  },//PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.QuestionMark, contentDescription = "FAQ") }
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Politicas de privacidad (pendiente)") },
-            selected = false,
-            onClick = {  },//PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.Security, contentDescription = "Politicas") }
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Terminos y condiciones (pendiente)") },
-            selected = false,
-            onClick = {  },//PENDIENTE
-            icon =  { Icon(imageVector = Icons.Filled.MenuBook, contentDescription = "Condiciones") }
-        )
-        Divider()
+                Text(
+                    "DUDAS",
+                    modifier = Modifier.padding(start = 16.dp, top = 10.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Info (pendiente)") },
+                    selected = false,
+                    onClick = { },//PENDIENTE
+                    icon = { Icon(imageVector = Icons.Filled.Info, contentDescription = "Info") }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "FAQ (pendiente)") },
+                    selected = false,
+                    onClick = { },//PENDIENTE
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.QuestionMark,
+                            contentDescription = "FAQ"
+                        )
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Politicas de privacidad (pendiente)") },
+                    selected = false,
+                    onClick = { },//PENDIENTE
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.Security,
+                            contentDescription = "Politicas"
+                        )
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Terminos y condiciones (pendiente)") },
+                    selected = false,
+                    onClick = { },//PENDIENTE
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.MenuBook,
+                            contentDescription = "Condiciones"
+                        )
+                    }
+                )
+                Divider()
 
-        Text(
-            "TERMINAR",
-            modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleMedium
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Salir") },
-            selected = false,
-            onClick = {
-                // salimos de la app
-                activity?.finish()
-            },
-            icon =  { Icon(imageVector = Icons.Filled.Output, contentDescription = "Salir") }
-        )
-        NavigationDrawerItem(
-            label = { Text(text = "Cerrar sesion") },
-            selected = false,
-            onClick = {
-                viewModel.onLoginOkChanged(false)
-                // Navegar a la pantalla de login
-                val intent = Intent(activity, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                activity?.startActivity(intent)
-            },
-            icon =  { Icon(imageVector = Icons.Filled.Close, contentDescription = "Cerrar") }
-        )
+                Text(
+                    "TERMINAR",
+                    modifier = Modifier.padding(start = 16.dp, top = 10.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Salir") },
+                    selected = false,
+                    onClick = {
+                        // salimos de la app
+                        activity?.finish()
+                    },
+                    icon = { Icon(imageVector = Icons.Filled.Output, contentDescription = "Salir") }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = "Cerrar sesion") },
+                    selected = false,
+                    onClick = {
+                        viewModel.onInicioHuellaChanged(false)
+                        viewModel.onRegistroPreferenceChanged(false)
+                        miCoroutine.launch {
+                            delay(500)
+                            onNavSplash()
+                        }
+                    },
+                    icon = { Icon(imageVector = Icons.Filled.Close, contentDescription = "Cerrar") }
+                )
+            }
+        }
     }
-
-}
-
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun DrawerItem(icon: ImageVector, text: String, onClick: () -> Unit) {
-    ListItem(
-        icon = { Icon(imageVector = icon, contentDescription = null) },
-        text = { Text(text) },
-        modifier = Modifier.clickable { onClick() }
-
-  )
 }

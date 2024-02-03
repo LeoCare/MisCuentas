@@ -2,12 +2,23 @@ package com.app.miscuentas.util
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.util.Log
+import android.widget.Toast
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricPrompt
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import java.util.Calendar
+import java.util.concurrent.Executor
 
 
 class Desing {
@@ -36,6 +47,7 @@ class Desing {
             datePickerDialog.getButton(DatePickerDialog.BUTTON_POSITIVE)?.setTextColor(Color.BLACK)
             datePickerDialog.getButton(DatePickerDialog.BUTTON_NEGATIVE)?.setTextColor(Color.BLACK)
         }
+
     }
 }
 
@@ -61,3 +73,21 @@ fun MiDialogo(texto: String, cerrar: () -> Unit, aceptar: () -> Unit) {
         text = { Text(text = texto) }
     )
 }
+
+@Composable
+fun MiAviso(texto: String, aceptar: () -> Unit) {
+
+    AlertDialog(onDismissRequest = { aceptar() },
+        confirmButton = {
+            TextButton(onClick = { aceptar() }) {
+                Text(text = "Entendido")
+            }
+        },
+        title = { Text(text = "Informativo") },
+        text = { Text(text = texto) }
+    )
+}
+
+
+
+

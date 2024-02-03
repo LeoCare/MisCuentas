@@ -2,6 +2,7 @@
 
 package com.app.miscuentas.features.login
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -19,9 +20,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -40,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,9 +62,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
+import com.app.miscuentas.util.BiometricAuthenticator
+import com.app.miscuentas.util.Desing
+import kotlinx.coroutines.delay
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -93,12 +106,37 @@ fun Login(onNavigate: () -> Unit){
 @Composable
 private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
 
+    //Inicio por huella digital
+    val context = LocalContext.current
+    val biometricAuthenticator = BiometricAuthenticator(context)
+    val activity = LocalContext.current as FragmentActivity
+
     //Uso de Hilt para el control de los estados del viewModel.
     val viewModel: LoginViewModel = hiltViewModel()
     val loginState by viewModel.loginState.collectAsState()
 
     // Estado para manejar mensajes de error al presionar Boton de inicio
     val uiErrorMessage = remember { mutableStateOf("") }
+
+
+    //Uso de la huella digita
+    LaunchedEffect(loginState.biometricAuthenticationState) {
+        when (loginState.biometricAuthenticationState) {
+            is LoginState.BiometricAuthenticationState.Authenticating -> {
+                // Iniciar lector huella
+                biometricAuthenticator.promptBiometricAuth(
+                    fragmentActivity = activity,
+                    onSuccess = {
+                        viewModel.onBiometricAuthenticationSuccess()
+                        onNavigate()
+                    },
+                    onError = { viewModel.onBiometricAuthenticationFailed() },
+                    onFailure = { viewModel.onBiometricAuthenticationFailed() }
+                )
+            }
+            else -> {}
+        }
+    }
 
     //Si el login es correcto, navega a la siguiente pagina
     LaunchedEffect(loginState.loginOk) {
@@ -113,7 +151,6 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
             loginState.registro && !viewModel.emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
             else -> {
                 uiErrorMessage.value = ""
-                //viewModel.guardarLogin(loginState.usuario, loginState.contrasena) //PRUEBA DE SHAREDPREFERENCES, BORRAR!!
                 viewModel.onLoginOkChanged(true)
                 onNavigate()
             }
@@ -179,7 +216,6 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
                 loginState.registro,
                 loginState.mensaje,
                 loginOk =  onBotonInicioClick)
-
         }
     }
 }
@@ -327,4 +363,5 @@ fun CustomSpacer(size: Dp) {
             .height(size)
     )
 }
+
 

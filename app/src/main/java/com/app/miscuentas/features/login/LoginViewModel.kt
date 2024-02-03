@@ -13,8 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    //private val sharedPreference: SharedPreferences,  //Prueba SHAREDPREFERENCES
-    private val dataStoreConfig: DataStoreConfig     //Prueba DATASTORE
+    private val dataStoreConfig: DataStoreConfig  // DATASTORE
 ) : ViewModel(){
 
     private val _loginState = MutableStateFlow(LoginState())
@@ -68,31 +67,40 @@ class LoginViewModel @Inject constructor(
         return tieneNumero && tieneMayus && tieneMinus
     }
 
-    //PRUEBA DE SHAREDPREFERENCE, BORRAR!!
-    //Este metodo guarda los datos de inicio
-//    fun guardarLogin(usuario: String, contrasenna: String){
-//        sharedPreference.edit().apply{
-//            putString("usuario", usuario)
-//            putString("contrasenna", contrasenna)
-//            apply()
-//        }
-//    }
-    //Si se guarda el usuario 'LEO' y la pass 'LEOleo1234' -> Iniciará la app evitando la screen de login
-//    init {
-//        val usuario = sharedPreference.getString("usuario", "")
-//        val contrasenna = sharedPreference.getString("contrasenna", "")
-//
-//        if (usuario == "LEO" && contrasenna == "LEOleo1234" ) _loginState.value = _loginState.value.copy(loginOk = true)
-//    }
 
-
-    //PRUEBA DE DATASTORE
+    // DATASTORE
     init {
-        // Observa los cambios en DataStore y actualiza el estado del loginOk
+        // Observa los cambios en DataStore para comprobar el inicio por huella
         viewModelScope.launch {
+            val inicioHuella = dataStoreConfig.getInicoHuellaPreference() ?: false
             val registrado = dataStoreConfig.getRegistroPreference() ?: false
-            _loginState.value = _loginState.value.copy(loginOk = registrado)
+
+            if (registrado && inicioHuella) startBiometricAuthentication()
+            else  _loginState.value = _loginState.value.copy(loginOk = registrado)
+
         }
+    }
+
+    //METODOS PARA LA AUTENTICACION POR HUELLA (BIOMETRIC)
+    // Función para iniciar la autenticación
+    fun startBiometricAuthentication() {
+        _loginState.value = _loginState.value.copy(
+            biometricAuthenticationState = LoginState.BiometricAuthenticationState.Authenticating
+        )
+    }
+
+    // Función si la autenticación es exitosa
+    fun onBiometricAuthenticationSuccess() {
+        _loginState.value = _loginState.value.copy(
+            biometricAuthenticationState = LoginState.BiometricAuthenticationState.Authenticated
+        )
+    }
+
+    // Función si la autenticación es fallida
+    fun onBiometricAuthenticationFailed() {
+        _loginState.value = _loginState.value.copy(
+            biometricAuthenticationState = LoginState.BiometricAuthenticationState.AuthenticationFailed
+        )
     }
 
 }

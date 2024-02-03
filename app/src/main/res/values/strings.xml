@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MisCuentas</string>
     <string name="noPublicidad">No recibiras publicidad ninguna</string>
+    <string name="splash">Splash</string>
     <string name="login">Login</string>
     <string name="inicio">Inicio</string>
     <string name="nueva_hoja">Nueva Hoja</string>
