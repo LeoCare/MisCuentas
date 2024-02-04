@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
@@ -23,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +44,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
-import com.app.miscuentas.domain.HojaCalculo
-import com.app.miscuentas.features.mis_hojas.MisHojasViewModel
+import com.app.miscuentas.domain.model.HojaCalculo
+import androidx.compose.foundation.lazy.items
+import com.app.miscuentas.data.model.MisHojas
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -63,7 +66,8 @@ fun HojasScreen(innerPadding: PaddingValues, navController: NavController) {
     val itemsTipo = listOf("Activas", "Finalizadas", "Todas")
     val itemsOrden = listOf("Fecha creacion", "Gasto total")
 
-    val viewModel: MisHojasViewModel = hiltViewModel()
+    val viewModel: HojasViewModel = hiltViewModel()
+    val hojaState by viewModel.hojasState.collectAsState()
 
     Column(horizontalAlignment = CenterHorizontally) {
         Row(
@@ -76,13 +80,16 @@ fun HojasScreen(innerPadding: PaddingValues, navController: NavController) {
             SpinnerCustoms("ORDENAR POR:", itemsOrden, "Opcion de ordenacion")
         }
 
-//        LazyColumn(
-//            contentPadding = innerPadding,
-//        ) {
-//            items(HojasProvider.getListHoja()) { hoja ->
-//                HojaDesing(hoja)
-//            }
-//        }
+        LazyColumn(
+            contentPadding = innerPadding,
+        ) {
+            items(hojaState.listaHojas ?: emptyList()) { hoja ->
+                // Verificar que la hoja no sea nula antes de mostrarla
+                hoja?.let {
+                    HojaDesing(hoja = it)
+                }
+            }
+        }
     }
 
 }
@@ -144,10 +151,12 @@ fun SpinnerCustoms(titulo: String, items: List<String>, contentDescription: Stri
 }
 
 @Composable
-fun HojaDesing(hoja: HojaCalculo) {
+fun HojaDesing(hoja: MisHojas) {
+    var isChecked by rememberSaveable { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
-            .padding(start=25.dp, end=25.dp,bottom=20.dp)
+            .padding(start = 25.dp, end = 25.dp, bottom = 20.dp)
             .clip(MaterialTheme.shapes.extraLarge),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -161,12 +170,12 @@ fun HojaDesing(hoja: HojaCalculo) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Checkbox(checked = false, onCheckedChange = {})
+                Checkbox(checked = isChecked, onCheckedChange = {isChecked = it})
                 Text(
                     text = "Principal",
                 )
                 Spacer(Modifier.weight(1f))
-                Text(text = hoja.status)
+//                Text(text = hoja.id)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -181,21 +190,21 @@ fun HojaDesing(hoja: HojaCalculo) {
                     )
                 }
                 Column{
-                    Text(text = hoja.titulo)
+                    //Text(text = hoja.type)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Total Participantes:")
-                        Text(hoja.getTotalParticipantes().toString())
+                        Text(text = "Tipo:")
+                        Text(text = hoja.type)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Limite:")
-                        Text(hoja.limite.toString())
+                        Text(text = "Precio:")
+                        Text(text = hoja.price.toString())
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Fecha Cierre:")
-                        Text(hoja.fechaCierre)
+                        Text(text = "Id:")
+                        Text(text = hoja.id)
                     }
                 }
             }

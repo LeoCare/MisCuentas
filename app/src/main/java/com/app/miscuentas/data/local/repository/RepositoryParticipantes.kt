@@ -1,9 +1,9 @@
-package com.app.miscuentas.data.repository
+package com.app.miscuentas.data.local.repository
 
 import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesDao
 import com.app.miscuentas.data.local.dbroom.dbParticipantes.toDomain
-import com.app.miscuentas.domain.Participante
-import com.app.miscuentas.domain.toEntity
+import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.domain.model.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

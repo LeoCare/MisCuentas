@@ -1,5 +1,6 @@
-package com.app.miscuentas.domain
+package com.app.miscuentas.domain.model
 
+import com.app.miscuentas.domain.Validaciones
 import java.time.LocalDate
 
 data class HojaCalculo(

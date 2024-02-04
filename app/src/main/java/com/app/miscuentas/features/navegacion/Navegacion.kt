@@ -71,7 +71,7 @@ fun AppNavHost(navController: NavHostController) {
     //pila de Screen y valor actual
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = MisCuentasScreen.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreen.Login.name
+        backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.name
     )
 
     NavHost(

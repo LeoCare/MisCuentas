@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain
+package com.app.miscuentas.domain.model
 
 import java.time.LocalDateTime
 

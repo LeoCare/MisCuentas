@@ -2,8 +2,8 @@ package com.app.miscuentas.features.nueva_hoja
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.miscuentas.domain.Participante
-import com.app.miscuentas.data.repository.RepositoryParticipantes
+import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.data.local.repository.RepositoryParticipantes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
