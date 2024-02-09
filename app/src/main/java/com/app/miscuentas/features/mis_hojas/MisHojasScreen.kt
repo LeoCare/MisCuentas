@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -14,6 +15,7 @@ import com.app.miscuentas.features.navegacion.AppNavBar
 import com.app.miscuentas.features.navegacion.BottomNavigationBar
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -33,12 +35,13 @@ fun Prev(){
 
 /** Composable principal de la Screen **/
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun MisHojas(
     currentScreen: MisCuentasScreen, //para el topBar
     navController: NavHostController, //para el boton de 'ir atras'
 ) {
+    val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val navControllerMisHojas = rememberNavController()
@@ -50,12 +53,15 @@ fun MisHojas(
         scaffoldState = scaffoldState,
         topBar = {
             MiTopBar(
+                context,
                 null,
                 currentScreen,
                 scope = scope,
                 scaffoldState = scaffoldState,
-                canNavigateBack = canNavigateBack
-            ) { navController.navigateUp() }
+                canNavigateBack = canNavigateBack,
+                navigateUp = { navController.navigateUp() },
+                null
+            )
         },
         bottomBar = { BottomNavigationBar(navControllerMisHojas) },
         content = { innerPadding -> AppNavBar(innerPadding,navControllerMisHojas) }

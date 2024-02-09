@@ -1,12 +1,13 @@
 package com.app.miscuentas.features.inicio
 
+import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
-import androidx.compose.material.ListItem
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberScaffoldState
@@ -24,6 +25,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,55 +36,54 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
-import com.app.miscuentas.features.login.LoginViewModel
+import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.MiAviso
+import com.app.miscuentas.util.Permiso
+import com.app.miscuentas.util.PermisoState
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-@Preview
-@Composable
-fun Prev(){
-    val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = MisCuentasScreen.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreen.Inicio.name
-    )
-
-    Inicio(
-        currentScreen,
-        navController,
-        onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
-        onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.name) },
-        onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
-    )
-}
+//@Preview
+//@Composable
+//fun Prev(){
+//    val navController = rememberNavController()
+//    val backStackEntry by navController.currentBackStackEntryAsState()
+//    val currentScreen = MisCuentasScreen.valueOf(
+//        backStackEntry?.destination?.route ?: MisCuentasScreen.Inicio.name
+//    )
+//
+//    Inicio(
+//        currentScreen,
+//        navController,
+//        statePermisoCamara,
+//        onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
+//        onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
+//    ) { navController.navigate(MisCuentasScreen.NuevaHoja.name) }
+//}
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
-//@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun Inicio(
     currentScreen: MisCuentasScreen,
@@ -91,28 +92,34 @@ fun Inicio(
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ){
+    val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val viewModel: InicioViewModel = hiltViewModel()
     val inicioState by viewModel.inicioState.collectAsState()
+    /** Permisos  **/
+    val statePermisoCamara1 = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val permiso = Permiso()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { MyDrawer(viewModel, inicioState, onNavSplash) }
+        drawerContent = { MyDrawer(context, viewModel, inicioState, onNavSplash) }
     ) {
         Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
             scaffoldState = scaffoldState,
             topBar = {
                 MiTopBar(
+                    context,
                     drawerState,
                     currentScreen,
                     scope = scope,
                     scaffoldState = scaffoldState,
-                    canNavigateBack = false
-                ) { navController.navigateUp() }
+                    canNavigateBack = false,
+                    navigateUp = { navController.navigateUp() }
+                ) { permiso.solicitarPermiso(statePermisoCamara1) }
             },
-            content = { innerPadding -> InicioContent(innerPadding, onNavMisHojas, onNavNuevaHoja) }
+            content = { innerPadding -> InicioContent(context, permiso, statePermisoCamara1, innerPadding, onNavMisHojas, onNavNuevaHoja) }
         )
     }
 }
@@ -120,12 +127,51 @@ fun Inicio(
 
 
 /** CONTENIDO GENERAL DE ESTA SCREEN **/
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun InicioContent(
+    context: Context,
+    permiso: Permiso,
+    statePermisoCamara1: PermissionState,
     innerPadding: PaddingValues,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ) {
+
+    /** Permisos  **/
+//    val statePermisoCamara1 = rememberPermissionState(permission = Manifest.permission.CAMERA)
+//    val permiso = Permiso()
+    val permisoState by permiso.permisoState.collectAsState()
+
+    //Este aviso se lanzara cuando se deniega el permiso...
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    if (showDialog) MiAviso(
+        show = true,
+        texto = "El permiso es necesaro para enviar una captura. Si se deniega una vez mas solo se podra otorgar desde la configuracion del dispositivo."
+    )
+    { showDialog = false }
+
+    //Comprobacion del permiso solicitado
+//    LaunchedEffect(permisoState.permisoState) {
+
+    if (statePermisoCamara1.status.isGranted)
+        permiso.setPermisoConcedido()
+    else if (statePermisoCamara1.status.shouldShowRationale)
+        permiso.setPermisoDenegPermanente()
+    else
+        permiso.setPermisoDenegado()
+//    }
+
+    //Accion despues de la comprobacion
+    LaunchedEffect(permisoState.permisoState){
+        when(permisoState.permisoState){
+            is PermisoState.PermissionState.Concedido -> {
+                Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
+            }
+            is  PermisoState.PermissionState.DenegPermanente -> { showDialog = true }
+            else -> {}
+        }
+    }
 
     /** CAJA CON COLUMNAS: **/
     Box(
@@ -240,6 +286,7 @@ fun ImagenCustom(
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun MyDrawer(
+    context: Context,
     viewModel: InicioViewModel,
     inicioState: InicoState,
     onNavSplash: () -> Unit
@@ -247,12 +294,11 @@ fun MyDrawer(
 {
     //Para cierre de sesion y de app
     val activity = (LocalContext.current as? Activity)
-   // val loginViewModel: LoginViewModel = hiltViewModel()
     val miCoroutine = CoroutineScope(Dispatchers.Main)
 
     //Aviso de la huella digital
     var showAviso by rememberSaveable { mutableStateOf(false) }
-    if (showAviso) MiAviso("Proximo a gestionar") { showAviso = false }
+    if (showAviso) MiAviso(showAviso, "Proximo a gestionar") { showAviso = false }
 
     ModalDrawerSheet(
         drawerShape = MaterialTheme.shapes.extraLarge,
@@ -311,9 +357,9 @@ fun MyDrawer(
                     style = MaterialTheme.typography.titleMedium
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Calificar la APP (pendiente)") },
+                    label = { Text(text = "Calificar la APP") },
                     selected = false,
-                    onClick = { }, //PENDIENTE
+                    onClick = { Desing.calificarAPP(context) },
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.Star,
@@ -322,9 +368,9 @@ fun MyDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Contactar (pendiente)") },
+                    label = { Text(text = "Contactar") },
                     selected = false,
-                    onClick = { },//PENDIENTE
+                    onClick = { Desing.envioCorreo(context) },
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.Mail,
@@ -335,7 +381,7 @@ fun MyDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "Donar (pendiente)") },
                     selected = false,
-                    onClick = { },//PENDIENTE
+                    onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.CardGiftcard,
@@ -353,13 +399,13 @@ fun MyDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "Info (pendiente)") },
                     selected = false,
-                    onClick = { },//PENDIENTE
+                    onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = { Icon(imageVector = Icons.Filled.Info, contentDescription = "Info") }
                 )
                 NavigationDrawerItem(
                     label = { Text(text = "FAQ (pendiente)") },
                     selected = false,
-                    onClick = { },//PENDIENTE
+                    onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.QuestionMark,
@@ -370,7 +416,7 @@ fun MyDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "Politicas de privacidad (pendiente)") },
                     selected = false,
-                    onClick = { },//PENDIENTE
+                    onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.Security,
@@ -381,7 +427,7 @@ fun MyDrawer(
                 NavigationDrawerItem(
                     label = { Text(text = "Terminos y condiciones (pendiente)") },
                     selected = false,
-                    onClick = { },//PENDIENTE
+                    onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.MenuBook,

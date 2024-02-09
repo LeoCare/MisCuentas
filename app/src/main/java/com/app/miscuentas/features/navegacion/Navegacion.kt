@@ -2,17 +2,15 @@
 
 package com.app.miscuentas.features.navegacion
 
-import android.widget.Toast
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.DrawerState
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Difference
@@ -21,27 +19,25 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.miscuentas.R
-import com.app.miscuentas.util.MiDialogo
 import com.app.miscuentas.features.inicio.Inicio
 import com.app.miscuentas.features.login.Login
 import com.app.miscuentas.features.mis_hojas.MisHojas
@@ -50,6 +46,9 @@ import com.app.miscuentas.features.mis_hojas.nav_bar_screen.HojasScreen
 import com.app.miscuentas.features.mis_hojas.nav_bar_screen.ParticipantesScreen
 import com.app.miscuentas.features.nueva_hoja.NuevaHoja
 import com.app.miscuentas.features.splash.SplashScreen
+import com.app.miscuentas.util.Desing
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -66,7 +65,11 @@ enum class MisCuentasScreen(@StringRes val title: Int){
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(
+    navController: NavHostController
+) {
+
+    val activity = LocalContext.current as FragmentActivity
 
     //pila de Screen y valor actual
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -81,13 +84,12 @@ fun AppNavHost(navController: NavHostController) {
 
         composable(MisCuentasScreen.Splash.name) {
             SplashScreen(
-                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.name)},
-                onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.name)}
-            )
+                activity,
+                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.name)}
+            ) { navController.navigate(MisCuentasScreen.Inicio.name) }
         }
         composable(MisCuentasScreen.Login.name) {
-            Login(
-                onNavigate = { navController.navigate(MisCuentasScreen.Inicio.name) }) //Lambda de navegacion a Inicio, para ser usado desde LoginContent()
+            Login { navController.navigate(MisCuentasScreen.Inicio.name) } //Lambda de navegacion a Inicio, para ser usado desde LoginContent()
         }
         composable(MisCuentasScreen.Inicio.name) {
             Inicio(
@@ -101,9 +103,8 @@ fun AppNavHost(navController: NavHostController) {
         composable(MisCuentasScreen.NuevaHoja.name) {
             NuevaHoja(
                 currentScreen,
-                navController,
-                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
-            )
+                navController
+            ) { navController.navigate(MisCuentasScreen.MisHojas.name) }
         }
         composable(MisCuentasScreen.MisHojas.name) {
             MisHojas(
@@ -183,19 +184,15 @@ fun BottomNavigationBar(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiTopBar(
-    drawerState: androidx.compose.material3.DrawerState?,
+    context: Context,
+    drawerState: DrawerState?,
     currentScreen: MisCuentasScreen,
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
     canNavigateBack: Boolean,
-    navigateUp: () -> Unit
-){
-    val context = LocalContext.current //contexto para la barra de navegacion
-
-    //Cuando showDialog cambia a true se ejecuta MiDialogo(), cuando cambia a false se cierra.
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    if (showDialog) MiDialogo("Proximo a gestionar", {showDialog =  false}, { showDialog = true}) //esta funcion tiene como parametro dos funciones lambda que cambian el valor de una variable.
-
+    navigateUp: () -> Unit,
+    solicitarPermiso: (() -> Unit?)?
+) {
     TopAppBar(
         title = {
             Text(
@@ -214,28 +211,37 @@ fun MiTopBar(
                         contentDescription = stringResource(R.string.back_button)
                     )
                 }
-            }
-            else { //si no, muestra el menu lateral
+            } else { //si no, muestra el menu lateral
                 IconButton(
                     onClick = {
                         scope.launch { drawerState?.open() }
                     }
                 ) {
-                    Icon(Icons.Filled.Menu, contentDescription = "Localized description")
+                    Icon(Icons.Filled.Menu, contentDescription = "Menu")
                 }
             }
         },
         actions = {
             IconButton(
                 onClick = {
-                    scope.launch { Toast.makeText(context, "Mi Toast: Compartir", Toast.LENGTH_LONG).show() }
+                    scope.launch {
+                        // Texto a enviar
+                        val ruta =
+                            "https://play.google.com/store/apps/details?id=com.bandainamcoent.dblegends_ww&gl=ES" //OBVIAMENTE AUN NO TENGO RUTA DE ESTA APP EN LA TIENDA!!
+                        val mensajeYRuta =
+                            "Prueba la APP para realizar las cuentas de una manera simple, ya sea con la familia, pareja o amigos\n$ruta"
+                        Desing.compartirAPP(context, mensajeYRuta)
+                    }
                 }
             ) {
                 Icon(Icons.Filled.Share, contentDescription = "Compartir")
             }
             IconButton(
                 onClick = {
-                    scope.launch {  showDialog = true }
+                    //permiso.solicitarPermiso(statePermisoCamara1)
+                    if (solicitarPermiso != null) {
+                        solicitarPermiso()
+                    }
                 }
             ) {
                 Icon(Icons.Filled.Info, contentDescription = "Informacion")
@@ -243,3 +249,5 @@ fun MiTopBar(
         }
     )
 }
+
+

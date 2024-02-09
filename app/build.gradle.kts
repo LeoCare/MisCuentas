@@ -75,6 +75,9 @@ dependencies {
 //    implementation("org.jetbrains.kotlin:kotlin-corrutines-core:1.6.1")
 //    implementation("org.jetbrains.kotlin:kotlin-corrutines-android:1.6.1")
 
+    /*Solicitud de permisos*/
+    implementation ("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+
     /*Servicio Rest*/
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")

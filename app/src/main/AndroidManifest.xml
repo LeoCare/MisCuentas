@@ -13,6 +13,15 @@
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <uses-permission android:name="android.permission.CAMERA"/>
 
+    <!-- Permisos de iniciar el envio de correo electronico -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
+
     <application
         android:name=".MisCuentasApp"
         android:allowBackup="true"

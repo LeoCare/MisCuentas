@@ -57,45 +57,46 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.util.Desing.Companion.showDatePickerDialog
 import com.app.miscuentas.util.MiDialogo
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-@Preview
-@Composable
-fun Prev(){
-    val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = MisCuentasScreen.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreen.NuevaHoja.name
-    )
-
-    NuevaHoja(
-        currentScreen,
-        navController,
-        onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
-    )
-}
+//@Preview
+//@Composable
+//fun Prev(){
+//    val navController = rememberNavController()
+//    val backStackEntry by navController.currentBackStackEntryAsState()
+//    val currentScreen = MisCuentasScreen.valueOf(
+//        backStackEntry?.destination?.route ?: MisCuentasScreen.NuevaHoja.name
+//    )
+//
+//    NuevaHoja(
+//        currentScreen,
+//        navController,
+//        statePermisoCamara
+//    ) { navController.navigate(MisCuentasScreen.MisHojas.name) }
+//}
 
 /** Composable principal de la Screen **/
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun NuevaHoja(
     currentScreen: MisCuentasScreen,
     navController: NavHostController,
     onNavMisHojas: () -> Unit
 ){
+    val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
@@ -106,12 +107,15 @@ fun NuevaHoja(
         scaffoldState = scaffoldState,
         topBar = {
             MiTopBar(
+                context,
                 null,
                 currentScreen,
                 scope = scope,
                 scaffoldState = scaffoldState,
-                canNavigateBack = canNavigateBack
-            ) { navController.navigateUp() }
+                canNavigateBack = canNavigateBack,
+                navigateUp = { navController.navigateUp() },
+                null
+            )
         },
         content = { innerPadding -> NuevaHojaScreen(innerPadding) }
     )
@@ -595,7 +599,7 @@ fun BotonCrear(viewModel: NuevaHojaViewModel) {
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     val nombreDeTodos = viewModel.getAllParticipantesToString() //Borrar!!
-    if (showDialog) MiDialogo(nombreDeTodos, {showDialog =  false}, { showDialog = true}) //Borrar!!
+    if (showDialog) MiDialogo(showDialog, nombreDeTodos, {showDialog =  false}, { showDialog = true}) //Borrar!!
 
 
     Column(

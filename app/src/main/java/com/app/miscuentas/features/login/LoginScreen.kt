@@ -2,7 +2,6 @@
 
 package com.app.miscuentas.features.login
 
-import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -20,15 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -62,28 +55,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.util.BiometricAuthenticator
-import com.app.miscuentas.util.Desing
-import kotlinx.coroutines.delay
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-@Preview
-@Composable
-fun Prev(){
-    val navController = rememberNavController()
-    Login(onNavigate = { navController.navigate("inicio") })
-}
+//@Preview
+//@Composable
+//fun Prev(){
+//    val navController = rememberNavController()
+//    Login(statePermisoCamara = statePermisoCamara) { navController.navigate("inicio") }
+//}
 
 /** Composable principal de la Screen **/
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Login(onNavigate: () -> Unit){
+fun Login( onNavigate: () -> Unit){
 
     val controlTeclado = LocalSoftwareKeyboardController.current
 
