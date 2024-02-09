@@ -73,7 +73,6 @@ import com.google.accompanist.permissions.PermissionState
 //}
 
 /** Composable principal de la Screen **/
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Login( onNavigate: () -> Unit){
 

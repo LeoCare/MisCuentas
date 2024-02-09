@@ -43,22 +43,21 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.app.miscuentas.R
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
+import com.app.miscuentas.util.Captura
 import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.MiAviso
-import com.app.miscuentas.util.Permiso
-import com.app.miscuentas.util.PermisoState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -99,8 +98,7 @@ fun Inicio(
     val viewModel: InicioViewModel = hiltViewModel()
     val inicioState by viewModel.inicioState.collectAsState()
     /** Permisos  **/
-    val statePermisoCamara1 = rememberPermissionState(permission = Manifest.permission.CAMERA)
-    val permiso = Permiso()
+    val statePermisoCamara = rememberPermissionState(permission = Manifest.permission.CAMERA)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -117,9 +115,13 @@ fun Inicio(
                     scaffoldState = scaffoldState,
                     canNavigateBack = false,
                     navigateUp = { navController.navigateUp() }
-                ) { permiso.solicitarPermiso(statePermisoCamara1) }
+                ) {
+                    scope.launch {
+                        viewModel.solicitaPermiso(statePermisoCamara)
+                    }
+                }
             },
-            content = { innerPadding -> InicioContent(context, permiso, statePermisoCamara1, innerPadding, onNavMisHojas, onNavNuevaHoja) }
+            content = { innerPadding -> InicioContent(context, viewModel, inicioState, statePermisoCamara, innerPadding, onNavMisHojas, onNavNuevaHoja) }
         )
     }
 }
@@ -131,44 +133,41 @@ fun Inicio(
 @Composable
 fun InicioContent(
     context: Context,
-    permiso: Permiso,
-    statePermisoCamara1: PermissionState,
+    viewModel: InicioViewModel,
+    inicioState: InicioState,
+    statePermisoCamara: PermissionState,
     innerPadding: PaddingValues,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ) {
 
+    val activity = LocalContext.current as FragmentActivity
+
     /** Permisos  **/
-//    val statePermisoCamara1 = rememberPermissionState(permission = Manifest.permission.CAMERA)
-//    val permiso = Permiso()
-    val permisoState by permiso.permisoState.collectAsState()
 
     //Este aviso se lanzara cuando se deniega el permiso...
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     if (showDialog) MiAviso(
         show = true,
-        texto = "El permiso es necesaro para enviar una captura. Si se deniega una vez mas solo se podra otorgar desde la configuracion del dispositivo."
+        texto = "El permiso es necesaro para enviar una captura.\nSi se deniega una vez mas, solo se podrá otorgar desde la configuracion del dispositivo."
     )
     { showDialog = false }
 
     //Comprobacion del permiso solicitado
-//    LaunchedEffect(permisoState.permisoState) {
-
-    if (statePermisoCamara1.status.isGranted)
-        permiso.setPermisoConcedido()
-    else if (statePermisoCamara1.status.shouldShowRationale)
-        permiso.setPermisoDenegPermanente()
+    if (statePermisoCamara.status.isGranted)
+        viewModel.setPermisoConcedido()
+    else if (statePermisoCamara.status.shouldShowRationale)
+        viewModel.setPermisoDenegPermanente()
     else
-        permiso.setPermisoDenegado()
-//    }
+        viewModel.setPermisoDenegado()
 
     //Accion despues de la comprobacion
-    LaunchedEffect(permisoState.permisoState){
-        when(permisoState.permisoState){
-            is PermisoState.PermissionState.Concedido -> {
-                Toast.makeText(context, "Permiso concedido", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(inicioState.permisoState){
+        when(inicioState.permisoState){
+            is InicioState.PermissionState.Concedido -> {
+
             }
-            is  PermisoState.PermissionState.DenegPermanente -> { showDialog = true }
+            is  InicioState.PermissionState.DenegPermanente -> { showDialog = true }
             else -> {}
         }
     }
@@ -283,12 +282,12 @@ fun ImagenCustom(
 
 
 /** MENU LATERAL **/
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDrawer(
     context: Context,
     viewModel: InicioViewModel,
-    inicioState: InicoState,
+    inicioState: InicioState,
     onNavSplash: () -> Unit
 )
 {
@@ -325,14 +324,17 @@ fun MyDrawer(
             item {
                 Divider()
                 Text(
-                    "OPCIONAL",
+                    "SEGURIDAD",
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Row {
                     NavigationDrawerItem(
                         label = {
-                            Text(text = "Inicio con huella")
+                            Text(
+                                style = MaterialTheme.typography.labelLarge,
+                                text = "Inicio con huella"
+                            )
                                 },
                         selected = false,
                         onClick = { showAviso = true },
@@ -352,12 +354,15 @@ fun MyDrawer(
                 }
                 Divider()
                 Text(
-                    "AYUDA",
+                    "OPCIONAL",
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Calificar la APP") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Calificar la APP")
+                            },
                     selected = false,
                     onClick = { Desing.calificarAPP(context) },
                     icon = {
@@ -368,7 +373,9 @@ fun MyDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Contactar") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Contactar") },
                     selected = false,
                     onClick = { Desing.envioCorreo(context) },
                     icon = {
@@ -379,7 +386,30 @@ fun MyDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Donar (pendiente)") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Compartir APP")
+                            },
+                    selected = false,
+                    onClick = {
+                        // Texto a enviar
+                        val ruta =
+                            "https://play.google.com/store/apps/details?id=com.bandainamcoent.dblegends_ww&gl=ES" //OBVIAMENTE AUN NO TENGO RUTA DE ESTA APP EN LA TIENDA!!
+                        val mensajeYRuta =
+                            "Prueba la APP para realizar las cuentas de una manera simple, ya sea con la familia, pareja o amigos.\n$ruta"
+                        Desing.compartirAPP(context, mensajeYRuta)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Compartir APP"
+                        )
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Donar (pendiente)") },
                     selected = false,
                     onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
@@ -397,13 +427,9 @@ fun MyDrawer(
                     style = MaterialTheme.typography.titleMedium
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Info (pendiente)") },
-                    selected = false,
-                    onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
-                    icon = { Icon(imageVector = Icons.Filled.Info, contentDescription = "Info") }
-                )
-                NavigationDrawerItem(
-                    label = { Text(text = "FAQ (pendiente)") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "FAQ (pendiente)") },
                     selected = false,
                     onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
@@ -414,7 +440,9 @@ fun MyDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Politicas de privacidad (pendiente)") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Politicas de privacidad (pendiente)") },
                     selected = false,
                     onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
@@ -425,7 +453,9 @@ fun MyDrawer(
                     }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Terminos y condiciones (pendiente)") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Terminos y condiciones (pendiente)") },
                     selected = false,
                     onClick = {  Toast.makeText(context, "Pendiente de configurar", Toast.LENGTH_SHORT).show() },//PENDIENTE
                     icon = {
@@ -443,7 +473,9 @@ fun MyDrawer(
                     style = MaterialTheme.typography.titleMedium
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Salir") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Salir") },
                     selected = false,
                     onClick = {
                         // salimos de la app
@@ -452,7 +484,9 @@ fun MyDrawer(
                     icon = { Icon(imageVector = Icons.Filled.Output, contentDescription = "Salir") }
                 )
                 NavigationDrawerItem(
-                    label = { Text(text = "Cerrar sesion") },
+                    label = { Text(
+                        style = MaterialTheme.typography.labelLarge,
+                        text = "Cerrar sesion") },
                     selected = false,
                     onClick = {
                         viewModel.onInicioHuellaChanged(false)

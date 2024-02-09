@@ -4,7 +4,6 @@ import com.app.miscuentas.data.network.hojas.HojasRepository
 import com.app.miscuentas.data.network.hojas.HojasService
 import com.app.miscuentas.data.network.webservices.WebService
 import com.app.miscuentas.domain.GetMisHojas
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,5 +40,6 @@ object MisHojasModule {
     fun provideGetMisHojas(hojasRepository: HojasRepository): GetMisHojas {
         return GetMisHojas(hojasRepository)
     }
+
 
 }

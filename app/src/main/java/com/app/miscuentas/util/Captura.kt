@@ -16,34 +16,8 @@ import java.io.IOException
 class Captura {
 
     companion object { //SINGLETON
-        private const val REQUEST_CODE_STORAGE_PERMISSION = 101
 
-        fun solicitarPermiso(activity: Activity) {
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                REQUEST_CODE_STORAGE_PERMISSION
-            )
-        }
-
-        fun permisoYCapturar(activity: Activity) {
-            if (ContextCompat.checkSelfPermission(
-                    activity,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_CODE_STORAGE_PERMISSION
-                )
-                return
-            }
-
-            capturarYEnviar(activity)
-        }
-
-        private fun capturarYEnviar(activity: Activity) {
+        fun capturarYEnviar(activity: Activity) {
             // Obtener la vista raíz del diseño actual
             val view = activity.window.decorView.rootView
 
@@ -74,7 +48,7 @@ class Captura {
             }
         }
 
-        private fun enviarImagen(activity: Activity, uri: Uri) {
+        fun enviarImagen(activity: Activity, uri: Uri) {
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/*"
                 putExtra(Intent.EXTRA_STREAM, uri)

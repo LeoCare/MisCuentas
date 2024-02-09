@@ -46,10 +46,10 @@ import com.app.miscuentas.features.mis_hojas.nav_bar_screen.HojasScreen
 import com.app.miscuentas.features.mis_hojas.nav_bar_screen.ParticipantesScreen
 import com.app.miscuentas.features.nueva_hoja.NuevaHoja
 import com.app.miscuentas.features.splash.SplashScreen
+import com.app.miscuentas.util.Captura
 import com.app.miscuentas.util.Desing
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 
@@ -191,8 +191,10 @@ fun MiTopBar(
     scaffoldState: ScaffoldState,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
-    solicitarPermiso: (() -> Unit?)?
+    solicitarPermiso: (() -> Job)?
 ) {
+    val activity = LocalContext.current as FragmentActivity
+
     TopAppBar(
         title = {
             Text(
@@ -205,7 +207,7 @@ fun MiTopBar(
         ),
         navigationIcon = {
             if (canNavigateBack) { //muestra la flecha para volver atras
-                androidx.compose.material3.IconButton(onClick = navigateUp) {
+                IconButton(onClick = navigateUp) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back_button)
@@ -223,22 +225,12 @@ fun MiTopBar(
         },
         actions = {
             IconButton(
-                onClick = {
-                    scope.launch {
-                        // Texto a enviar
-                        val ruta =
-                            "https://play.google.com/store/apps/details?id=com.bandainamcoent.dblegends_ww&gl=ES" //OBVIAMENTE AUN NO TENGO RUTA DE ESTA APP EN LA TIENDA!!
-                        val mensajeYRuta =
-                            "Prueba la APP para realizar las cuentas de una manera simple, ya sea con la familia, pareja o amigos\n$ruta"
-                        Desing.compartirAPP(context, mensajeYRuta)
-                    }
-                }
+                onClick = { Captura.capturarYEnviar(activity) }
             ) {
                 Icon(Icons.Filled.Share, contentDescription = "Compartir")
             }
             IconButton(
                 onClick = {
-                    //permiso.solicitarPermiso(statePermisoCamara1)
                     if (solicitarPermiso != null) {
                         solicitarPermiso()
                     }
