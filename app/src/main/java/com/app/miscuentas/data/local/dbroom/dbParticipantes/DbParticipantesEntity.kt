@@ -8,13 +8,13 @@ import com.app.miscuentas.domain.model.Participante
 @Entity(tableName = "t_participantes") //De esta manera personalizo el nombre de la tabla, si no, seria el de la clase
 class DbParticipantesEntity (
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @ColumnInfo(name = "id") val id: Int? = 0,
     @ColumnInfo(name = "nombre") val nombre: String,
     @ColumnInfo(name = "correo") var correo: String? = ""
 )
 
 fun DbParticipantesEntity.toDomain() = Participante(
-   // id = id,
+    id = id,
     nombre = nombre,
     correo = correo
 )

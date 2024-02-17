@@ -41,32 +41,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
-import com.app.miscuentas.domain.model.HojaCalculo
 import androidx.compose.foundation.lazy.items
-import com.app.miscuentas.data.model.MisHojas
+import com.app.miscuentas.data.model.Hoja
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 @Preview
 @Composable
 fun Prev() {
-    val navController = rememberNavController()
     val padding = PaddingValues(20.dp)
-    HojasScreen(padding,navController)
+    HojasScreen(padding)
 }
 
 /** Contenedor del resto de elementos para la pestaña Hojas **/
 @Composable
-fun HojasScreen(innerPadding: PaddingValues, navController: NavController) {
+fun HojasScreen(
+    innerPadding: PaddingValues,
+    viewModel: HojasViewModel = hiltViewModel()
+) {
+
     // Screen con las hojas creadas
     //Provisional!!!
     val itemsTipo = listOf("Activas", "Finalizadas", "Todas")
     val itemsOrden = listOf("Fecha creacion", "Gasto total")
 
-    val viewModel: HojasViewModel = hiltViewModel()
     val hojaState by viewModel.hojasState.collectAsState()
 
     Column(horizontalAlignment = CenterHorizontally) {
@@ -83,11 +82,8 @@ fun HojasScreen(innerPadding: PaddingValues, navController: NavController) {
         LazyColumn(
             contentPadding = innerPadding,
         ) {
-            items(hojaState.listaHojas ?: emptyList()) { hoja ->
-                // Verificar que la hoja no sea nula antes de mostrarla
-                hoja?.let {
-                    HojaDesing(hoja = it)
-                }
+            items(hojaState.listaHojas) { hoja ->
+                HojaDesing(hoja = hoja)
             }
         }
     }
@@ -151,7 +147,7 @@ fun SpinnerCustoms(titulo: String, items: List<String>, contentDescription: Stri
 }
 
 @Composable
-fun HojaDesing(hoja: MisHojas) {
+fun HojaDesing(hoja: Hoja) {
     var isChecked by rememberSaveable { mutableStateOf(false) }
 
     Card(

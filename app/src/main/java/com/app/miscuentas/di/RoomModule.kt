@@ -15,11 +15,10 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    const val DATABASE_NAME = "MisCuentasRoom.db"
+    private const val DATABASE_NAME = "MisCuentasRoom.db"
 
     //Usado automaticamente por el sistema!
     //Metodo que nos devuelve una instancia de la DDBB
-    //Al marcarlo como @Provides, le indico a Hilt como dar una instancia de la base de datos
     @Provides
     fun getDbMisCuentas(@ApplicationContext context: Context) =
         Room.databaseBuilder(context, DbMisCuentas::class.java, DATABASE_NAME)

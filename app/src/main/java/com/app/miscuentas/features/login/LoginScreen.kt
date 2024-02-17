@@ -35,7 +35,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -51,17 +50,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.util.BiometricAuthenticator
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -74,9 +69,15 @@ import com.google.accompanist.permissions.PermissionState
 
 /** Composable principal de la Screen **/
 @Composable
-fun Login( onNavigate: () -> Unit){
+fun Login(
+    onNavigate: () -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
+){
 
     val controlTeclado = LocalSoftwareKeyboardController.current
+
+    //Uso de Hilt para el control de los estados del viewModel.
+    val loginState by viewModel.loginState.collectAsState()
 
     Box(
         modifier = Modifier
@@ -89,22 +90,46 @@ fun Login( onNavigate: () -> Unit){
                 })
             }
     ) {
-        LoginContent(Modifier.align(Alignment.Center), onNavigate)
+        LoginContent(
+            Modifier.align(Alignment.Center),
+            loginState,
+            onNavigate,
+            { viewModel.onBiometricAuthenticationSuccess() },
+            { viewModel.onBiometricAuthenticationFailed() },
+            { viewModel.contrasennaOk(it) },
+            { viewModel.emailOk(it) },
+            { viewModel.onLoginOkChanged(it) },
+            { viewModel.onMensajeChanged(it) },
+            { viewModel.onUsuarioFieldChanged(it) },
+            { viewModel.onContrasennaFieldChanged(it) },
+            { viewModel.onEmailFieldChanged(it) },
+            { viewModel.onRegistroCheckChanged(it) }
+        )
     }
 }
 
 /** Contenedor del resto de elementos para Login **/
 @Composable
-private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
+private fun LoginContent(
+    modifier: Modifier,
+    loginState: LoginState,
+    onNavigate: () -> Unit,
+    bioAuthSuccess: () -> Unit,
+    bioAuthFailed: () -> Unit,
+    contrasennaOk: (String) -> Boolean,
+    emailOk: (String) -> Boolean,
+    loginOkChanged: (Boolean) -> Unit,
+    mensajeChanged: (String) -> Unit,
+    onUsuarioFieldChanged: (String) -> Unit,
+    onContrasennaFieldChanged: (String) -> Unit,
+    onEmailFieldChanged: (String) -> Unit,
+    onRegistroCheckChanged: (Boolean) -> Unit
+) {
 
     //Inicio por huella digital
     val context = LocalContext.current
     val biometricAuthenticator = BiometricAuthenticator(context)
     val activity = LocalContext.current as FragmentActivity
-
-    //Uso de Hilt para el control de los estados del viewModel.
-    val viewModel: LoginViewModel = hiltViewModel()
-    val loginState by viewModel.loginState.collectAsState()
 
     // Estado para manejar mensajes de error al presionar Boton de inicio
     val uiErrorMessage = remember { mutableStateOf("") }
@@ -118,11 +143,11 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
                 biometricAuthenticator.promptBiometricAuth(
                     fragmentActivity = activity,
                     onSuccess = {
-                        viewModel.onBiometricAuthenticationSuccess()
+                        bioAuthSuccess()
                         onNavigate()
                     },
-                    onError = { viewModel.onBiometricAuthenticationFailed() },
-                    onFailure = { viewModel.onBiometricAuthenticationFailed() }
+                    onError = { bioAuthFailed() },
+                    onFailure = { bioAuthFailed() }
                 )
             }
             else -> {}
@@ -138,15 +163,15 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
     val onBotonInicioClick = {
         when {
             loginState.usuario.isEmpty() -> uiErrorMessage.value = "Falta usuario"
-            !viewModel.contrasennaOk(loginState.contrasena) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
-            loginState.registro && !viewModel.emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
+            !contrasennaOk(loginState.contrasena) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
+            loginState.registro && !emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
             else -> {
                 uiErrorMessage.value = ""
-                viewModel.onLoginOkChanged(true)
+                loginOkChanged(true)
                 onNavigate()
             }
         }
-        viewModel.onMensajeChanged(uiErrorMessage.value)
+        mensajeChanged(uiErrorMessage.value)
     }
 
     LazyColumn(
@@ -170,14 +195,14 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
             CustomTextField(
                 "Usuario",
                 value = loginState.usuario
-            ) { viewModel.onUsuarioFieldChanged(it) }
+            ) { onUsuarioFieldChanged(it) }
             CustomSpacer(24.dp)
 
             //TextFiedl Contraseña
             CustomTextField(
                 "Contraseña",
                 value = loginState.contrasena
-            ) { viewModel.onContrasennaFieldChanged(it) }
+            ) { onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
 
             //TextFiedl Email
@@ -195,12 +220,11 @@ private fun LoginContent(modifier: Modifier, onNavigate: () -> Unit) {
                 CustomTextField(
                     "Email",
                     value = loginState.email
-                ) { viewModel.onEmailFieldChanged(it) }
+                ) { onEmailFieldChanged(it) }
             }
 
             //CheckBox Registro
-            CustomCkeckbox(registroState = loginState.registro) {viewModel.onRegistroCheckChanged(it)
-            }
+            CustomCkeckbox(registroState = loginState.registro) { onRegistroCheckChanged(it) }
 
             //Boton comprobacion
             BotonInicio(

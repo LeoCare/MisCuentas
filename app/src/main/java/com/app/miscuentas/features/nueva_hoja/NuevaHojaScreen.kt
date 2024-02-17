@@ -42,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
@@ -57,19 +56,22 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.util.Desing.Companion.showDatePickerDialog
 import com.app.miscuentas.util.MiDialogo
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
+import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 //@Preview
@@ -78,30 +80,32 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 //    val navController = rememberNavController()
 //    val backStackEntry by navController.currentBackStackEntryAsState()
 //    val currentScreen = MisCuentasScreen.valueOf(
-//        backStackEntry?.destination?.route ?: MisCuentasScreen.NuevaHoja.name
+//        backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.name
 //    )
-//
+//    val onNavSplash: () -> Unit = {}
+//    val onNavMisHojas: () -> Unit = {}
+//    val onNavNuevaHoja: () -> Unit = {}
 //    NuevaHoja(
 //        currentScreen,
-//        navController,
-//        statePermisoCamara
-//    ) { navController.navigate(MisCuentasScreen.MisHojas.name) }
+//        onNavMisHojas,
+//    )
 //}
 
 /** Composable principal de la Screen **/
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevaHoja(
     currentScreen: MisCuentasScreen,
-    navController: NavHostController,
-    onNavMisHojas: () -> Unit
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit,
+    onNavMisHojas: () -> Unit,
+    viewModel: NuevaHojaViewModel = hiltViewModel()
 ){
+
+    val eventoState by viewModel.eventoState.collectAsState()
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -113,22 +117,40 @@ fun NuevaHoja(
                 scope = scope,
                 scaffoldState = scaffoldState,
                 canNavigateBack = canNavigateBack,
-                navigateUp = { navController.navigateUp() },
-                null
+                navigateUp = { navigateUp() }
             )
         },
-        content = { innerPadding -> NuevaHojaScreen(innerPadding) }
+
+        content = { innerPadding -> NuevaHojaScreen(
+            innerPadding, eventoState,
+            { viewModel.onTituloFieldChanged(it)},
+            { viewModel.onParticipanteFieldChanged(it) },
+            { viewModel.onLimiteGastoFieldChanged(it) },
+            { viewModel.onFechaCierreFieldChanged(it) },
+            { viewModel.addParticipante(it) },
+            { viewModel.getAllParticipantesToString() },
+            { viewModel.insertAllParticipante() },
+            { viewModel.getTotalParticipantes() },
+            { viewModel.deleteUltimoParticipante() }
+        )}
     )
 }
 
 /** Contenedor del resto de elementos para la Screen**/
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun NuevaHojaScreen(innerPadding: PaddingValues) {
-
-    // Observa el estado completo del evento
-    val viewModel: NuevaHojaViewModel = hiltViewModel()
-    val eventoState by viewModel.eventoState.collectAsState()
+fun NuevaHojaScreen(
+    innerPadding: PaddingValues,
+    eventoState: NuevaHojaState,
+    onTituloFieldChanged: (String) -> Unit,
+    onParticipanteFieldChanged: (String) -> Unit,
+    onLimiteGastoFieldChanged: (String) -> Unit,
+    onFechaCierreFieldChanged: (String) -> Unit,
+    addParticipante: (Participante) -> Unit,
+    getAllParticipantesToString: () -> String,
+    insertAllParticipante: () -> Unit,
+    getTotalParticipantes: () -> Int,
+    deleteUltimoParticipante: () -> Unit
+) {
 
     //Provisional
     val tieneLimite = remember { mutableStateOf(true) }
@@ -145,7 +167,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
         contentPadding = innerPadding,
         modifier = Modifier
             .fillMaxSize()
-            .padding(15.dp)
+            .padding(18.dp)
             .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
                 detectTapGestures(onPress = {
                     controlTeclado?.hide()
@@ -183,7 +205,7 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     Titulo(
                         robotoBlack,
                         value = eventoState.titulo
-                    ) { viewModel.onTituloFieldChanged(it) }
+                    ) { onTituloFieldChanged(it) }
                 }
             }
 
@@ -209,10 +231,14 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                         .padding(10.dp)
                 ) {
                     Participantes(
-                        viewModel,
                         robotoBlack,
                         eventoState.listaParticipantes,
-                        eventoState.participante) { viewModel.onParticipanteFieldChanged(it) }
+                        eventoState.participante,
+                        { onParticipanteFieldChanged(it) },
+                        { addParticipante(it) },
+                        { getTotalParticipantes() },
+                        { deleteUltimoParticipante() }
+                    )
 
                 }
             }
@@ -237,19 +263,22 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
                     LimiteGasto(
                         robotoMedItalic,
                         tieneLimite,
-                        eventoState.limiteGasto) { viewModel.onLimiteGastoFieldChanged(it) }
+                        eventoState.limiteGasto) { onLimiteGastoFieldChanged(it) }
 
                     LimiteFecha(
                         eventoState.fechaCierre,
                         tieneFecha,
-                        robotoMedItalic) { viewModel.onFechaCierreFieldChanged(it) }
+                        robotoMedItalic) { onFechaCierreFieldChanged(it) }
 
                 }
             }
 
             CustomSpacer(20.dp)
 
-            BotonCrear(viewModel)
+            BotonCrear(
+                {getAllParticipantesToString()},
+                {insertAllParticipante()}
+                )
         }
     }
 }
@@ -260,7 +289,8 @@ fun NuevaHojaScreen(innerPadding: PaddingValues) {
 fun Titulo(
     robotoBlack: FontFamily,
     value: String,
-    onTituloFieldChange: (String) -> Unit) {
+    onTituloFieldChange: (String) -> Unit
+) {
 
     var isFocused by rememberSaveable { mutableStateOf(false) }
 
@@ -286,7 +316,7 @@ fun Titulo(
             textAlign = TextAlign.Start
         ),
         colors = TextFieldDefaults.textFieldColors(
-            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFE7EBEE)
+            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
         ),
         singleLine = true,
         maxLines = 1
@@ -297,12 +327,14 @@ fun Titulo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Participantes(
-    viewModel: NuevaHojaViewModel,
     robotoBlack: FontFamily,
-    listParticipantes: List<String>,
+    listParticipantes: List<Participante>,
     statusParticipante: String,
-    onParticipanteFieldChange: (String) -> Unit
-    ) {
+    onParticipanteFieldChange: (String) -> Unit,
+    addParticipante: (Participante) -> Unit,
+    getTotalParticipantes: () -> Int,
+    deleteUltimoParticipante: () -> Unit
+) {
     //val viewModel: NuevaHojaViewModel = viewModel()
     var isFocused by rememberSaveable { mutableStateOf(false) }
     var mostrarParticipantes by rememberSaveable { mutableStateOf(true) }
@@ -324,7 +356,7 @@ fun Participantes(
         )
         Spacer(Modifier.weight(1f))
         Text(
-            text = viewModel.getTotalParticipantes().toString(),
+            text = getTotalParticipantes().toString(),
             fontSize = 15.sp,
             color = Color.Black,
             fontFamily = robotoBlack,
@@ -359,7 +391,7 @@ fun Participantes(
                 fontSize = 17.sp
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFE7EBEE)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
             ),
             singleLine = true,
             maxLines = 1
@@ -372,7 +404,7 @@ fun Participantes(
                 .align(CenterVertically)
                 .clickable {
                     if (statusParticipante.isNotBlank()) {
-                        viewModel.addParticipante(statusParticipante)
+                        addParticipante(Participante(id = null, nombre = statusParticipante))
                         onParticipanteFieldChange("")
                     }
                 }
@@ -385,7 +417,7 @@ fun Participantes(
                 .align(CenterVertically)
                 .clickable {
                     if (listParticipantes.isNotEmpty()) {
-                        viewModel.deleteUltimoParticipante()
+                        deleteUltimoParticipante()
                     }
                 }
         )
@@ -404,7 +436,7 @@ fun Participantes(
 @Composable
 fun ListaParticipantes(
     mostrarParticipantes: Boolean,
-    listParticipantes: List<String>){
+    listParticipantes: List<Participante>){
 
     if (mostrarParticipantes) {
         LazyRow(
@@ -415,7 +447,7 @@ fun ListaParticipantes(
             //mostrar lista de participantes
             items(listParticipantes) { participante ->
                 Text(
-                    text = participante,
+                    text = participante.nombre,
                     modifier = Modifier
                         .padding(start = 10.dp),
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -426,6 +458,7 @@ fun ListaParticipantes(
 }
 
 /** Composable para el recuadro de LimiteGasto **/
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimiteGasto(
     robotoMedItalic: FontFamily,
@@ -469,7 +502,7 @@ fun LimiteGasto(
                 textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFE7EBEE)
+                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -545,7 +578,7 @@ fun LimiteFecha(
                 textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor =  Color(0xFFE7EBEE)
+                containerColor =  Color(0xFFF4F6F8)
             ),
             singleLine = true,
             maxLines = 1
@@ -593,12 +626,15 @@ fun IconoVerParticipantes(
 
 /** Composable para el boton de creacion de nueva hoja **/
 @Composable
-fun BotonCrear(viewModel: NuevaHojaViewModel) {
+fun BotonCrear(
+    getAllParticipantesToString: () -> String,
+    insertAllParticipante: () -> Unit
+) {
 
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
-    val nombreDeTodos = viewModel.getAllParticipantesToString() //Borrar!!
+    val nombreDeTodos = getAllParticipantesToString() //Borrar!!
     if (showDialog) MiDialogo(showDialog, nombreDeTodos, {showDialog =  false}, { showDialog = true}) //Borrar!!
 
 
@@ -610,7 +646,7 @@ fun BotonCrear(viewModel: NuevaHojaViewModel) {
     ) {
         Button(
             onClick = {
-                viewModel.insertAllParticipante()
+                insertAllParticipante()
                 showDialog = true
             },
             modifier = Modifier

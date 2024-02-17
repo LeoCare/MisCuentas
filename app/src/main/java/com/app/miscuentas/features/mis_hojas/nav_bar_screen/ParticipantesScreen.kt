@@ -10,11 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
 /** Contenedor del resto de elementos para la pestaña Participantes **/
 @Composable
-fun ParticipantesScreen(navController: NavController) {
+fun ParticipantesScreen(
+
+) {
     Box{
         LazyColumn {
             item {

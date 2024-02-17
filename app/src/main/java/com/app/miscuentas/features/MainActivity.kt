@@ -3,6 +3,7 @@ package com.app.miscuentas.features
 import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface

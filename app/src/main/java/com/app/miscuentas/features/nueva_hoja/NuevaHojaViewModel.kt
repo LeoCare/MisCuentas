@@ -3,7 +3,7 @@ package com.app.miscuentas.features.nueva_hoja
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.domain.model.Participante
-import com.app.miscuentas.data.local.repository.RepositoryParticipantes
+import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
-    private val repositoryParticipante: RepositoryParticipantes
+    private val repositoryParticipante: ParticipanteRepository
 ) : ViewModel() {
 
     // private val participantesDao: ParticipantesDao //PRUEBA DE SQLITE!!
@@ -37,7 +37,7 @@ class NuevaHojaViewModel @Inject constructor(
         _eventoState.value = _eventoState.value.copy(fechaCierre = fechaCierre)
     }
 
-    fun addParticipante(participante: String) {
+    fun addParticipante(participante: Participante) {
         val updatedList = _eventoState.value.listaParticipantes + participante
         _eventoState.value = _eventoState.value.copy(listaParticipantes = updatedList, participante = "")
 
@@ -56,12 +56,12 @@ class NuevaHojaViewModel @Inject constructor(
 
     // ROOM
     //Metodo usado en el boton de agregar participante en las nuevas hojas.
-    //Agrega los pareticipantes en la tabla t_participantes de la BBDD.
+    //Agrega los participantes en la tabla t_participantes de la BBDD.
     fun insertAllParticipante(){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 eventoState.value.listaParticipantes.forEach { participante ->
-                    repositoryParticipante.insertAll(Participante(participante))
+                    repositoryParticipante.insertAll(participante)
                 }
             }
         }

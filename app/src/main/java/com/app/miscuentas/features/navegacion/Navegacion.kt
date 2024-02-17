@@ -5,6 +5,7 @@ package com.app.miscuentas.features.navegacion
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -26,10 +27,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
@@ -45,11 +48,10 @@ import com.app.miscuentas.features.mis_hojas.nav_bar_screen.GastosScreen
 import com.app.miscuentas.features.mis_hojas.nav_bar_screen.HojasScreen
 import com.app.miscuentas.features.mis_hojas.nav_bar_screen.ParticipantesScreen
 import com.app.miscuentas.features.nueva_hoja.NuevaHoja
+import com.app.miscuentas.features.nuevo_gasto.NuevoGasto
 import com.app.miscuentas.features.splash.SplashScreen
 import com.app.miscuentas.util.Captura
-import com.app.miscuentas.util.Desing
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 
@@ -61,14 +63,14 @@ enum class MisCuentasScreen(@StringRes val title: Int){
     Login(title = R.string.login),
     Inicio(title = R.string.inicio),
     NuevaHoja(title = R.string.nueva_hoja),
-    MisHojas(title = R.string.mis_hojas)
+    MisHojas(title = R.string.mis_hojas),
+    NuevoGasto(title = R.string.nuevo_gasto)
 }
 
 @Composable
 fun AppNavHost(
     navController: NavHostController
 ) {
-
     val activity = LocalContext.current as FragmentActivity
 
     //pila de Screen y valor actual
@@ -76,6 +78,10 @@ fun AppNavHost(
     val currentScreen = MisCuentasScreen.valueOf(
         backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.name
     )
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
+    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
+
 
     NavHost(
         navController = navController,
@@ -85,17 +91,21 @@ fun AppNavHost(
         composable(MisCuentasScreen.Splash.name) {
             SplashScreen(
                 activity,
-                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.name)}
-            ) { navController.navigate(MisCuentasScreen.Inicio.name) }
+                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.name) },
+                onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.name) }
+            )
         }
         composable(MisCuentasScreen.Login.name) {
-            Login { navController.navigate(MisCuentasScreen.Inicio.name) } //Lambda de navegacion a Inicio, para ser usado desde LoginContent()
+            Login(
+                { navController.navigate(MisCuentasScreen.Inicio.name) }
+            )
         }
         composable(MisCuentasScreen.Inicio.name) {
             Inicio(
                 currentScreen,
-                navController,
+                {navController.navigateUp()},
                 onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
+                onNavNuevoGasto = { navController.navigate(MisCuentasScreen.NuevoGasto.name)},
                 onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.name) },
                 onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
             )
@@ -103,13 +113,23 @@ fun AppNavHost(
         composable(MisCuentasScreen.NuevaHoja.name) {
             NuevaHoja(
                 currentScreen,
-                navController
-            ) { navController.navigate(MisCuentasScreen.MisHojas.name) }
+                canNavigateBack,
+                {navController.navigateUp()},
+                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
+            )
         }
         composable(MisCuentasScreen.MisHojas.name) {
             MisHojas(
                 currentScreen,
-                navController
+                canNavigateBack,
+                {navController.navigateUp()}
+            )
+        }
+        composable(MisCuentasScreen.NuevoGasto.name) {
+            NuevoGasto(
+                currentScreen,
+                canNavigateBack,
+                {navController.navigateUp()}
             )
         }
     }
@@ -136,11 +156,11 @@ fun AppNavBar(innerPadding: PaddingValues, navControllerMisHojas: NavHostControl
 
     NavHost(
         navController = navControllerMisHojas,
-        startDestination = MisHojasScreen.Hojas.route
+        startDestination = MisHojasScreen.Gastos.route
     ) {
-        composable(MisHojasScreen.Hojas.route) { HojasScreen(innerPadding, navControllerMisHojas) }
-        composable(MisHojasScreen.Gastos.route) { GastosScreen(navControllerMisHojas) }
-        composable(MisHojasScreen.Participantes.route) { ParticipantesScreen(navControllerMisHojas) }
+        composable(MisHojasScreen.Hojas.route) { HojasScreen(innerPadding) }
+        composable(MisHojasScreen.Gastos.route) { GastosScreen(innerPadding) }
+        composable(MisHojasScreen.Participantes.route) { ParticipantesScreen() }
     }
 }
 
@@ -190,8 +210,7 @@ fun MiTopBar(
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
     canNavigateBack: Boolean,
-    navigateUp: () -> Unit,
-    solicitarPermiso: (() -> Job)?
+    navigateUp: () -> Unit
 ) {
     val activity = LocalContext.current as FragmentActivity
 
@@ -230,11 +249,7 @@ fun MiTopBar(
                 Icon(Icons.Filled.Share, contentDescription = "Compartir")
             }
             IconButton(
-                onClick = {
-                    if (solicitarPermiso != null) {
-                        solicitarPermiso()
-                    }
-                }
+                onClick = {}
             ) {
                 Icon(Icons.Filled.Info, contentDescription = "Informacion")
             }

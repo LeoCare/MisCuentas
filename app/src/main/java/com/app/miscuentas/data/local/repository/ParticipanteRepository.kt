@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class RepositoryParticipantes @Inject constructor(
+class ParticipanteRepository @Inject constructor(
     private val participantesDao: DbParticipantesDao
 ) {
     suspend fun insertAll(participante: Participante) = participantesDao.insertAll(participante.toEntity())

@@ -18,6 +18,7 @@ class InicioViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig, // DATASTORE
 ) : ViewModel()
 {
+
     private val _inicioState = MutableStateFlow(InicioState())
     val inicioState: StateFlow<InicioState> = _inicioState
 
@@ -34,24 +35,6 @@ class InicioViewModel @Inject constructor(
         viewModelScope.launch {
             dataStoreConfig.putRegistroPreference(login)
         }
-    }
-
-    /** PERMISOS **/
-    @OptIn(ExperimentalPermissionsApi::class)
-    suspend fun solicitaPermiso(statePermisoCamara: PermissionState) = withContext(Dispatchers.IO) {
-        statePermisoCamara.launchPermissionRequest()
-    }
-
-    fun setPermisoConcedido(){
-        _inicioState.value = _inicioState.value.copy(permisoState = InicioState.PermissionState.Concedido)
-    }
-
-    fun setPermisoDenegado(){
-        _inicioState.value = _inicioState.value.copy(permisoState = InicioState.PermissionState.Denegado)
-    }
-
-    fun setPermisoDenegPermanente(){
-        _inicioState.value = _inicioState.value.copy(permisoState = InicioState.PermissionState.DenegPermanente)
     }
 
     /** COMPROBACION DE INICIO CON HUELLA **/

@@ -3,12 +3,14 @@ package com.app.miscuentas.features.splash
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.features.login.LoginState
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,4 +32,24 @@ class SplashViewModel @Inject constructor(
         }
     }
 
+    /** PERMISOS **/
+    @OptIn(ExperimentalPermissionsApi::class)
+//    suspend fun solicitaPermiso(statePermisoCamara: PermissionState) = withContext(Dispatchers.IO) {
+//        statePermisoCamara.launchPermissionRequest()
+//    }
+    fun solicitaPermiso(statePermisoCamara: PermissionState)  {
+        statePermisoCamara.launchPermissionRequest()
+    }
+
+    fun setPermisoConcedido(){
+        _splashState.value = _splashState.value.copy(permisoState = SplashState.PermissionState.Concedido)
+    }
+
+    fun setPermisoDenegado(){
+        _splashState.value = _splashState.value.copy(permisoState = SplashState.PermissionState.Denegado)
+    }
+
+    fun setPermisoDenegPermanente(){
+        _splashState.value = _splashState.value.copy(permisoState = SplashState.PermissionState.DenegPermanente)
+    }
 }

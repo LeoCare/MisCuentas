@@ -1,23 +1,26 @@
 package com.app.miscuentas.features.inicio
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -25,10 +28,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,69 +43,82 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
+import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.features.mis_hojas.MisHojas
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
-import com.app.miscuentas.util.Captura
 import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.MiAviso
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-//@Preview
-//@Composable
-//fun Prev(){
-//    val navController = rememberNavController()
-//    val backStackEntry by navController.currentBackStackEntryAsState()
-//    val currentScreen = MisCuentasScreen.valueOf(
-//        backStackEntry?.destination?.route ?: MisCuentasScreen.Inicio.name
-//    )
-//
-//    Inicio(
-//        currentScreen,
-//        navController,
-//        statePermisoCamara,
-//        onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
-//        onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
-//    ) { navController.navigate(MisCuentasScreen.NuevaHoja.name) }
-//}
+@Preview
+@Composable
+fun Prev(){
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = MisCuentasScreen.valueOf(
+        backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.name
+    )
+    val onNavSplash: () -> Unit = {}
+    val onNavMisHojas: () -> Unit = {}
+    val onNavNuevaHoja: () -> Unit = {}
+    val onNavNuevoGasto: () -> Unit = {}
+    Inicio(
+        currentScreen,
+        {navController.navigateUp()},
+        onNavSplash = onNavSplash,
+        onNavMisHojas = onNavMisHojas,
+        onNavNuevaHoja = onNavNuevaHoja,
+        onNavNuevoGasto = onNavNuevoGasto
+    )
+}
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Inicio(
     currentScreen: MisCuentasScreen,
-    navController: NavHostController,
+    navigateUp: () -> Unit,
     onNavSplash: () -> Unit,
+    onNavNuevoGasto: () -> Unit,
     onNavMisHojas: () -> Unit,
-    onNavNuevaHoja: () -> Unit
+    onNavNuevaHoja: () -> Unit,
+    viewModel: InicioViewModel = hiltViewModel()
 ){
+
     val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-    val viewModel: InicioViewModel = hiltViewModel()
     val inicioState by viewModel.inicioState.collectAsState()
-    /** Permisos  **/
-    val statePermisoCamara = rememberPermissionState(permission = Manifest.permission.CAMERA)
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { MyDrawer(context, viewModel, inicioState, onNavSplash) }
+        drawerContent = {
+            MyDrawer(
+                context,
+                { viewModel.onInicioHuellaChanged(it) },
+                { viewModel.onRegistroPreferenceChanged(false) },
+                inicioState, onNavSplash
+            )
+        }
     ) {
         Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
             scaffoldState = scaffoldState,
@@ -114,65 +130,24 @@ fun Inicio(
                     scope = scope,
                     scaffoldState = scaffoldState,
                     canNavigateBack = false,
-                    navigateUp = { navController.navigateUp() }
-                ) {
-                    scope.launch {
-                        viewModel.solicitaPermiso(statePermisoCamara)
-                    }
-                }
+                    navigateUp = { navigateUp() }
+                )
             },
-            content = { innerPadding -> InicioContent(context, viewModel, inicioState, statePermisoCamara, innerPadding, onNavMisHojas, onNavNuevaHoja) }
+            content = { innerPadding -> InicioContent(innerPadding, onNavNuevoGasto, onNavMisHojas, onNavNuevaHoja) }
         )
     }
 }
 
 
-
 /** CONTENIDO GENERAL DE ESTA SCREEN **/
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun InicioContent(
-    context: Context,
-    viewModel: InicioViewModel,
-    inicioState: InicioState,
-    statePermisoCamara: PermissionState,
     innerPadding: PaddingValues,
+    onNavNuevoGasto: () -> Unit,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit
 ) {
 
-    val activity = LocalContext.current as FragmentActivity
-
-    /** Permisos  **/
-
-    //Este aviso se lanzara cuando se deniega el permiso...
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    if (showDialog) MiAviso(
-        show = true,
-        texto = "El permiso es necesaro para enviar una captura.\nSi se deniega una vez mas, solo se podrá otorgar desde la configuracion del dispositivo."
-    )
-    { showDialog = false }
-
-    //Comprobacion del permiso solicitado
-    if (statePermisoCamara.status.isGranted)
-        viewModel.setPermisoConcedido()
-    else if (statePermisoCamara.status.shouldShowRationale)
-        viewModel.setPermisoDenegPermanente()
-    else
-        viewModel.setPermisoDenegado()
-
-    //Accion despues de la comprobacion
-    LaunchedEffect(inicioState.permisoState){
-        when(inicioState.permisoState){
-            is InicioState.PermissionState.Concedido -> {
-
-            }
-            is  InicioState.PermissionState.DenegPermanente -> { showDialog = true }
-            else -> {}
-        }
-    }
-
-    /** CAJA CON COLUMNAS: **/
     Box(
         contentAlignment = Alignment.TopCenter,
         modifier = Modifier
@@ -189,7 +164,35 @@ fun InicioContent(
 
             item {
                 CustomSpacer(40.dp)
-
+                Card(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .height(IntrinsicSize.Min)
+                        .clickable { onNavNuevoGasto() },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.inversePrimary)
+                            .size(330.dp, 150.dp)
+                            .padding(start = 20.dp, top = 20.dp, bottom = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Agregar...",
+                            modifier = Modifier
+                                .align(Alignment.Bottom),
+                            fontSize = 30.sp,
+                            fontFamily = robotoItalic
+                        )
+                        ImagenCustom(R.drawable.mis_hojas, "Boton de Nuevo Gasto")
+                    }
+                }
                 Card(
                     modifier = Modifier
                         .padding(20.dp)
@@ -219,7 +222,6 @@ fun InicioContent(
                         ImagenCustom(R.drawable.mis_hojas, "Boton de Mis_Hojas")
                     }
                 }
-                CustomSpacer (30.dp)
                 Card(
                     modifier = Modifier
                         .padding(20.dp)
@@ -286,7 +288,8 @@ fun ImagenCustom(
 @Composable
 fun MyDrawer(
     context: Context,
-    viewModel: InicioViewModel,
+    onCheckedChange: (Boolean) -> Unit,
+    onRegistroClick: (Boolean) -> Unit,
     inicioState: InicioState,
     onNavSplash: () -> Unit
 )
@@ -347,7 +350,7 @@ fun MyDrawer(
                         badge = {
                             Switch(
                                 checked = inicioState.huellaDigital,
-                                onCheckedChange = { viewModel.onInicioHuellaChanged(it) }
+                                onCheckedChange = {onCheckedChange(it)}
                             )
                         }
                     )
@@ -489,8 +492,8 @@ fun MyDrawer(
                         text = "Cerrar sesion") },
                     selected = false,
                     onClick = {
-                        viewModel.onInicioHuellaChanged(false)
-                        viewModel.onRegistroPreferenceChanged(false)
+                        onCheckedChange(false)
+                        onRegistroClick(false)
                         miCoroutine.launch {
                             delay(500)
                             onNavSplash()

@@ -27,6 +27,6 @@ interface DbParticipantesDao {
     @Query("SELECT * FROM t_participantes WHERE id = :id")
     fun getParticipante(id: Int): Flow<DbParticipantesEntity>
 
-    @Query("SELECT * FROM t_participantes ORDER BY nombre DESC")
+    @Query("SELECT * FROM t_participantes ORDER BY id DESC")
     fun getAllParticipantes(): Flow<List<DbParticipantesEntity>>
 }

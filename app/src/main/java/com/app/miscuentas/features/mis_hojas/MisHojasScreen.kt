@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -27,27 +28,28 @@ fun Prev(){
     val currentScreen = MisCuentasScreen.valueOf(
         backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.name
     )
+    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
+    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
     MisHojas(
         currentScreen,
-        navController
+        canNavigateBack,
+        {navController.navigateUp()}
     )
 }
 
 /** Composable principal de la Screen **/
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisHojas(
-    currentScreen: MisCuentasScreen, //para el topBar
-    navController: NavHostController, //para el boton de 'ir atras'
+    currentScreen: MisCuentasScreen,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit
 ) {
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val navControllerMisHojas = rememberNavController()
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -59,8 +61,7 @@ fun MisHojas(
                 scope = scope,
                 scaffoldState = scaffoldState,
                 canNavigateBack = canNavigateBack,
-                navigateUp = { navController.navigateUp() },
-                null
+                navigateUp = { navigateUp() }
             )
         },
         bottomBar = { BottomNavigationBar(navControllerMisHojas) },
