@@ -29,5 +29,10 @@ object DatabaseModule {
     @Provides
     fun provideParticipantesDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getParticipantesDao()
 
-}
+    @Provides
+    fun provideRegistroDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getRegistroDao()
 
+    @Provides
+    fun provideHojaCalculoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getHojaCalculoDao()
+
+}

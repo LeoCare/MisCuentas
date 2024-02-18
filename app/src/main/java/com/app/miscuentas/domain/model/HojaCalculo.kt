@@ -1,28 +1,21 @@
 package com.app.miscuentas.domain.model
 
+import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntity
 import com.app.miscuentas.domain.Validaciones
 import java.time.LocalDate
 
 data class HojaCalculo(
-    var id: Long,
+    var id: Int,
     var titulo: String,
-    private var _fechaCierre: LocalDate?,
+    var fechaCierre: String?,
     var limite: Double?,
-    var status: String,
-    private var _participantesHoja: MutableList<Participante> = mutableListOf()
+    var status: Char,
+    var participantesHoja: List<Participante>? = null
 ){
-    /** Asigna la fecha de tipo LocalDate **/
-    var fechaCierre: String
-        get() = _fechaCierre.toString()
-        set(value){ _fechaCierre = Validaciones.fechaToDateFormat(value) }
-
-
-    fun addListaParticipantes(participante: Participante){
-        _participantesHoja.add(participante)
-    }
-
-    fun getTotalParticipantes(): Int{
-        return _participantesHoja.size
-    }
+    /** Asigna la fecha de tipo LocalDate a _fechaCierre **/
+    var _fechaCierre: LocalDate?
+        get() = Validaciones.fechaToDateFormat(fechaCierre)
+        set(value){ fechaCierre = Validaciones.fechaToStringFormat(value) }
 
 }
+

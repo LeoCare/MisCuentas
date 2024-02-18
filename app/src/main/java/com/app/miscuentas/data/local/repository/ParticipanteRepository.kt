@@ -17,10 +17,10 @@ class ParticipanteRepository @Inject constructor(
 
     suspend fun delete(participante: Participante) = participantesDao.delete(participante.toEntity())
 
-    fun getParticipante(id: Int): Flow<Participante> = participantesDao.getParticipante(id)
-        .map { it.toDomain()}
+    fun getParticipante(id: Int): Flow<Participante> =
+        participantesDao.getParticipante(id).map { it.toDomain() }
 
-    fun getAllParticipantes(): Flow<List<Participante>> = participantesDao.getAllParticipantes()
-        .map { list -> list.map { it.toDomain() } }
+    fun getAllParticipantes(): Flow<List<Participante>> =
+        participantesDao.getAllParticipantes().map { list -> list.map { it.toDomain() } }
 
 }

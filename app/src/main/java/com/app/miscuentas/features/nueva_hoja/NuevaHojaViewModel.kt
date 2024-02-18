@@ -39,7 +39,10 @@ class NuevaHojaViewModel @Inject constructor(
 
     fun addParticipante(participante: Participante) {
         val updatedList = _eventoState.value.listaParticipantes + participante
-        _eventoState.value = _eventoState.value.copy(listaParticipantes = updatedList, participante = "")
+        _eventoState.value = _eventoState.value.copy(
+            listaParticipantes = updatedList,
+            participante = ""
+        )
 
     }
 
@@ -68,17 +71,20 @@ class NuevaHojaViewModel @Inject constructor(
     }
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar si no es necesario!!
-     fun getAllParticipantesToString(): String {
+    fun getAllParticipantesToString(): String {
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 // Se recolecta el Flow de forma asíncrona
                 repositoryParticipante.getAllParticipantes().collect { participantes ->
-                    _eventoState.value = _eventoState.value.copy(listDbParticipantes = participantes.joinToString(", ") { it.nombre })
+                    _eventoState.value = _eventoState.value.copy(
+                        listDbParticipantes = participantes.joinToString(
+                            ", "
+                        ) { it.nombre })
                 }
             }
         }
-         return  _eventoState.value.listDbParticipantes
+        return _eventoState.value.listDbParticipantes
     }
 
 }
