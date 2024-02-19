@@ -2,22 +2,26 @@ package com.app.miscuentas.features.nueva_hoja
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
+import com.app.miscuentas.domain.model.HojaCalculo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
-    private val repositoryParticipante: ParticipanteRepository
+    private val repositoryParticipante: ParticipanteRepository,
+    private val repositoryHojaCalculo: HojaCalculoRepository
 ) : ViewModel() {
 
-    // private val participantesDao: ParticipantesDao //PRUEBA DE SQLITE!!
     private val _eventoState = MutableStateFlow(NuevaHojaState())
     val eventoState: StateFlow<NuevaHojaState> = _eventoState
 
@@ -37,6 +41,7 @@ class NuevaHojaViewModel @Inject constructor(
         _eventoState.value = _eventoState.value.copy(fechaCierre = fechaCierre)
     }
 
+    /** METODOS PARA EL STATE DE PARTICIPANTES **/
     fun addParticipante(participante: Participante) {
         val updatedList = _eventoState.value.listaParticipantes + participante
         _eventoState.value = _eventoState.value.copy(
@@ -57,7 +62,8 @@ class NuevaHojaViewModel @Inject constructor(
         return _eventoState.value.listaParticipantes.size
     }
 
-    // ROOM
+
+    /** METODOS PARA LOS PARTICIPANTES EN ROOM **/
     //Metodo usado en el boton de agregar participante en las nuevas hojas.
     //Agrega los participantes en la tabla t_participantes de la BBDD.
     fun insertAllParticipante(){
@@ -66,12 +72,14 @@ class NuevaHojaViewModel @Inject constructor(
                 eventoState.value.listaParticipantes.forEach { participante ->
                     repositoryParticipante.insertAll(participante)
                 }
+                //Vacio la lista:
+                _eventoState.value = _eventoState.value.copy(listaParticipantes = emptyList())
             }
         }
     }
 
-    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar si no es necesario!!
-    fun getAllParticipantesToString(): String {
+    //Pinta una lista con los participantes almacenados en la BBDD
+    fun getAllParticipantesToString(): String {//Borrar si no es necesario!!
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -85,6 +93,41 @@ class NuevaHojaViewModel @Inject constructor(
             }
         }
         return _eventoState.value.listDbParticipantes
+    }
+
+    //Pinta una lista con los participantes del state
+    fun getListaParticipatesStateString(): String {//Borrar si no es necesario!!
+        var lista = ""
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                eventoState.value.listaParticipantes.forEach { participante ->
+                    lista = participante.nombre + ','
+                }
+            }
+        }
+        return lista
+    }
+
+    /** METODOS PARA LA NUEVA HOJA EN ROOM **/
+    fun instanceNuevaHoja(): HojaCalculo {
+        val fecha: String? = _eventoState.value.fechaCierre.ifEmpty { null }
+
+        return  HojaCalculo(
+            2,
+            _eventoState.value.titulo,
+            fecha,
+            _eventoState.value.limiteGasto.toDoubleOrNull(),
+            _eventoState.value.status,
+            null
+        )
+    }
+
+    fun insertAllHojaCalculo() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repositoryHojaCalculo.insertAll(instanceNuevaHoja())
+            }
+        }
     }
 
 }

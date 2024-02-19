@@ -128,7 +128,7 @@ fun NuevaHoja(
             { viewModel.onLimiteGastoFieldChanged(it) },
             { viewModel.onFechaCierreFieldChanged(it) },
             { viewModel.addParticipante(it) },
-            { viewModel.getAllParticipantesToString() },
+            { viewModel.insertAllHojaCalculo() },
             { viewModel.insertAllParticipante() },
             { viewModel.getTotalParticipantes() },
             { viewModel.deleteUltimoParticipante() }
@@ -146,7 +146,7 @@ fun NuevaHojaScreen(
     onLimiteGastoFieldChanged: (String) -> Unit,
     onFechaCierreFieldChanged: (String) -> Unit,
     addParticipante: (Participante) -> Unit,
-    getAllParticipantesToString: () -> String,
+    insertAllHojaCalculo: () -> Unit,
     insertAllParticipante: () -> Unit,
     getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
@@ -276,7 +276,7 @@ fun NuevaHojaScreen(
             CustomSpacer(20.dp)
 
             BotonCrear(
-                {getAllParticipantesToString()},
+                {insertAllHojaCalculo()},
                 {insertAllParticipante()}
                 )
         }
@@ -627,15 +627,15 @@ fun IconoVerParticipantes(
 /** Composable para el boton de creacion de nueva hoja **/
 @Composable
 fun BotonCrear(
-    getAllParticipantesToString: () -> String,
+    insertAllHojaCalculo: () -> Unit,
     insertAllParticipante: () -> Unit
 ) {
 
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
-    val nombreDeTodos = getAllParticipantesToString() //Borrar!!
-    if (showDialog) MiDialogo(showDialog, nombreDeTodos, {showDialog =  false}, { showDialog = true}) //Borrar!!
+    //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
+    if (showDialog) MiDialogo(showDialog, "Hoja creada", {showDialog =  false}, { showDialog = true}) //Borrar!!
 
 
     Column(
@@ -647,6 +647,7 @@ fun BotonCrear(
         Button(
             onClick = {
                 insertAllParticipante()
+                insertAllHojaCalculo()
                 showDialog = true
             },
             modifier = Modifier

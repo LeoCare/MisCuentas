@@ -8,6 +8,7 @@ data class NuevaHojaState(
     val listaParticipantes: List<Participante> = listOf(),
     val limiteGasto: String = "",
     val fechaCierre: String = "",
+    val status: String = "A",
     val listDbParticipantes: String = "" //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
 
 )

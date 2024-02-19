@@ -9,13 +9,22 @@ data class HojaCalculo(
     var titulo: String,
     var fechaCierre: String?,
     var limite: Double?,
-    var status: Char,
+    var status: String,
     var participantesHoja: List<Participante>? = null
 ){
     /** Asigna la fecha de tipo LocalDate a _fechaCierre **/
-    var _fechaCierre: LocalDate?
-        get() = Validaciones.fechaToDateFormat(fechaCierre)
-        set(value){ fechaCierre = Validaciones.fechaToStringFormat(value) }
+//    var _fechaCierre: LocalDate?
+//        get() = Validaciones.fechaToDateFormat(fechaCierre)
+//        set(value){ fechaCierre = Validaciones.fechaToStringFormat(value) }
 
 }
+
+fun HojaCalculo.toEntity() = DbHojaCalculoEntity(
+    id = id,
+    titulo = titulo,
+    fechaCierre = fechaCierre,
+    limite = limite,
+    status = status
+
+)
 
