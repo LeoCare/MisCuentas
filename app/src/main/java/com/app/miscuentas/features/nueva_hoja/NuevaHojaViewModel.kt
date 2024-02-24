@@ -2,6 +2,8 @@ package com.app.miscuentas.features.nueva_hoja
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.ColumnInfo
+import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
@@ -10,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -64,17 +67,29 @@ class NuevaHojaViewModel @Inject constructor(
 
 
     /** METODOS PARA LOS PARTICIPANTES EN ROOM **/
-    //Metodo usado en el boton de agregar participante en las nuevas hojas.
-    //Agrega los participantes en la tabla t_participantes de la BBDD.
+    //3_LLAMADA A INSERTAR PARTICIPANTES...
     fun insertAllParticipante(){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                eventoState.value.listaParticipantes.forEach { participante ->
-                    repositoryParticipante.insertAll(participante)
+
+                val insertPartOK = insertParticipante()
+                if (insertPartOK){
+                    inserAlltHojaCalculoLin()
                 }
-                //Vacio la lista:
-                _eventoState.value = _eventoState.value.copy(listaParticipantes = emptyList())
             }
+        }
+    }
+
+    //4_INSERTAR PARTICIPANTES
+    private suspend fun insertParticipante(): Boolean{
+        return try{
+            eventoState.value.listaParticipantes.forEach { participante ->
+                val siguienteId = repositoryParticipante.getMaxIdParticipantes() + 1
+                repositoryParticipante.insertAll(siguienteId, participante)
+            }
+            true
+        }catch (e: Exception){
+            false
         }
     }
 
@@ -113,21 +128,86 @@ class NuevaHojaViewModel @Inject constructor(
         val fecha: String? = _eventoState.value.fechaCierre.ifEmpty { null }
 
         return  HojaCalculo(
-            2,
+            0,
             _eventoState.value.titulo,
             fecha,
             _eventoState.value.limiteGasto.toDoubleOrNull(),
             _eventoState.value.status,
-            null
+            _eventoState.value.listaParticipantes
         )
     }
 
+    //1_LLAMADA A INSERTAR HOJA...
     fun insertAllHojaCalculo() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.insertAll(instanceNuevaHoja())
+
+                val insertOK = insertHojaCalculo()
+                if (insertOK) {//si la insercion devuelve true, se insertan los participantes
+                    insertAllParticipante()
+                }
             }
         }
+    }
+    //2_INSERTAR HOJA
+    private suspend fun insertHojaCalculo(): Boolean {
+        val hoja = instanceNuevaHoja()
+
+        return try {
+            repositoryHojaCalculo.insertAllHojaCalculo(hoja)
+            true // insert OK
+        } catch (e: Exception) {
+            false // insert NOK
+        }
+    }
+
+    //5_LLAMADA A INSERTAR LINEAS DE HOJA....
+    fun inserAlltHojaCalculoLin(){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+
+                val insertLinOK = insertHojaCalculoLin()
+                if (insertLinOK) {//si la insercion devuelve true, se insertan los participantes
+                    vaciarTextFields() //Vacio States
+                }
+            }
+        }
+    }
+
+    //6_INSERTAR LINEAS HOJA
+    private suspend fun insertHojaCalculoLin(): Boolean{
+        var insertLinOK = false
+
+        //Datos a para insertar:
+        val id = repositoryHojaCalculo.getMaxIdHojasCalculos()
+        var linea = 0
+
+        eventoState.value.listaParticipantes.forEach { participante ->
+            linea++
+            val idParticipante = repositoryParticipante.getIdParticipante(participante.nombre)
+
+            try {
+                repositoryHojaCalculo.insertAllHojaCalculoLin(
+                    DbHojaCalculoEntityLin(
+                        id,
+                        linea,
+                        idParticipante,
+                        "P"
+                    )
+                )
+                insertLinOK = true
+            } catch (e: Exception) {
+                insertLinOK = false
+            }
+        }
+        return insertLinOK
+    }
+
+    private fun vaciarTextFields(){
+        _eventoState.value = _eventoState.value.copy(titulo = "")
+        _eventoState.value = _eventoState.value.copy(listaParticipantes = emptyList())
+        _eventoState.value = _eventoState.value.copy(limiteGasto = "")
+        _eventoState.value = _eventoState.value.copy(fechaCierre = "")
     }
 
 }

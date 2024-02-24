@@ -11,16 +11,25 @@ import javax.inject.Inject
 class ParticipanteRepository @Inject constructor(
     private val participantesDao: DbParticipantesDao
 ) {
-    suspend fun insertAll(participante: Participante) = participantesDao.insertAll(participante.toEntity())
+    suspend fun insertAll(id: Int, participante: Participante) =
+        participantesDao.insertAll( participante.toEntity(id))
 
-    suspend fun update(participante: Participante) = participantesDao.update(participante.toEntity())
+    suspend fun update(id: Int, participante: Participante) =
+        participantesDao.update(participante.toEntity(id))
 
-    suspend fun delete(participante: Participante) = participantesDao.delete(participante.toEntity())
+    suspend fun delete(id: Int, participante: Participante) =
+        participantesDao.delete(participante.toEntity(id))
 
     fun getParticipante(id: Int): Flow<Participante> =
         participantesDao.getParticipante(id).map { it.toDomain() }
 
     fun getAllParticipantes(): Flow<List<Participante>> =
         participantesDao.getAllParticipantes().map { list -> list.map { it.toDomain() } }
+
+    fun getIdParticipante(nombre: String): Int =
+        participantesDao.getIdParticipante(nombre)
+
+    fun getMaxIdParticipantes(): Int =
+        participantesDao.getMaxIdParticipantes()
 
 }

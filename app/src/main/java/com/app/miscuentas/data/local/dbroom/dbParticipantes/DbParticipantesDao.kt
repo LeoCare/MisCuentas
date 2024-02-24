@@ -29,4 +29,10 @@ interface DbParticipantesDao {
 
     @Query("SELECT * FROM t_participantes ORDER BY id DESC")
     fun getAllParticipantes(): Flow<List<DbParticipantesEntity>>
+
+    @Query("SELECT id FROM t_participantes WHERE nombre = :nombre ORDER BY id DESC")
+    fun getIdParticipante(nombre: String): Int
+
+    @Query("SELECT MAX(id) FROM t_participantes")
+    fun getMaxIdParticipantes(): Int
 }

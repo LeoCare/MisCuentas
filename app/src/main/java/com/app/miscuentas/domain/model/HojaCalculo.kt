@@ -1,8 +1,7 @@
 package com.app.miscuentas.domain.model
 
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntity
-import com.app.miscuentas.domain.Validaciones
-import java.time.LocalDate
+import com.app.miscuentas.data.local.dbroom.dbParticipantes.toDomain
 
 data class HojaCalculo(
     var id: Int,
@@ -10,7 +9,7 @@ data class HojaCalculo(
     var fechaCierre: String?,
     var limite: Double?,
     var status: String,
-    var participantesHoja: List<Participante>? = null
+    var participantesHoja: List<Participante>?
 ){
     /** Asigna la fecha de tipo LocalDate a _fechaCierre **/
 //    var _fechaCierre: LocalDate?
@@ -27,4 +26,3 @@ fun HojaCalculo.toEntity() = DbHojaCalculoEntity(
     status = status
 
 )
-

@@ -56,22 +56,18 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.app.miscuentas.R
 import com.app.miscuentas.util.Desing.Companion.showDatePickerDialog
-import com.app.miscuentas.util.MiDialogo
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
+import com.app.miscuentas.util.MiAviso
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 //@Preview
@@ -122,14 +118,13 @@ fun NuevaHoja(
         },
 
         content = { innerPadding -> NuevaHojaScreen(
-            innerPadding, eventoState,
+            innerPadding, eventoState, onNavMisHojas,
             { viewModel.onTituloFieldChanged(it)},
             { viewModel.onParticipanteFieldChanged(it) },
             { viewModel.onLimiteGastoFieldChanged(it) },
             { viewModel.onFechaCierreFieldChanged(it) },
             { viewModel.addParticipante(it) },
             { viewModel.insertAllHojaCalculo() },
-            { viewModel.insertAllParticipante() },
             { viewModel.getTotalParticipantes() },
             { viewModel.deleteUltimoParticipante() }
         )}
@@ -141,20 +136,20 @@ fun NuevaHoja(
 fun NuevaHojaScreen(
     innerPadding: PaddingValues,
     eventoState: NuevaHojaState,
+    onNavMisHojas: () -> Unit,
     onTituloFieldChanged: (String) -> Unit,
     onParticipanteFieldChanged: (String) -> Unit,
     onLimiteGastoFieldChanged: (String) -> Unit,
     onFechaCierreFieldChanged: (String) -> Unit,
     addParticipante: (Participante) -> Unit,
     insertAllHojaCalculo: () -> Unit,
-    insertAllParticipante: () -> Unit,
     getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
 ) {
 
     //Provisional
     val tieneLimite = remember { mutableStateOf(true) }
-    val tieneFecha = remember { mutableStateOf(true) }
+    val tieneFecha = remember{ mutableStateOf(true) }
 
     //Tipo letra
     val robotoBlack = FontFamily(Font(R.font.roboto_black))
@@ -276,9 +271,9 @@ fun NuevaHojaScreen(
             CustomSpacer(20.dp)
 
             BotonCrear(
-                {insertAllHojaCalculo()},
-                {insertAllParticipante()}
-                )
+                eventoState.titulo,
+                eventoState.listaParticipantes,
+                onNavMisHojas ) { insertAllHojaCalculo() }
         }
     }
 }
@@ -292,7 +287,7 @@ fun Titulo(
     onTituloFieldChange: (String) -> Unit
 ) {
 
-    var isFocused by rememberSaveable { mutableStateOf(false) }
+    var isFocused by remember { mutableStateOf(false) }
 
     Text(
         text = stringResource(R.string.titulo),
@@ -336,8 +331,8 @@ fun Participantes(
     deleteUltimoParticipante: () -> Unit
 ) {
     //val viewModel: NuevaHojaViewModel = viewModel()
-    var isFocused by rememberSaveable { mutableStateOf(false) }
-    var mostrarParticipantes by rememberSaveable { mutableStateOf(true) }
+    var isFocused by remember { mutableStateOf(false) }
+    var mostrarParticipantes by remember { mutableStateOf(true) }
 
     Row(
         modifier = Modifier
@@ -404,7 +399,7 @@ fun Participantes(
                 .align(CenterVertically)
                 .clickable {
                     if (statusParticipante.isNotBlank()) {
-                        addParticipante(Participante(id = null, nombre = statusParticipante))
+                        addParticipante(Participante(id = 0, nombre = statusParticipante))
                         onParticipanteFieldChange("")
                     }
                 }
@@ -465,7 +460,9 @@ fun LimiteGasto(
     tieneLimite: MutableState<Boolean>,
     statusLimiteGasto: String,
     onLimiteGastoFieldChange: (String) -> Unit) {
-    var isFocused by rememberSaveable { mutableStateOf(false) }
+
+    var isFocused by remember{ mutableStateOf(false) }
+
     Text(
         text = "Limite de gastos",
         fontSize = 20.sp,
@@ -567,7 +564,7 @@ fun LimiteFecha(
     ) {
         TextField(
             value = fechaCierre,
-            onValueChange = {  },
+            onValueChange = { if (fechaCierre.isEmpty()) tieneFecha.value = true },
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 10.dp)
                 .width(180.dp)
@@ -594,7 +591,11 @@ fun LimiteFecha(
                 onCheckedChange = {
                     tieneFecha.value = it
                     if(!tieneFecha.value) showDatePickerDialog(context, onFechaCierreFieldChanged)
-                    else onFechaCierreFieldChanged("")
+                    else
+                    {
+                        onFechaCierreFieldChanged("")
+                        tieneFecha.value = true
+                    }
                 }
             )
             Text(
@@ -627,15 +628,17 @@ fun IconoVerParticipantes(
 /** Composable para el boton de creacion de nueva hoja **/
 @Composable
 fun BotonCrear(
-    insertAllHojaCalculo: () -> Unit,
-    insertAllParticipante: () -> Unit
+    titulo: String,
+    listaParticipantes: List<Participante>,
+    onNavMisHojas: () -> Unit,
+    insertAllHojaCalculo: () -> Unit
 ) {
 
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
-    if (showDialog) MiDialogo(showDialog, "Hoja creada", {showDialog =  false}, { showDialog = true}) //Borrar!!
+    if (showDialog) MiAviso(true, "Como minimo debe contener Titulo y un participante.", {showDialog = false})
 
 
     Column(
@@ -646,9 +649,11 @@ fun BotonCrear(
     ) {
         Button(
             onClick = {
-                insertAllParticipante()
-                insertAllHojaCalculo()
-                showDialog = true
+                if (titulo.isEmpty() || listaParticipantes.isEmpty()) showDialog = true
+                else {
+                    insertAllHojaCalculo()
+                    onNavMisHojas()
+                }
             },
             modifier = Modifier
                 .height(60.dp)

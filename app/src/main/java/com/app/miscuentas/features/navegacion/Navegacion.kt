@@ -5,7 +5,6 @@ package com.app.miscuentas.features.navegacion
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -78,9 +77,7 @@ fun AppNavHost(
     val currentScreen = MisCuentasScreen.valueOf(
         backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.name
     )
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
+    val canNavigateBack = backStackEntry != null // Determinar si se puede navegar hacia atrás
 
 
     NavHost(
