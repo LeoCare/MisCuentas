@@ -22,9 +22,9 @@ interface DbRegistroDao {
 
     //Obtener usuario registrado
     @Query("SELECT * FROM t_registros WHERE nombre = :nombre AND contrasenna = :contrasenna")
-    fun getRegistro(nombre: String, contrasenna: String): Flow<DbRegistrosEntity>
+    fun getRegistro(nombre: String, contrasenna: String): Flow<DbRegistrosEntity?>
 
     //Obtener usuario resgistrado al olvidar la contraseña
     @Query("SELECT * FROM t_registros WHERE correo = :correo")
-    fun getRegistroForUpdate(correo: String): Flow<DbRegistrosEntity>
+    fun getRegistroExist(correo: String): Flow<DbRegistrosEntity?>
 }

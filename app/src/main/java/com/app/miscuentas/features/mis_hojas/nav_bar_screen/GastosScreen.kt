@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,11 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.util.MiAviso
@@ -48,9 +51,11 @@ import com.app.miscuentas.util.MiAviso
 @Composable
 fun GastosScreen(
     innerPadding: PaddingValues,
+    onNavNuevoGasto: () -> Unit
 ) {
-    /*Prev -> val viewModel: GastosViewModel = hiltViewModel()*/
-    /*Prev -> val gastosState by viewModel.gastosState.collectAsState()*/
+    /*Prev -> */val viewModel: GastosViewModel = hiltViewModel()
+    /*Prev -> */val gastosState by viewModel.gastosState.collectAsState()
+
     val gasto = Gasto(20, "nombre", "ruta")
 
     val scaffoldState = rememberScaffoldState()
@@ -65,7 +70,7 @@ fun GastosScreen(
     { showDialog = false }
     Scaffold(
         scaffoldState = scaffoldState,
-        content = { GastosContent(innerPadding, gasto) }
+        content = { GastosContent(innerPadding, onNavNuevoGasto, gasto) }
     )
 
 }
@@ -73,6 +78,7 @@ fun GastosScreen(
 @Composable
 fun GastosContent(
     innerPadding: PaddingValues,
+    onNavNuevoGasto: () -> Unit,
     gasto: Gasto
 ){
     Box(
@@ -156,7 +162,7 @@ fun GastosContent(
         }
 
         CustomFloatButton(
-            onClick = { /* Acción al hacer clic en el botón flotante */ },
+            onClick = { onNavNuevoGasto() },
             modifier = Modifier.align(Alignment.BottomEnd) // Alinear el botón en la esquina inferior derecha
         )
     }
@@ -228,11 +234,15 @@ fun CustomFloatButton(
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier
-            .padding(bottom = 14.dp, end = 4.dp), // Añade el padding al botón flotante
+            .height(90.dp)
+            .width(90.dp)
+            .padding(bottom = 14.dp, end = 14.dp), // Añade el padding al botón flotante
+        shape = MaterialTheme.shapes.extraLarge
     ) {
         Image(
-            modifier = Modifier.background(MaterialTheme.colorScheme.primary),
-            painter = painterResource(id = R.drawable.logo), //IMAGEN DEL GASTO
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.inversePrimary),
+            painter = painterResource(id = R.drawable.nuevo_gasto), //IMAGEN DEL GASTO
             contentDescription = "Logo Hoja",
         )
     }
@@ -242,5 +252,6 @@ fun CustomFloatButton(
 @Composable
 fun Preview(){
     val innerPadding = PaddingValues()
-    GastosScreen(innerPadding)
+    val onNavNuevoGasto: () -> Unit = {}
+    GastosScreen(innerPadding, onNavNuevoGasto)
 }

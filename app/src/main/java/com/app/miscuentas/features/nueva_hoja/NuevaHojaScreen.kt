@@ -98,7 +98,7 @@ fun NuevaHoja(
     viewModel: NuevaHojaViewModel = hiltViewModel()
 ){
 
-    val eventoState by viewModel.eventoState.collectAsState()
+    val eventoState by viewModel.nuevaHojaState.collectAsState()
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()

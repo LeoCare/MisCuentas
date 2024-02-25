@@ -1,19 +1,28 @@
 package com.app.miscuentas.features.login
 
+import android.database.sqlite.SQLiteConstraintException
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistroDao
+import com.app.miscuentas.data.local.repository.RegistroRepository
+import com.app.miscuentas.domain.model.Registro
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val dataStoreConfig: DataStoreConfig  // DATASTORE
+    private val dataStoreConfig: DataStoreConfig,  // DATASTORE
+    private val registroRepository: RegistroRepository
 ) : ViewModel(){
 
     private val _loginState = MutableStateFlow(LoginState())
@@ -25,7 +34,7 @@ class LoginViewModel @Inject constructor(
         _loginState.value = _loginState.value.copy(usuario = usuario)
     }
     fun onContrasennaFieldChanged(contrasenna: String) {
-        _loginState.value = _loginState.value.copy(contrasena = contrasenna)
+        _loginState.value = _loginState.value.copy(contrasenna = contrasenna)
     }
     fun onEmailFieldChanged(email: String) {
         _loginState.value = _loginState.value.copy(email = email)
@@ -67,6 +76,60 @@ class LoginViewModel @Inject constructor(
         return tieneNumero && tieneMayus && tieneMinus
     }
 
+    //Metodo para comprobar si existe ese usuario registrado
+    fun getRegistro(){
+        val nombre = _loginState.value.usuario
+        val contrasenna = _loginState.value.contrasenna
+        var registro: Registro?
+
+        viewModelScope.launch {
+             withContext(Dispatchers.IO) {
+                registro = registroRepository.getRegistro(nombre, contrasenna).firstOrNull()
+
+                 if  (registro != null){
+                     onLoginOkChanged(true)
+                 }
+                 else _loginState.value = _loginState.value.copy(mensaje = "Usuario o Contraseña incorrectos!")
+            }
+        }
+
+    }
+
+
+    //1_LLAMADA A INSERTAR REGISTRO
+    fun insertRegistroCall(){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+
+                val insertOk = insertRegistro()
+
+                if (insertOk) onLoginOkChanged(true)
+                else _loginState.value = _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
+            }
+        }
+    }
+
+    //2_INSERTAR REGISTRO
+    private suspend fun insertRegistro(): Boolean {
+        val nombre = _loginState.value.usuario
+        val correo = _loginState.value.email
+        val contrasenna = _loginState.value.contrasenna
+
+        val registro = Registro(0, nombre, correo, contrasenna)
+
+        return try {
+            val existeRegistro = registroRepository.getRegistroExist(correo).firstOrNull()
+            if (existeRegistro == null) {
+                registroRepository.insertAll(registro)
+                true // insert OK
+            }
+            else false
+
+        } catch (e: Exception) {
+           false // inserción NOK
+        }
+    }
+
 
     // DATASTORE
     init {
@@ -77,7 +140,6 @@ class LoginViewModel @Inject constructor(
 
             if (registrado && inicioHuella) startBiometricAuthentication()
             else  _loginState.value = _loginState.value.copy(loginOk = registrado)
-
         }
     }
 

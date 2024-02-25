@@ -25,29 +25,29 @@ class NuevaHojaViewModel @Inject constructor(
     private val repositoryHojaCalculo: HojaCalculoRepository
 ) : ViewModel() {
 
-    private val _eventoState = MutableStateFlow(NuevaHojaState())
-    val eventoState: StateFlow<NuevaHojaState> = _eventoState
+    private val _nuevaHojaState = MutableStateFlow(NuevaHojaState())
+    val nuevaHojaState: StateFlow<NuevaHojaState> = _nuevaHojaState
 
     fun onTituloFieldChanged(titulo: String) {
-        _eventoState.value = _eventoState.value.copy(titulo = titulo)
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(titulo = titulo)
     }
 
     fun onParticipanteFieldChanged(participante: String) {
-        _eventoState.value = _eventoState.value.copy(participante = participante)
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(participante = participante)
     }
 
     fun onLimiteGastoFieldChanged(limiteGasto: String) {
-        _eventoState.value = _eventoState.value.copy(limiteGasto = limiteGasto)
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(limiteGasto = limiteGasto)
     }
 
     fun onFechaCierreFieldChanged(fechaCierre: String) {
-        _eventoState.value = _eventoState.value.copy(fechaCierre = fechaCierre)
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(fechaCierre = fechaCierre)
     }
 
     /** METODOS PARA EL STATE DE PARTICIPANTES **/
     fun addParticipante(participante: Participante) {
-        val updatedList = _eventoState.value.listaParticipantes + participante
-        _eventoState.value = _eventoState.value.copy(
+        val updatedList = _nuevaHojaState.value.listaParticipantes + participante
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(
             listaParticipantes = updatedList,
             participante = ""
         )
@@ -55,14 +55,14 @@ class NuevaHojaViewModel @Inject constructor(
     }
 
     fun deleteUltimoParticipante() {
-        if (_eventoState.value.listaParticipantes.isNotEmpty()) {
-            val updatedList = _eventoState.value.listaParticipantes.dropLast(1)
-            _eventoState.value = _eventoState.value.copy(listaParticipantes = updatedList)
+        if (_nuevaHojaState.value.listaParticipantes.isNotEmpty()) {
+            val updatedList = _nuevaHojaState.value.listaParticipantes.dropLast(1)
+            _nuevaHojaState.value = _nuevaHojaState.value.copy(listaParticipantes = updatedList)
         }
     }
 
     fun getTotalParticipantes(): Int {
-        return _eventoState.value.listaParticipantes.size
+        return _nuevaHojaState.value.listaParticipantes.size
     }
 
 
@@ -83,7 +83,7 @@ class NuevaHojaViewModel @Inject constructor(
     //4_INSERTAR PARTICIPANTES
     private suspend fun insertParticipante(): Boolean{
         return try{
-            eventoState.value.listaParticipantes.forEach { participante ->
+            nuevaHojaState.value.listaParticipantes.forEach { participante ->
                 val siguienteId = repositoryParticipante.getMaxIdParticipantes() + 1
                 repositoryParticipante.insertAll(siguienteId, participante)
             }
@@ -100,14 +100,14 @@ class NuevaHojaViewModel @Inject constructor(
             withContext(Dispatchers.IO) {
                 // Se recolecta el Flow de forma asíncrona
                 repositoryParticipante.getAllParticipantes().collect { participantes ->
-                    _eventoState.value = _eventoState.value.copy(
+                    _nuevaHojaState.value = _nuevaHojaState.value.copy(
                         listDbParticipantes = participantes.joinToString(
                             ", "
                         ) { it.nombre })
                 }
             }
         }
-        return _eventoState.value.listDbParticipantes
+        return _nuevaHojaState.value.listDbParticipantes
     }
 
     //Pinta una lista con los participantes del state
@@ -115,7 +115,7 @@ class NuevaHojaViewModel @Inject constructor(
         var lista = ""
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                eventoState.value.listaParticipantes.forEach { participante ->
+                nuevaHojaState.value.listaParticipantes.forEach { participante ->
                     lista = participante.nombre + ','
                 }
             }
@@ -125,15 +125,15 @@ class NuevaHojaViewModel @Inject constructor(
 
     /** METODOS PARA LA NUEVA HOJA EN ROOM **/
     fun instanceNuevaHoja(): HojaCalculo {
-        val fecha: String? = _eventoState.value.fechaCierre.ifEmpty { null }
+        val fecha: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
 
         return  HojaCalculo(
             0,
-            _eventoState.value.titulo,
+            _nuevaHojaState.value.titulo,
             fecha,
-            _eventoState.value.limiteGasto.toDoubleOrNull(),
-            _eventoState.value.status,
-            _eventoState.value.listaParticipantes
+            _nuevaHojaState.value.limiteGasto.toDoubleOrNull(),
+            _nuevaHojaState.value.status,
+            _nuevaHojaState.value.listaParticipantes
         )
     }
 
@@ -182,7 +182,7 @@ class NuevaHojaViewModel @Inject constructor(
         val id = repositoryHojaCalculo.getMaxIdHojasCalculos()
         var linea = 0
 
-        eventoState.value.listaParticipantes.forEach { participante ->
+        nuevaHojaState.value.listaParticipantes.forEach { participante ->
             linea++
             val idParticipante = repositoryParticipante.getIdParticipante(participante.nombre)
 
@@ -204,10 +204,10 @@ class NuevaHojaViewModel @Inject constructor(
     }
 
     private fun vaciarTextFields(){
-        _eventoState.value = _eventoState.value.copy(titulo = "")
-        _eventoState.value = _eventoState.value.copy(listaParticipantes = emptyList())
-        _eventoState.value = _eventoState.value.copy(limiteGasto = "")
-        _eventoState.value = _eventoState.value.copy(fechaCierre = "")
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(titulo = "")
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(listaParticipantes = emptyList())
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(limiteGasto = "")
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(fechaCierre = "")
     }
 
 }

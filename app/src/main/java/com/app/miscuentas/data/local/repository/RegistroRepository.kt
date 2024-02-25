@@ -20,9 +20,9 @@ class RegistroRepository @Inject constructor(
 
     suspend fun delete(registro: Registro) = registroDao.delete(registro.toEntity())
 
-    fun getRegistro(nombre: String, contrasenna: String): Flow<Registro> =
-        registroDao.getRegistro(nombre, contrasenna).map { it.toDomain() }
+    fun getRegistro(nombre: String, contrasenna: String): Flow<Registro?> =
+        registroDao.getRegistro(nombre, contrasenna).map { it?.toDomain() }
 
-    fun getRegistroForUpdate(correo: String): Flow<Registro> =
-        registroDao.getRegistroForUpdate(correo).map { it.toDomain() }
+    fun getRegistroExist(correo: String): Flow<Registro?> =
+        registroDao.getRegistroExist(correo).map { it?.toDomain() }
 }

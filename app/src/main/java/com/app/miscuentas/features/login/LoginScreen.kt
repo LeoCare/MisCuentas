@@ -103,7 +103,9 @@ fun Login(
             { viewModel.onUsuarioFieldChanged(it) },
             { viewModel.onContrasennaFieldChanged(it) },
             { viewModel.onEmailFieldChanged(it) },
-            { viewModel.onRegistroCheckChanged(it) }
+            { viewModel.onRegistroCheckChanged(it)},
+            { viewModel.getRegistro() },
+            { viewModel.insertRegistroCall() }
         )
     }
 }
@@ -118,12 +120,14 @@ private fun LoginContent(
     bioAuthFailed: () -> Unit,
     contrasennaOk: (String) -> Boolean,
     emailOk: (String) -> Boolean,
-    loginOkChanged: (Boolean) -> Unit,
+    onLoginOkChanged: (Boolean) -> Unit,
     mensajeChanged: (String) -> Unit,
     onUsuarioFieldChanged: (String) -> Unit,
     onContrasennaFieldChanged: (String) -> Unit,
     onEmailFieldChanged: (String) -> Unit,
-    onRegistroCheckChanged: (Boolean) -> Unit
+    onRegistroCheckChanged: (Boolean) -> Unit,
+    getRegistro: () -> Unit,
+    insertRegistroCall: () -> Unit
 ) {
 
     //Inicio por huella digital
@@ -161,14 +165,20 @@ private fun LoginContent(
 
     // Actualiza el mensaje de error, al presionar el boton, si corresponde actualiza el estado de 'loginOk'.
     val onBotonInicioClick = {
-        when {
+        when { //Mensajes de error:
             loginState.usuario.isEmpty() -> uiErrorMessage.value = "Falta usuario"
-            !contrasennaOk(loginState.contrasena) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
+            !contrasennaOk(loginState.contrasenna) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
             loginState.registro && !emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
-            else -> {
-                uiErrorMessage.value = ""
-                loginOkChanged(true)
-                onNavigate()
+
+            else -> { //Si los campos son correctos...
+                if (loginState.registro) { //inserta el registro
+                    uiErrorMessage.value = ""
+                    insertRegistroCall()
+                }
+                else { //o el login es correcto
+                    uiErrorMessage.value = ""
+                    getRegistro()
+                }
             }
         }
         mensajeChanged(uiErrorMessage.value)
@@ -201,7 +211,7 @@ private fun LoginContent(
             //TextFiedl Contraseña
             CustomTextField(
                 "Contraseña",
-                value = loginState.contrasena
+                value = loginState.contrasenna
             ) { onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
 
@@ -224,13 +234,18 @@ private fun LoginContent(
             }
 
             //CheckBox Registro
-            CustomCkeckbox(registroState = loginState.registro) { onRegistroCheckChanged(it) }
+            CustomCkeckbox(
+                registroState = loginState.registro
+            ) {
+                mensajeChanged("")
+                onRegistroCheckChanged(it)
+            }
 
             //Boton comprobacion
             BotonInicio(
                 loginState.registro,
                 loginState.mensaje,
-                loginOk =  onBotonInicioClick)
+                onBotonInicioClick =  onBotonInicioClick)
         }
     }
 }
@@ -343,12 +358,12 @@ fun CustomCkeckbox(
 fun BotonInicio(
     registroState: Boolean,
     mensaje: String,
-    loginOk: () -> Unit
+    onBotonInicioClick: () -> Unit
 ) {
     var texto = "INICIAR"
     val robotoBold = FontFamily(Font(R.font.roboto_bold))
     Button(
-        onClick = { loginOk() },
+        onClick = { onBotonInicioClick() },
         modifier = Modifier
             .height(60.dp)
             .width(190.dp)

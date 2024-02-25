@@ -26,12 +26,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
@@ -119,7 +117,8 @@ fun AppNavHost(
             MisHojas(
                 currentScreen,
                 canNavigateBack,
-                {navController.navigateUp()}
+                {navController.navigateUp()},
+                navController
             )
         }
         composable(MisCuentasScreen.NuevoGasto.name) {
@@ -149,14 +148,19 @@ sealed class MisHojasScreen (val route: String, val icon: ImageVector, val title
 
 //Composable de navegacion para la barra inferior en Mis_Hojas
 @Composable
-fun AppNavBar(innerPadding: PaddingValues, navControllerMisHojas: NavHostController) {
+fun AppNavBar(
+    innerPadding: PaddingValues,
+    navControllerMisHojas: NavHostController,
+    navController: NavHostController
+) {
+
 
     NavHost(
         navController = navControllerMisHojas,
         startDestination = MisHojasScreen.Gastos.route
     ) {
         composable(MisHojasScreen.Hojas.route) { HojasScreen(innerPadding) }
-        composable(MisHojasScreen.Gastos.route) { GastosScreen(innerPadding) }
+        composable(MisHojasScreen.Gastos.route) { GastosScreen(innerPadding, onNavNuevoGasto = { navController.navigate(MisCuentasScreen.NuevoGasto.name) }) }
         composable(MisHojasScreen.Participantes.route) { ParticipantesScreen() }
     }
 }
