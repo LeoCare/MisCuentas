@@ -1,5 +1,7 @@
 package com.app.miscuentas.features.nueva_hoja
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.ColumnInfo
@@ -12,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +45,10 @@ class NuevaHojaViewModel @Inject constructor(
 
     fun onFechaCierreFieldChanged(fechaCierre: String) {
         _nuevaHojaState.value = _nuevaHojaState.value.copy(fechaCierre = fechaCierre)
+    }
+
+    fun onInsertOkFieldChanged(insert: Boolean) {
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = insert)
     }
 
     /** METODOS PARA EL STATE DE PARTICIPANTES **/
@@ -128,12 +135,13 @@ class NuevaHojaViewModel @Inject constructor(
         val fecha: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
 
         return  HojaCalculo(
-            0,
-            _nuevaHojaState.value.titulo,
-            fecha,
-            _nuevaHojaState.value.limiteGasto.toDoubleOrNull(),
-            _nuevaHojaState.value.status,
-            _nuevaHojaState.value.listaParticipantes
+            id = 0,
+            titulo = _nuevaHojaState.value.titulo,
+            fechaCierre = fecha,
+            limite = _nuevaHojaState.value.limiteGasto.toDoubleOrNull(),
+            status = _nuevaHojaState.value.status,
+            participantesHoja = _nuevaHojaState.value.listaParticipantes,
+            principal = (_nuevaHojaState.value.maxIdHolaCalculo == 0)
         )
     }
 
@@ -161,25 +169,26 @@ class NuevaHojaViewModel @Inject constructor(
         }
     }
 
-    //5_LLAMADA A INSERTAR LINEAS DE HOJA....
+    //5_LLAMADA A INSERTAR LINEAS DE HOJA....(participantes)
     fun inserAlltHojaCalculoLin(){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
 
                 val insertLinOK = insertHojaCalculoLin()
                 if (insertLinOK) {//si la insercion devuelve true, se insertan los participantes
-                    vaciarTextFields() //Vacio States
+                    _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
+                    vaciarTextFields() //Vacio estados
                 }
             }
         }
     }
 
-    //6_INSERTAR LINEAS HOJA
+    //6_INSERTAR LINEAS HOJA (participantes)
     private suspend fun insertHojaCalculoLin(): Boolean{
         var insertLinOK = false
 
         //Datos a para insertar:
-        val id = repositoryHojaCalculo.getMaxIdHojasCalculos()
+        val id = _nuevaHojaState.value.maxIdHolaCalculo
         var linea = 0
 
         nuevaHojaState.value.listaParticipantes.forEach { participante ->
@@ -210,4 +219,19 @@ class NuevaHojaViewModel @Inject constructor(
         _nuevaHojaState.value = _nuevaHojaState.value.copy(fechaCierre = "")
     }
 
+    init {
+        viewModelScope.launch {
+            //recojo el id de hoja maximo
+            repositoryHojaCalculo.getMaxIdHojasCalculos().collect { maxId ->
+                _nuevaHojaState.value = _nuevaHojaState.value.copy(maxIdHolaCalculo = maxId)
+            }
+
+            //recojo la linea maxima de la ultima hoja
+            val id = _nuevaHojaState.value.maxIdHolaCalculo
+            repositoryHojaCalculo.getMaxLineaHojasCalculos(id).collect { maxLinea ->
+                _nuevaHojaState.value = _nuevaHojaState.value.copy(maxLineaHolaCalculo = maxLinea)
+            }
+        }
+
+    }
 }

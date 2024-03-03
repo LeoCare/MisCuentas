@@ -3,6 +3,7 @@ package com.app.miscuentas.data.local.repository
 import androidx.room.Transaction
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
+import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLinDet
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.toDomain
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.Participante
@@ -19,7 +20,10 @@ class HojaCalculoRepository @Inject constructor(
     suspend fun insertAllHojaCalculo(hojaCalculo: HojaCalculo) { hojaCalculoDao.insertAllHojaCalculo(hojaCalculo.toEntity()) }
 
     @Transaction
-    suspend fun insertAllHojaCalculoLin(hojaCalculolin: DbHojaCalculoEntityLin) { hojaCalculoDao.insertAllHojaCalculoLin(hojaCalculolin) }
+    suspend fun insertAllHojaCalculoLin(hojaCalculoEntitylin: DbHojaCalculoEntityLin) { hojaCalculoDao.insertAllHojaCalculoLin(hojaCalculoEntitylin) }
+
+    @Transaction
+    suspend fun insertAllHojaCalculoLinDet(hojaCalculoEntitylinDet: DbHojaCalculoEntityLinDet) { hojaCalculoDao.insertAllHojaCalculoLinDet(hojaCalculoEntitylinDet) }
 
     suspend fun update(hojaCalculo: HojaCalculo) = hojaCalculoDao.update(hojaCalculo.toEntity())
 
@@ -31,6 +35,19 @@ class HojaCalculoRepository @Inject constructor(
     fun getAllHojasCalculos(): Flow<List<HojaCalculo>> =
         hojaCalculoDao.getAllHojasCalculos().map { list -> list.map { it.toDomain() } }
 
-    fun getMaxIdHojasCalculos(): Int =
+    fun getMaxIdHojasCalculos(): Flow<Int> =
         hojaCalculoDao.getMaxIdHojasCalculos()
+
+    fun getMaxLineaHojasCalculos(id: Int): Flow<Int> =
+        hojaCalculoDao.getMaxLineaHojasCalculos(id)
+
+    fun getLineaPartiHojasCalculosLin(id: Int, pagador: Int): Flow<Int> =
+        hojaCalculoDao.getLineaPartiHojasCalculosLin(id, pagador)
+
+    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int> =
+        hojaCalculoDao.getMaxLineaDetHojasCalculos(id, linea)
+
+    fun getHojaCalculoPrincipal(): Flow<HojaCalculo?> =
+        hojaCalculoDao.getHojaCalculoPrincipal().map { it?.toDomain() }
+
 }

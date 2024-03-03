@@ -44,10 +44,10 @@ fun SplashScreen(
     activity: FragmentActivity,
     onLoginNavigate: () -> Unit,
     onInicioNavigate: () -> Unit,
-    viewModel: SplashViewModel = hiltViewModel()
+   viewModel: SplashViewModel = hiltViewModel()
 ) {
-    val splashState by viewModel.splashState.collectAsState()
 
+    val splashState by viewModel.splashState.collectAsState()
     var continuar by rememberSaveable { mutableStateOf(true) } //Continua con la app una vez se comprueban los permisos
 
     /** **Inicio comprobacion de permisos**  **/
@@ -57,7 +57,6 @@ fun SplashScreen(
 //    LaunchedEffect(Dispatchers.IO){
 //            viewModel.solicitaPermiso(statePermisoCamara)
 //    }
-
 
     //Comprobacion del permiso solicitado
 
@@ -105,9 +104,11 @@ fun SplashScreen(
 
 
     // Permiso concedido, continuar con la lógica del SplashScreen
-    if (continuar) {
-        if (splashState.autoInicio) onInicioNavigate()
-        else onLoginNavigate()
+    LaunchedEffect(splashState.continuar) {
+        if (splashState.continuar) {
+            if (splashState.autoInicio) onInicioNavigate()
+            else onLoginNavigate()
+        }
     }
 
 

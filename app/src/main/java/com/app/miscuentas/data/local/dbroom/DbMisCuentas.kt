@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
+import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLinDet
 import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesDao
 import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistroDao
@@ -19,7 +20,8 @@ const val DATABASE_VERSION = 1
         DbParticipantesEntity::class,
         DbRegistrosEntity::class,
         DbHojaCalculoEntity::class,
-        DbHojaCalculoEntityLin::class
+        DbHojaCalculoEntityLin::class,
+        DbHojaCalculoEntityLinDet::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = false

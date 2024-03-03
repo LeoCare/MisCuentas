@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.model.Gasto
+import com.app.miscuentas.data.model.Hoja
+import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.util.MiAviso
 
 /** Contenedor del resto de elementos para la pestaña Gastos **/
@@ -51,10 +54,10 @@ import com.app.miscuentas.util.MiAviso
 @Composable
 fun GastosScreen(
     innerPadding: PaddingValues,
-    onNavNuevoGasto: () -> Unit
+    onNavNuevoGasto: (Int) -> Unit,
+    viewModel: GastosViewModel = hiltViewModel()
 ) {
-    /*Prev -> */val viewModel: GastosViewModel = hiltViewModel()
-    /*Prev -> */val gastosState by viewModel.gastosState.collectAsState()
+    val gastosState by viewModel.gastosState.collectAsState()
 
     val gasto = Gasto(20, "nombre", "ruta")
 
@@ -70,7 +73,7 @@ fun GastosScreen(
     { showDialog = false }
     Scaffold(
         scaffoldState = scaffoldState,
-        content = { GastosContent(innerPadding, onNavNuevoGasto, gasto) }
+        content = { GastosContent(innerPadding, gastosState.hojaPrincipal, { onNavNuevoGasto(it) }, gasto) }
     )
 
 }
@@ -78,7 +81,8 @@ fun GastosScreen(
 @Composable
 fun GastosContent(
     innerPadding: PaddingValues,
-    onNavNuevoGasto: () -> Unit,
+    hojaPrincipal: HojaCalculo?,
+    onNavNuevoGasto: (Int) -> Unit,
     gasto: Gasto
 ){
     Box(
@@ -103,13 +107,14 @@ fun GastosContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "TITULO DE LA HOJA",
+                    text = hojaPrincipal?.titulo ?: "aun nada" ,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "Indicacion de principal",
-                    style = MaterialTheme.typography.labelLarge
+                    text = "principal",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Color.Green
                 )
 
             }
@@ -121,12 +126,12 @@ fun GastosContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Fecha fin:",
+                    text = "Fecha fin: " + (hojaPrincipal?.fechaCierre ?: "no tiene"),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.labelLarge
                 )
                 Text(
-                    text = "Limite:",
+                    text = "Limite: " + (hojaPrincipal?.limite ?: "no tiene"),
                     style = MaterialTheme.typography.labelLarge
                 )
 
@@ -162,7 +167,7 @@ fun GastosContent(
         }
 
         CustomFloatButton(
-            onClick = { onNavNuevoGasto() },
+            onNavNuevoGasto = { onNavNuevoGasto(hojaPrincipal!!.id) },
             modifier = Modifier.align(Alignment.BottomEnd) // Alinear el botón en la esquina inferior derecha
         )
     }
@@ -228,11 +233,11 @@ fun GastoDesing(gasto: Gasto) {
 
 @Composable
 fun CustomFloatButton(
-    onClick: () -> Unit,
+    onNavNuevoGasto: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     FloatingActionButton(
-        onClick = onClick,
+        onClick = onNavNuevoGasto,
         modifier = modifier
             .height(90.dp)
             .width(90.dp)
@@ -252,6 +257,6 @@ fun CustomFloatButton(
 @Composable
 fun Preview(){
     val innerPadding = PaddingValues()
-    val onNavNuevoGasto: () -> Unit = {}
-    GastosScreen(innerPadding, onNavNuevoGasto)
+    val onNavNuevoGasto: (Int) -> Unit = {}
+    GastosScreen( innerPadding, {onNavNuevoGasto(3)})
 }

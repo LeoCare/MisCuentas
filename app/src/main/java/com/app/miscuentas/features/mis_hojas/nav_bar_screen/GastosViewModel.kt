@@ -1,21 +1,40 @@
 package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class GastosViewModel @Inject constructor(
+    private val dataStoreConfig: DataStoreConfig,
+    private val repositoryHojaCalculo: HojaCalculoRepository
 ): ViewModel()
 {
 
     private val _gastosState = MutableStateFlow(GastosState())
     val gastosState: StateFlow<GastosState> = _gastosState
 
-    fun setDatosGuardados(guardado: Boolean){
-        _gastosState.value = _gastosState.value.copy( datosGuardados = guardado)
+
+    init {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repositoryHojaCalculo.getHojaCalculoPrincipal().collect {
+                    _gastosState.value = _gastosState.value.copy(hojaPrincipal = it) //Actualizo state con idhoja
+
+                    val idHoja = _gastosState.value.hojaPrincipal?.id
+                    dataStoreConfig.putIdHojaPrincipalPreference(idHoja) //Actualizo DataStore con idhoja
+                }
+            }
+        }
     }
 
 }

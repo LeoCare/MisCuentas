@@ -21,14 +21,31 @@ class SplashViewModel @Inject constructor(
     private val _splashState = MutableStateFlow(SplashState())
     val splashState: StateFlow<SplashState> = _splashState
 
-    init {
-        // Observa los cambios en DataStore para comprobar el inicio por huella
-        viewModelScope.launch {
-            val inicioHuella = dataStoreConfig.getInicoHuellaPreference() ?: false
-            val registrado = dataStoreConfig.getRegistroPreference() ?: false
+    fun onContinuarChanged(continuar: Boolean){
+        _splashState.value = _splashState.value.copy(continuar = continuar)
+    }
+    fun onAutoInicioChanged(autoInicio: Boolean){
+        _splashState.value = _splashState.value.copy(autoInicio = autoInicio)
+    }
 
-            if (registrado && !inicioHuella) _splashState.value = _splashState.value.copy(autoInicio = true)
-            else _splashState.value = _splashState.value.copy(autoInicio = false)
+    init {
+        var inicioHuella: String?
+        var registrado: String?
+        viewModelScope.launch {
+            try {
+                 inicioHuella = dataStoreConfig.getInicoHuellaPreference()
+                 registrado = dataStoreConfig.getRegistroPreference()
+
+                onContinuarChanged( true)
+                if (registrado != null && inicioHuella != "SI") {
+                    onAutoInicioChanged( true)
+                } else {
+                    onAutoInicioChanged(  false)
+                }
+
+            }catch (ex: Exception){
+                null
+            }
         }
     }
 

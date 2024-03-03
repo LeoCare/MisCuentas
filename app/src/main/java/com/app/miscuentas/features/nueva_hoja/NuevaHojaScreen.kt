@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -88,10 +89,10 @@ import com.app.miscuentas.util.MiAviso
 //}
 
 /** Composable principal de la Screen **/
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun NuevaHoja(
-    currentScreen: MisCuentasScreen,
+    currentScreen: String,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     onNavMisHojas: () -> Unit,
@@ -103,13 +104,21 @@ fun NuevaHoja(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(eventoState.insertOk){
+        if (eventoState.insertOk) {
+            onNavMisHojas()
+            viewModel.onInsertOkFieldChanged(false)
+        }
+    }
+
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
             MiTopBar(
                 context,
                 null,
-                currentScreen,
+                "NUEVA HOJA",
                 scope = scope,
                 scaffoldState = scaffoldState,
                 canNavigateBack = canNavigateBack,
@@ -118,7 +127,8 @@ fun NuevaHoja(
         },
 
         content = { innerPadding -> NuevaHojaScreen(
-            innerPadding, eventoState, onNavMisHojas,
+            innerPadding,
+            eventoState,
             { viewModel.onTituloFieldChanged(it)},
             { viewModel.onParticipanteFieldChanged(it) },
             { viewModel.onLimiteGastoFieldChanged(it) },
@@ -136,7 +146,6 @@ fun NuevaHoja(
 fun NuevaHojaScreen(
     innerPadding: PaddingValues,
     eventoState: NuevaHojaState,
-    onNavMisHojas: () -> Unit,
     onTituloFieldChanged: (String) -> Unit,
     onParticipanteFieldChanged: (String) -> Unit,
     onLimiteGastoFieldChanged: (String) -> Unit,
@@ -147,9 +156,9 @@ fun NuevaHojaScreen(
     deleteUltimoParticipante: () -> Unit
 ) {
 
-    //Provisional
     val tieneLimite = remember { mutableStateOf(true) }
     val tieneFecha = remember{ mutableStateOf(true) }
+    val principal = remember { mutableStateOf(false)}
 
     //Tipo letra
     val robotoBlack = FontFamily(Font(R.font.roboto_black))
@@ -172,12 +181,6 @@ fun NuevaHojaScreen(
     ) {
 
         item {
-            Text(
-                text = "CREAR NUEVA HOJA",
-                fontSize = 25.sp,
-                fontFamily = robotoBlack,
-                modifier = Modifier.padding(start = 10.dp)
-            )
             CustomSpacer(size = 10.dp)
 
             Card(
@@ -198,7 +201,6 @@ fun NuevaHojaScreen(
 
                 ) {
                     Titulo(
-                        robotoBlack,
                         value = eventoState.titulo
                     ) { onTituloFieldChanged(it) }
                 }
@@ -226,7 +228,6 @@ fun NuevaHojaScreen(
                         .padding(10.dp)
                 ) {
                     Participantes(
-                        robotoBlack,
                         eventoState.listaParticipantes,
                         eventoState.participante,
                         { onParticipanteFieldChanged(it) },
@@ -273,7 +274,8 @@ fun NuevaHojaScreen(
             BotonCrear(
                 eventoState.titulo,
                 eventoState.listaParticipantes,
-                onNavMisHojas ) { insertAllHojaCalculo() }
+                { insertAllHojaCalculo() }
+            )
         }
     }
 }
@@ -282,7 +284,6 @@ fun NuevaHojaScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Titulo(
-    robotoBlack: FontFamily,
     value: String,
     onTituloFieldChange: (String) -> Unit
 ) {
@@ -291,9 +292,7 @@ fun Titulo(
 
     Text(
         text = stringResource(R.string.titulo),
-        fontSize = 20.sp,
-        color = Color.Black,
-        fontFamily = robotoBlack, // Ajusta según tu fuente
+        style = MaterialTheme.typography.titleLarge,
         modifier = Modifier.padding(start = 10.dp)
     )
     TextField(
@@ -322,7 +321,6 @@ fun Titulo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Participantes(
-    robotoBlack: FontFamily,
     listParticipantes: List<Participante>,
     statusParticipante: String,
     onParticipanteFieldChange: (String) -> Unit,
@@ -343,18 +341,16 @@ fun Participantes(
     ) {
         Text(
             text = "Participantes",
-            fontSize = 20.sp,
+            style = MaterialTheme.typography.titleLarge,
             color = Color.Black,
-            fontFamily = robotoBlack,
             modifier = Modifier
                 .align(CenterVertically)
         )
         Spacer(Modifier.weight(1f))
         Text(
             text = getTotalParticipantes().toString(),
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.titleLarge,
             color = Color.Black,
-            fontFamily = robotoBlack,
             modifier = Modifier
                 .align(CenterVertically)
         )
@@ -453,6 +449,7 @@ fun ListaParticipantes(
 }
 
 /** Composable para el recuadro de LimiteGasto **/
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimiteGasto(
@@ -540,7 +537,6 @@ fun LimiteGasto(
 }
 
 /** Composable para el recuadro de LimiteFecha **/
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimiteFecha(
     fechaCierre: String,
@@ -630,7 +626,6 @@ fun IconoVerParticipantes(
 fun BotonCrear(
     titulo: String,
     listaParticipantes: List<Participante>,
-    onNavMisHojas: () -> Unit,
     insertAllHojaCalculo: () -> Unit
 ) {
 
@@ -639,7 +634,6 @@ fun BotonCrear(
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
     if (showDialog) MiAviso(true, "Como minimo debe contener Titulo y un participante.", {showDialog = false})
-
 
     Column(
         modifier = Modifier
@@ -650,10 +644,7 @@ fun BotonCrear(
         Button(
             onClick = {
                 if (titulo.isEmpty() || listaParticipantes.isEmpty()) showDialog = true
-                else {
-                    insertAllHojaCalculo()
-                    onNavMisHojas()
-                }
+                else { insertAllHojaCalculo() }
             },
             modifier = Modifier
                 .height(60.dp)

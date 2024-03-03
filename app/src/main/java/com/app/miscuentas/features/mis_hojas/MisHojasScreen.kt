@@ -33,11 +33,9 @@ import com.app.miscuentas.features.navegacion.MisCuentasScreen
 //}
 
 /** Composable principal de la Screen **/
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisHojas(
-    currentScreen: MisCuentasScreen,
+    currentScreen: String,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     navController: NavHostController
@@ -53,7 +51,7 @@ fun MisHojas(
             MiTopBar(
                 context,
                 null,
-                currentScreen,
+                "MIS HOJAS",
                 scope = scope,
                 scaffoldState = scaffoldState,
                 canNavigateBack = canNavigateBack,

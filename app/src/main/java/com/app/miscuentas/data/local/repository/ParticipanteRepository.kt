@@ -29,6 +29,9 @@ class ParticipanteRepository @Inject constructor(
     fun getIdParticipante(nombre: String): Int =
         participantesDao.getIdParticipante(nombre)
 
+    fun getListParticipantesToIdHoja(idHoja: Int): Flow<List<Participante>> =
+        participantesDao.getListParticipantesToIdHoja(idHoja).map { list -> list.map { it.toDomain() } }
+
     fun getMaxIdParticipantes(): Int =
         participantesDao.getMaxIdParticipantes()
 

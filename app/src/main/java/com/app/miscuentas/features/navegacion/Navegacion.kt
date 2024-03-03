@@ -3,7 +3,6 @@
 package com.app.miscuentas.features.navegacion
 
 import android.content.Context
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -34,9 +33,11 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.app.miscuentas.R
 import com.app.miscuentas.features.inicio.Inicio
 import com.app.miscuentas.features.login.Login
@@ -55,13 +56,23 @@ import kotlinx.coroutines.launch
 /** ************************INICIO************************** **/
 /** NAVEGACION DEL MAIN ENTRE LAS DISTINTAS SCREEN DE LA APP **/
 /** ******************************************************** **/
-enum class MisCuentasScreen(@StringRes val title: Int){
-    Splash(title = R.string.splash),
-    Login(title = R.string.login),
-    Inicio(title = R.string.inicio),
-    NuevaHoja(title = R.string.nueva_hoja),
-    MisHojas(title = R.string.mis_hojas),
-    NuevoGasto(title = R.string.nuevo_gasto)
+//enum class MisCuentasScreen(@StringRes val title: Int){
+//    Splash(title = R.string.splash),
+//    Login(title = R.string.login),
+//    Inicio(title = R.string.inicio),
+//    NuevaHoja(title = R.string.nueva_hoja),
+//    MisHojas(title = R.string.mis_hojas),
+//    NuevoGasto(title = R.string.nuevo_gasto)
+//}
+sealed class MisCuentasScreen (val route: String) {
+
+    object Splash : MisCuentasScreen("splash")
+    object Login : MisCuentasScreen("login",)
+    object Inicio : MisCuentasScreen("inicio")
+    object NuevaHoja : MisCuentasScreen("nueva_hoja")
+    object MisHojas : MisCuentasScreen("mis_hojas")
+    object NuevoGasto : MisCuentasScreen("nuevo_gasto")
+
 }
 
 @Composable
@@ -72,48 +83,46 @@ fun AppNavHost(
 
     //pila de Screen y valor actual
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = MisCuentasScreen.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.name
-    )
+    val currentScreen = backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.route
+
     val canNavigateBack = backStackEntry != null // Determinar si se puede navegar hacia atrás
 
 
     NavHost(
         navController = navController,
-        startDestination = MisCuentasScreen.Splash.name
+        startDestination = MisCuentasScreen.Splash.route
     ) {
 
-        composable(MisCuentasScreen.Splash.name) {
+        composable(MisCuentasScreen.Splash.route) {
             SplashScreen(
                 activity,
-                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.name) },
-                onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.name) }
+                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.route) },
+                onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.route) }
             )
         }
-        composable(MisCuentasScreen.Login.name) {
+        composable(MisCuentasScreen.Login.route) {
             Login(
-                { navController.navigate(MisCuentasScreen.Inicio.name) }
+                { navController.navigate(MisCuentasScreen.Inicio.route) }
             )
         }
-        composable(MisCuentasScreen.Inicio.name) {
+        composable(MisCuentasScreen.Inicio.route) {
             Inicio(
                 currentScreen,
                 {navController.navigateUp()},
-                onNavSplash = { navController.navigate(MisCuentasScreen.Splash.name) },
-                onNavNuevoGasto = { navController.navigate(MisCuentasScreen.NuevoGasto.name)},
-                onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.name) },
-                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
+                onNavSplash = { navController.navigate(MisCuentasScreen.Splash.route) },
+                onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.route) },
+                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.route) }
             )
         }
-        composable(MisCuentasScreen.NuevaHoja.name) {
+        composable(MisCuentasScreen.NuevaHoja.route) {
             NuevaHoja(
                 currentScreen,
                 canNavigateBack,
                 {navController.navigateUp()},
-                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.name) }
+                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.route) }
             )
         }
-        composable(MisCuentasScreen.MisHojas.name) {
+        composable(MisCuentasScreen.MisHojas.route) {
             MisHojas(
                 currentScreen,
                 canNavigateBack,
@@ -121,8 +130,15 @@ fun AppNavHost(
                 navController
             )
         }
-        composable(MisCuentasScreen.NuevoGasto.name) {
+        composable(//composable de navegacion el cual recibe un argumentod e tipo Int
+            route = MisCuentasScreen.NuevoGasto.route + "/{idHojaPrincipal}",
+            arguments = listOf(navArgument(name = "idHojaPrincipal"){
+                type = NavType.IntType
+            })
+        ) {
+            // Reemplaza "key" con la clave utilizada para pasar los datos
             NuevoGasto(
+                it.arguments?.getInt("idHojaPrincipal"),
                 currentScreen,
                 canNavigateBack,
                 {navController.navigateUp()}
@@ -159,9 +175,20 @@ fun AppNavBar(
         navController = navControllerMisHojas,
         startDestination = MisHojasScreen.Gastos.route
     ) {
-        composable(MisHojasScreen.Hojas.route) { HojasScreen(innerPadding) }
-        composable(MisHojasScreen.Gastos.route) { GastosScreen(innerPadding, onNavNuevoGasto = { navController.navigate(MisCuentasScreen.NuevoGasto.name) }) }
-        composable(MisHojasScreen.Participantes.route) { ParticipantesScreen() }
+        composable(MisHojasScreen.Hojas.route) {
+            HojasScreen(innerPadding)
+        }
+        composable( MisHojasScreen.Gastos.route) {
+            GastosScreen(
+                innerPadding,
+                onNavNuevoGasto = {idHoja -> //lambda que nos permite pasasrle un parametro a la navegacion
+                    navController.navigate( MisCuentasScreen.NuevoGasto.route + "/$idHoja")
+                }
+            )
+        }
+        composable(MisHojasScreen.Participantes.route) {
+            ParticipantesScreen()
+        }
     }
 }
 
@@ -207,7 +234,7 @@ fun BottomNavigationBar(navController: NavController) {
 fun MiTopBar(
     context: Context,
     drawerState: DrawerState?,
-    currentScreen: MisCuentasScreen,
+    currentScreen: String,
     scope: CoroutineScope,
     scaffoldState: ScaffoldState,
     canNavigateBack: Boolean,
@@ -218,7 +245,7 @@ fun MiTopBar(
     TopAppBar(
         title = {
             Text(
-                stringResource(currentScreen.title),
+                currentScreen,
                 fontSize = 25.sp
             )
         },

@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.app.miscuentas.domain.model.Participante
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -29,6 +30,9 @@ interface DbParticipantesDao {
 
     @Query("SELECT * FROM t_participantes ORDER BY id DESC")
     fun getAllParticipantes(): Flow<List<DbParticipantesEntity>>
+
+    @Query("SELECT tp.* FROM t_participantes tp, t_hojas_lin hl WHERE tp.id = hl.id_participante AND hl.id = :idHoja")
+    fun getListParticipantesToIdHoja(idHoja: Int): Flow<List<DbParticipantesEntity>>
 
     @Query("SELECT id FROM t_participantes WHERE nombre = :nombre ORDER BY id DESC")
     fun getIdParticipante(nombre: String): Int

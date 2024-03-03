@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.domain.GetMisHojas
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,7 +20,13 @@ class HojasViewModel @Inject constructor(
     private val _hojasState by lazy { MutableStateFlow(HojasState()) }
     val hojasState: StateFlow<HojasState> = _hojasState
 
-    fun getPhotos(){
+    fun onCircularIndicatorCharged(mostrar: Boolean){
+        viewModelScope.launch {
+            _hojasState.value = _hojasState.value.copy(circularIndicator = mostrar)
+        }
+    }
+
+    suspend fun getPhotos(){
         viewModelScope.launch {
             try {
                 val hojas = getMisHojas.getPhotos()
@@ -29,9 +36,13 @@ class HojasViewModel @Inject constructor(
                 Log.d(ContentValues.TAG, "getMisHojas excepcion: $e")
             }
         }
+        delay(1000)
+        _hojasState.value = _hojasState.value.copy(circularIndicator = false)
     }
 
     init {
-        getPhotos()
+        viewModelScope.launch(){
+            getPhotos()
+        }
     }
 }

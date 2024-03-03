@@ -170,14 +170,17 @@ private fun LoginContent(
             !contrasennaOk(loginState.contrasenna) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
             loginState.registro && !emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
 
-            else -> { //Si los campos son correctos...
-                if (loginState.registro) { //inserta el registro
+            //Si los campos son correctos...
+            else -> {
+                //MODO REGISTRO
+                if (loginState.registro) {
                     uiErrorMessage.value = ""
-                    insertRegistroCall()
+                    insertRegistroCall() //inserta el registro
                 }
-                else { //o el login es correcto
+                //MODO LOGIN
+                else {
                     uiErrorMessage.value = ""
-                    getRegistro()
+                    getRegistro() //Comprueba si el login es correcto (ya esta registrado)
                 }
             }
         }

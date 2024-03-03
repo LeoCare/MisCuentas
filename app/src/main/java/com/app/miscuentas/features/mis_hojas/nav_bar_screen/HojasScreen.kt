@@ -3,11 +3,13 @@ package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -43,7 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
 import com.app.miscuentas.data.model.Hoja
+import kotlin.random.Random
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -68,27 +73,42 @@ fun HojasScreen(
 
     val hojaState by viewModel.hojasState.collectAsState()
 
-    Column(horizontalAlignment = CenterHorizontally) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 30.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-            SpinnerCustoms("MOSTRAR:", itemsTipo, "Filtrar por tipo")
-            SpinnerCustoms("ORDENAR POR:", itemsOrden, "Opcion de ordenacion")
-        }
-
-        LazyColumn(
-            contentPadding = innerPadding,
+    if (hojaState.circularIndicator){
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            items(hojaState.listaHojas) { hoja ->
-                HojaDesing(hoja = hoja)
+            CircularProgressIndicator(
+                modifier = Modifier.width(64.dp),
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+    else {
+        Column(horizontalAlignment = CenterHorizontally) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 30.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SpinnerCustoms("MOSTRAR:", itemsTipo, "Filtrar por tipo")
+                SpinnerCustoms("ORDENAR POR:", itemsOrden, "Opcion de ordenacion")
+            }
+
+            LazyColumn(
+                contentPadding = innerPadding,
+            ) {
+                items(hojaState.listaHojas) { hoja ->
+                    HojaDesing(hoja = hoja)
+                }
             }
         }
     }
 
 }
+
+
 
 
 /** Composable para las opciones de filtrado **/
@@ -220,4 +240,13 @@ fun CustomSpacer(size: Dp) {
             .fillMaxWidth()
             .height(size)
     )
+}
+
+
+fun generateRandomColor(): Color {
+    val random = Random
+    val red = random.nextInt(0, 256)
+    val green = random.nextInt(0, 256)
+    val blue = random.nextInt(0, 256)
+    return Color(red, green, blue)
 }

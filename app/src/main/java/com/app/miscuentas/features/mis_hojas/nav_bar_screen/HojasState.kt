@@ -4,4 +4,5 @@ import com.app.miscuentas.data.model.Hoja
 
 data class HojasState(
     val listaHojas: List<Hoja> = listOf(),
-    )
+    val circularIndicator: Boolean = true
+)

@@ -16,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -24,9 +25,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -61,31 +64,27 @@ import kotlinx.coroutines.launch
 fun Prev(){
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = MisCuentasScreen.valueOf(
-        backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.name
-    )
+    val currentScreen = backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.route
+
     val onNavSplash: () -> Unit = {}
     val onNavMisHojas: () -> Unit = {}
     val onNavNuevaHoja: () -> Unit = {}
-    val onNavNuevoGasto: () -> Unit = {}
+
     Inicio(
         currentScreen,
         {navController.navigateUp()},
         onNavSplash = onNavSplash,
         onNavMisHojas = onNavMisHojas,
-        onNavNuevaHoja = onNavNuevaHoja,
-        onNavNuevoGasto = onNavNuevoGasto
+        onNavNuevaHoja = onNavNuevaHoja
     )
 }
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Inicio(
-    currentScreen: MisCuentasScreen,
+    currentScreen: String,
     navigateUp: () -> Unit,
     onNavSplash: () -> Unit,
-    onNavNuevoGasto: () -> Unit,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
     viewModel: InicioViewModel = hiltViewModel()
@@ -97,15 +96,16 @@ fun Inicio(
     val scope = rememberCoroutineScope()
     val inicioState by viewModel.inicioState.collectAsState()
 
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             MyDrawer(
                 context,
                 { viewModel.onInicioHuellaChanged(it) },
-                { viewModel.onRegistroPreferenceChanged(false) },
-                inicioState, onNavSplash
+                { viewModel.onRegistroPreferenceChanged(it) },
+                inicioState.registrado,
+                inicioState.huellaDigital,
+                onNavSplash
             )
         }
     ) {
@@ -115,14 +115,22 @@ fun Inicio(
                 MiTopBar(
                     context,
                     drawerState,
-                    currentScreen,
+                    "INICIO",
                     scope = scope,
                     scaffoldState = scaffoldState,
                     canNavigateBack = false,
                     navigateUp = { navigateUp() }
                 )
             },
-            content = { innerPadding -> InicioContent(innerPadding, onNavNuevoGasto, onNavMisHojas, onNavNuevaHoja) }
+            content = { innerPadding ->
+                InicioContent(
+                    innerPadding,
+                    //  onNavNuevoGasto,
+                    onNavMisHojas,
+                    onNavNuevaHoja,
+                    inicioState.idHojaPrincipal
+                )
+            }
         )
     }
 }
@@ -132,10 +140,24 @@ fun Inicio(
 @Composable
 fun InicioContent(
     innerPadding: PaddingValues,
-    onNavNuevoGasto: () -> Unit,
+//    onNavNuevoGasto: () -> Unit,
     onNavMisHojas: () -> Unit,
-    onNavNuevaHoja: () -> Unit
+    onNavNuevaHoja: () -> Unit,
+    idHojaPrincipal: Int
 ) {
+
+    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
+
+    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
+    //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
+    if (showDialog) MiAviso(true, "Aun no has creado ninguna hoja.", {showDialog = false})
+
+    val existeHoja = {
+        when {
+            idHojaPrincipal != 0 ->  onNavMisHojas()
+            else -> { showDialog = true}
+        }
+    }
 
     Box(
         contentAlignment = Alignment.TopCenter,
@@ -150,45 +172,44 @@ fun InicioContent(
             verticalArrangement = Arrangement.spacedBy(26.dp), // Espacio entre elementos de la columna
         ) {
             val robotoItalic = FontFamily(Font(R.font.roboto_bolditalic))
-
             item {
-                CustomSpacer(40.dp)
+                CustomSpacer(20.dp)
+//                Card(
+//                    modifier = Modifier
+//                        .padding(20.dp)
+//                        .fillMaxWidth()
+//                        .clip(MaterialTheme.shapes.extraLarge)
+//                        .height(IntrinsicSize.Min)
+//                        .clickable { onNavNuevoGasto() },
+//                    colors = CardDefaults.cardColors(
+//                        containerColor = MaterialTheme.colorScheme.primary,
+//                        contentColor = Color.Black
+//                    )
+//                ) {
+//                    Row(
+//                        modifier = Modifier
+//                            .background(MaterialTheme.colorScheme.inversePrimary)
+//                            .size(330.dp, 150.dp)
+//                            .padding(start = 20.dp, top = 20.dp, bottom = 20.dp),
+//                        horizontalArrangement = Arrangement.SpaceBetween
+//                    ) {
+//                        Text(
+//                            text = "Agregar...",
+//                            modifier = Modifier
+//                                .align(Alignment.Bottom),
+//                            fontSize = 30.sp,
+//                            fontFamily = robotoItalic
+//                        )
+//                        ImagenCustom(R.drawable.mis_hojas, "Boton de Nuevo Gasto")
+//                    }
+//                }
                 Card(
                     modifier = Modifier
                         .padding(20.dp)
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraLarge)
                         .height(IntrinsicSize.Min)
-                        .clickable { onNavNuevoGasto() },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.inversePrimary)
-                            .size(330.dp, 150.dp)
-                            .padding(start = 20.dp, top = 20.dp, bottom = 20.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Agregar...",
-                            modifier = Modifier
-                                .align(Alignment.Bottom),
-                            fontSize = 30.sp,
-                            fontFamily = robotoItalic
-                        )
-                        ImagenCustom(R.drawable.mis_hojas, "Boton de Nuevo Gasto")
-                    }
-                }
-                Card(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .height(IntrinsicSize.Min)
-                        .clickable { onNavMisHojas() },
+                        .clickable { existeHoja() },
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.Black
@@ -273,13 +294,13 @@ fun ImagenCustom(
 
 
 /** MENU LATERAL **/
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDrawer(
     context: Context,
-    onCheckedChange: (Boolean) -> Unit,
-    onRegistroClick: (Boolean) -> Unit,
-    inicioState: InicioState,
+    onInicioHuellaChanged: (Boolean) -> Unit,
+    onRegistroPreferenceChanged: (String) -> Unit,
+    registradoState: String,
+    inicioState: Boolean,
     onNavSplash: () -> Unit
 )
 {
@@ -305,7 +326,7 @@ fun MyDrawer(
                 modifier = Modifier.size(88.dp)
             )
             Text(
-                "Bienvenido",
+                registradoState,
                 modifier = Modifier.padding(10.dp),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
@@ -314,7 +335,7 @@ fun MyDrawer(
         LazyColumn{
 
             item {
-                Divider()
+                HorizontalDivider()
                 Text(
                     "SEGURIDAD",
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp),
@@ -338,13 +359,13 @@ fun MyDrawer(
                         },
                         badge = {
                             Switch(
-                                checked = inicioState.huellaDigital,
-                                onCheckedChange = {onCheckedChange(it)}
+                                checked = inicioState,
+                                onCheckedChange = {onInicioHuellaChanged(it)}
                             )
                         }
                     )
                 }
-                Divider()
+                HorizontalDivider()
                 Text(
                     "OPCIONAL",
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp),
@@ -411,7 +432,7 @@ fun MyDrawer(
                         )
                     }
                 )
-                Divider()
+                HorizontalDivider()
 
                 Text(
                     "DUDAS",
@@ -457,7 +478,7 @@ fun MyDrawer(
                         )
                     }
                 )
-                Divider()
+                HorizontalDivider()
 
                 Text(
                     "TERMINAR",
@@ -481,8 +502,8 @@ fun MyDrawer(
                         text = "Cerrar sesion") },
                     selected = false,
                     onClick = {
-                        onCheckedChange(false)
-                        onRegistroClick(false)
+                        onInicioHuellaChanged(false)
+                        onRegistroPreferenceChanged("")
                         miCoroutine.launch {
                             delay(500)
                             onNavSplash()

@@ -22,6 +22,10 @@ interface DbHojaCalculoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllHojaCalculoLin( hojaCalculoLin: DbHojaCalculoEntityLin)
 
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllHojaCalculoLinDet( hojaCalculoLinDet: DbHojaCalculoEntityLinDet)
+
     //Como la entidad representa una fila en concreto, si se le pasa la entidad modificada la actualizara en la BBDD
     @Update
     suspend fun update(hojaCalculo: DbHojaCalculoEntity)
@@ -37,6 +41,24 @@ interface DbHojaCalculoDao {
     @Query("SELECT * FROM t_hojas_cab ORDER BY id DESC")
     fun getAllHojasCalculos(): Flow<List<DbHojaCalculoEntity>>
 
+    //Obtener la hoja principal
+    @Query("SELECT * FROM t_hojas_cab WHERE principal = 'S'")
+    fun getHojaCalculoPrincipal(): Flow<DbHojaCalculoEntity?>
+
+    //Obtener el ID de la ultima hoja creada para la insercion en t_hojas_cab_lin
     @Query("SELECT MAX(id) FROM t_hojas_cab")
-    fun getMaxIdHojasCalculos(): Int
+    fun getMaxIdHojasCalculos(): Flow<Int>
+
+    //Obtener el valor de la linea del pagador (de la hoja especificada) para la insercion en t_hojas_cab_lin_det
+    @Query("SELECT MAX(linea) FROM t_hojas_lin WHERE id = :id ORDER BY linea DESC")
+    fun getMaxLineaHojasCalculos(id: Int): Flow<Int>
+
+    //Obtener el valor de la linea del pagador (de la hoja especificada) para la insercion en t_hojas_cab_lin_det
+    @Query("SELECT linea FROM t_hojas_lin WHERE id = :id AND id_participante = :idParticipante")
+    fun getLineaPartiHojasCalculosLin(id: Int, idParticipante: Int): Flow<Int>
+
+    //Obtener el valor de la ultima linea detalle creada (de la hoja y linea especificada) para la insercion en t_hojas_cab_lin_det
+    @Query("SELECT MAX(linea) FROM t_hojas_lin_det WHERE id = :id AND linea = :linea")
+    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int>
+
 }

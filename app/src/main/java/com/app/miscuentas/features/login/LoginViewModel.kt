@@ -45,12 +45,8 @@ class LoginViewModel @Inject constructor(
     fun onMensajeChanged(mensaje: String) {
         _loginState.value = _loginState.value.copy(mensaje = mensaje)
     }
-    fun onLoginOkChanged(registrado: Boolean) {
-        _loginState.value = _loginState.value.copy(loginOk = registrado)
-
-        viewModelScope.launch {
-            dataStoreConfig.putRegistroPreference(registrado)
-        }
+    fun onLoginOkChanged(loginOk: Boolean) {
+        _loginState.value = _loginState.value.copy(loginOk = loginOk)
 
     }
 
@@ -85,13 +81,17 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
              withContext(Dispatchers.IO) {
                 registro = registroRepository.getRegistro(nombre, contrasenna).firstOrNull()
-
                  if  (registro != null){
-                     onLoginOkChanged(true)
+                     onRegistroDataStoreChanged(_loginState.value.usuario) //si existe, actualiza el dataStore con el nombre
                  }
                  else _loginState.value = _loginState.value.copy(mensaje = "Usuario o Contraseña incorrectos!")
             }
         }
+    }
+
+    suspend fun onRegistroDataStoreChanged(usuario: String){
+            dataStoreConfig.putRegistroPreference(usuario)
+            onLoginOkChanged(true)
 
     }
 
@@ -100,10 +100,9 @@ class LoginViewModel @Inject constructor(
     fun insertRegistroCall(){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-
                 val insertOk = insertRegistro()
 
-                if (insertOk) onLoginOkChanged(true)
+                if (insertOk) onRegistroDataStoreChanged(_loginState.value.usuario)
                 else _loginState.value = _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
             }
         }
@@ -135,11 +134,12 @@ class LoginViewModel @Inject constructor(
     init {
         // Observa los cambios en DataStore para comprobar el inicio por huella
         viewModelScope.launch {
-            val inicioHuella = dataStoreConfig.getInicoHuellaPreference() ?: false
-            val registrado = dataStoreConfig.getRegistroPreference() ?: false
+            val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
+            val registrado = dataStoreConfig.getRegistroPreference()
 
-            if (registrado && inicioHuella) startBiometricAuthentication()
-            else  _loginState.value = _loginState.value.copy(loginOk = registrado)
+            if (registrado != null && inicioHuella == "SI") startBiometricAuthentication()
+            else if (registrado != null) _loginState.value = _loginState.value.copy(loginOk = true)
+            else  _loginState.value = _loginState.value.copy(loginOk = false)
         }
     }
 

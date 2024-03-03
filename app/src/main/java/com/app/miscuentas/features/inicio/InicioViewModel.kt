@@ -3,14 +3,10 @@ package com.app.miscuentas.features.inicio
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,17 +27,30 @@ class InicioViewModel @Inject constructor(
         }
     }
 
-    fun onRegistroPreferenceChanged(login: Boolean){
+    fun onRegistroPreferenceChanged(logeado: String){
         viewModelScope.launch {
-            dataStoreConfig.putRegistroPreference(login)
+            dataStoreConfig.putRegistroPreference(logeado)
         }
     }
 
-    /** COMPROBACION DE INICIO CON HUELLA **/
+
+    /** COMPROBACION PARA EL DRAWER (USUARIO Y CHECK DE HUELLA) **/
     init {
         viewModelScope.launch {
+            //Guardo el nombre del usuario para mostrarlo en el Drawer
+            val registrado = dataStoreConfig.getRegistroPreference().toString()
+            _inicioState.value = _inicioState.value.copy(registrado = registrado)
+
+            //Compruebo si debe quedar el check de la huella seleccionado en el Drawer
             val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
-            if (inicioHuella == true)  _inicioState.value = _inicioState.value.copy(huellaDigital = true)
+            if (inicioHuella == "SI") _inicioState.value =
+                _inicioState.value.copy(huellaDigital = true)
+
+            //Compruebo que haya 1 hoja creada, como minimo...
+            val idHoja = dataStoreConfig.getIdHojaPrincipalPreference()
+            if (idHoja != null) _inicioState.value =
+                _inicioState.value.copy(idHojaPrincipal = idHoja)
+
         }
     }
 

@@ -9,6 +9,10 @@ data class NuevaHojaState(
     val limiteGasto: String = "",
     val fechaCierre: String = "",
     val status: String = "P",
-    val listDbParticipantes: String = "" //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
+    val listDbParticipantes: String = "", //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
 
+    //Valores de la BBDD Room
+    val insertOk: Boolean = false,
+    val maxIdHolaCalculo: Int = 0,
+    val maxLineaHolaCalculo: Int = 0
 )
