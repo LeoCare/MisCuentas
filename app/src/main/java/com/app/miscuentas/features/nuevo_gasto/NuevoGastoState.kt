@@ -12,7 +12,7 @@ data class NuevoGastoState(
     //Valores de la BBDD Room
     val insertOk: Boolean = false,
     val hojaActual: HojaCalculo? = null,
-    val maxLineaHojaCalculo: Int = 0,
+    val maxLineaHojaLin: Int = 0,
     val maxLineaDetHolaCalculo: Int = 0,
 
     //Valores de DataStore

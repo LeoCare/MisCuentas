@@ -96,6 +96,9 @@ fun Inicio(
     val scope = rememberCoroutineScope()
     val inicioState by viewModel.inicioState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.getIdHojaPrincipalPreference()
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {

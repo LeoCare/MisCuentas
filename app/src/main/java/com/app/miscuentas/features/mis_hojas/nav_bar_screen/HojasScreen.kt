@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
@@ -44,10 +46,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.runtime.LaunchedEffect
-import com.app.miscuentas.data.model.Hoja
+import com.app.miscuentas.domain.model.HojaCalculo
 import kotlin.random.Random
 
 
@@ -99,13 +99,14 @@ fun HojasScreen(
             LazyColumn(
                 contentPadding = innerPadding,
             ) {
-                items(hojaState.listaHojas) { hoja ->
-                    HojaDesing(hoja = hoja)
+                if (hojaState.listaHojas != null){
+                    itemsIndexed(hojaState.listaHojas!!){index, HojaCalculoToList ->
+                        HojaDesing(index = index, hojaCalculo = HojaCalculoToList)
+                    }
                 }
             }
         }
     }
-
 }
 
 
@@ -113,7 +114,11 @@ fun HojasScreen(
 
 /** Composable para las opciones de filtrado **/
 @Composable
-fun SpinnerCustoms(titulo: String, items: List<String>, contentDescription: String) {
+fun SpinnerCustoms(
+    titulo: String,
+    items: List<String>,
+    contentDescription: String
+){
     var expanded by rememberSaveable { mutableStateOf(false) }
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
 
@@ -167,7 +172,11 @@ fun SpinnerCustoms(titulo: String, items: List<String>, contentDescription: Stri
 }
 
 @Composable
-fun HojaDesing(hoja: Hoja) {
+fun HojaDesing(
+ /** API **/ //  hoja: Hoja
+ index: Int,
+ hojaCalculo: HojaCalculo
+) {
     var isChecked by rememberSaveable { mutableStateOf(false) }
 
     Card(
@@ -186,7 +195,7 @@ fun HojaDesing(hoja: Hoja) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Checkbox(checked = isChecked, onCheckedChange = {isChecked = it})
+                Checkbox(checked = hojaCalculo.principal, onCheckedChange = {hojaCalculo.principal = it})
                 Text(
                     text = "Principal",
                 )
@@ -209,18 +218,32 @@ fun HojaDesing(hoja: Hoja) {
                     //Text(text = hoja.type)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Tipo:")
-                        Text(text = hoja.type)
+                        Text(text = "Titulo:")
+                        Text(text = hojaCalculo.titulo)
+                        /** API **/ //   Text(text = hoja.type)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Precio:")
-                        Text(text = hoja.price.toString())
+                        Text(text = "Participantes:")
+                        /** API **/ //   Text(text = hoja.price.toString())
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Id:")
-                        Text(text = hoja.id)
+                        Text(text = "Fecha Cierre:")
+                        Text(text = hojaCalculo.fechaCierre ?: "sin definir")
+                        /** API **/ //  Text(text = hoja.id)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
+                    {
+                        Text(text = "Limite:")
+                        Text(text = if(hojaCalculo.limite == null) "sin definir" else hojaCalculo.limite.toString())
+                        /** API **/ //  Text(text = hoja.id)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
+                    {
+                        Text(text = "Estado:")
+                        Text(text = if(hojaCalculo.status == "C") "en curso" else if(hojaCalculo.status == "A") "anulada" else "cerrada")
+                        /** API **/ //  Text(text = hoja.id)
                     }
                 }
             }

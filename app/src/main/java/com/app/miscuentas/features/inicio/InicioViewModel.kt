@@ -33,6 +33,15 @@ class InicioViewModel @Inject constructor(
         }
     }
 
+    //Compruebo que haya 1 hoja creada, como minimo...
+    suspend fun getIdHojaPrincipalPreference(){
+        viewModelScope.launch {
+            val idHoja = dataStoreConfig.getIdHojaPrincipalPreference()
+            if (idHoja != null) _inicioState.value =
+                _inicioState.value.copy(idHojaPrincipal = idHoja)
+        }
+    }
+
 
     /** COMPROBACION PARA EL DRAWER (USUARIO Y CHECK DE HUELLA) **/
     init {
@@ -45,11 +54,6 @@ class InicioViewModel @Inject constructor(
             val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
             if (inicioHuella == "SI") _inicioState.value =
                 _inicioState.value.copy(huellaDigital = true)
-
-            //Compruebo que haya 1 hoja creada, como minimo...
-            val idHoja = dataStoreConfig.getIdHojaPrincipalPreference()
-            if (idHoja != null) _inicioState.value =
-                _inicioState.value.copy(idHojaPrincipal = idHoja)
 
         }
     }

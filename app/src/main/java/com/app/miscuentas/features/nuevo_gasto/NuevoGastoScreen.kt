@@ -1,9 +1,15 @@
 package com.app.miscuentas.features.nuevo_gasto
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,11 +34,9 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -45,7 +49,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -348,22 +351,36 @@ fun CustomRadioButton(
     var isSelected = pagadorToList == pagadorSelected.value
     if (pagadorSelected.value.isEmpty()) isSelected = pagadorIndex == 0
 
+    val interactionSource = remember { MutableInteractionSource() } //Quito el efecto de sombra al clickar
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clickable { onPagadorChosen(pagadorToList) }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null//Quito el efecto de sombra al clickar
+
+            ) { onPagadorChosen(pagadorToList) }
             .padding(bottom = 10.dp, end = 15.dp, top = if (!isSelected) 10.dp else 0.dp)
     ) {
+
         RadioButton(
             selected = isSelected,
             onClick = null,//{ onPagadorChosen(pagadorToList) },
             modifier = Modifier.padding(end = 7.dp)
         )
-        Text(
-            text = pagadorToList,
-            style = if (isSelected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
-            color = if (isSelected) Color.Blue else Color.Black // Cambia el color cuando está seleccionado
-        )
+        AnimatedContent(
+            targetState = isSelected,
+            transitionSpec = {
+                ContentTransform(fadeIn(tween(2000)), fadeOut(animationSpec = tween(100)))
+            }, label = ""
+        ) { selected ->
+            Text(
+                text = pagadorToList,
+                style = if (selected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
+                color = if (selected) Color.Blue else Color.Black
+            )
+        }
     }
 }
 

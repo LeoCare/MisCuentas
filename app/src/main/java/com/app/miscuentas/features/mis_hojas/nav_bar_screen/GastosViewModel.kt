@@ -24,6 +24,7 @@ class GastosViewModel @Inject constructor(
     val gastosState: StateFlow<GastosState> = _gastosState
 
 
+    //ESTO ES NECESARIO EN UN METODO EN HOJASSCREEN AL ELEGIR A LA PRINCIPAL, NO AQUÍ
     init {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
