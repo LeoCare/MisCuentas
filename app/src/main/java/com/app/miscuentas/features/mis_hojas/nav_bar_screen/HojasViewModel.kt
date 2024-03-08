@@ -6,9 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
+import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.GetMisHojas
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HojasViewModel @Inject constructor(
     private val repositoryHojaCalculo: HojaCalculoRepository,
+    private val repositoryParticipante: ParticipanteRepository,
     private val dataStoreConfig: DataStoreConfig
     /** API **/ // private val getMisHojas: GetMisHojas
 ): ViewModel(){
@@ -41,14 +46,38 @@ class HojasViewModel @Inject constructor(
         }
     }
 
-    init {
-        viewModelScope.launch{
-            repositoryHojaCalculo.getAllHojasCalculos().collect{ listHojasCalculo ->
+    fun getCallHojasCalculos(){
+        getAllHojasCalculos()
+    }
+
+    /** METODO QUE SE EJECUTA EN UNA CORRUTINA LLAMANDO A UN METODO QUE RECOLECTA DATOS
+     * QUE A SU VEZ LLAMA A UNA FUNCION SUSPEND DE MANERA ASINCRONA PARA CADA DATO RECOLECTADO.
+     * ESTO HACE QUE SE EJECUTEN LAS SUSPEND TODAS A LA VEZ EN HILOS SEPARADOS.
+     */
+    fun getAllHojasCalculos() {
+        viewModelScope.launch {
+            repositoryHojaCalculo.getAllHojasCalculos().collect { listHojasCalculo ->
+                //guardo la liste hojas
                 _hojasState.value = _hojasState.value.copy(listaHojas = listHojasCalculo)
 
+                //obtego la lista de participantes de cada una de ellas
+                listHojasCalculo.forEachIndexed { index, hoja ->
+                    launch {
+                        getListParticipantesToIdHoja(index, hoja.id)
+                    }
+
+                }
                 delay(1000)
                 _hojasState.value = _hojasState.value.copy(circularIndicator = false)
             }
+        }
+    }
+
+    //Actualizo participantes de las hojas
+    suspend fun getListParticipantesToIdHoja(index: Int, idHoja: Int) {
+        //Obtener participantes de la hoja y agregarlas al state
+        repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
+            _hojasState.value.listaHojas?.get(index)?.participantesHoja = participantes
         }
     }
 

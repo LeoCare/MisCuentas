@@ -9,6 +9,7 @@ import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
+import com.app.miscuentas.domain.Validaciones
 import com.app.miscuentas.domain.model.HojaCalculo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -132,12 +133,14 @@ class NuevaHojaViewModel @Inject constructor(
 
     /** METODOS PARA LA NUEVA HOJA EN ROOM **/
     fun instanceNuevaHoja(): HojaCalculo {
-        val fecha: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
+        val fechaCreacion: String? = Validaciones.fechaToStringFormat(LocalDate.now())
+        val fechaCierre: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
 
         return  HojaCalculo(
             id = 0,
             titulo = _nuevaHojaState.value.titulo,
-            fechaCierre = fecha,
+            fechaCreacion = fechaCreacion,
+            fechaCierre = fechaCierre,
             limite = _nuevaHojaState.value.limiteGasto.toDoubleOrNull(),
             status = _nuevaHojaState.value.status,
             participantesHoja = _nuevaHojaState.value.listaParticipantes,

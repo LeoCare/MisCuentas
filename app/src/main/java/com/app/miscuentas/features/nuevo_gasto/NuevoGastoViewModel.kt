@@ -28,10 +28,9 @@ class NuevoGastoViewModel @Inject constructor (
     fun onConceptoTextFieldChanged(concepto: String){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(concepto = concepto)
     }
-    fun onPagadorChosen(pagador: String){
-        _nuevoGastoState.value = _nuevoGastoState.value.copy(pagador = pagador)
-
-        //onIdPagadorChosen(pagador)
+    fun onPagadorChosen(idPagador: Int){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(idPagador = idPagador)
+        getLineaPartiHojasCalculosLin()
 
     }
     fun onPagadorRadioChanged(pagadorElegido: Boolean){
@@ -44,33 +43,26 @@ class NuevoGastoViewModel @Inject constructor (
         getHojaCalculo()
     }
 
-//    fun onIdPagadorChosen(pagador: String){
-//        viewModelScope.launch {
-//            val idPagador = repositoryParticipante.getIdParticipante(pagador)
-//            _nuevoGastoState.value = _nuevoGastoState.value.copy(idPagador = idPagador)
-//        }
-//    }
 
     //1_LLAMADA A INSERTAR LINEAS DETALLE EN HOJA....(gasto)
     fun insertAllHojaCalculoLinDet(){
-        viewModelScope.launch{
-            withContext(Dispatchers.IO){
-
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
                 val insertLidDetOk = insertHojaCalculoLinDet()
                 if (insertLidDetOk) {
                     _nuevoGastoState.value = _nuevoGastoState.value.copy(insertOk = true)
                     vaciarTextFields()
                 }
-
             }
         }
+
     }
 
     //2_INSERTAR LINEAS DETALLE EN HOJA (gasto)
-    private suspend fun insertHojaCalculoLinDet(): Boolean {
+    suspend fun insertHojaCalculoLinDet(): Boolean {
         val idHoja = _nuevoGastoState.value.idHoja!!
-        val maxLinea = _nuevoGastoState.value.maxLineaHojaLin
-        val lineaDet = _nuevoGastoState.value.maxLineaDetHolaCalculo + 1
+        val maxLinea = _nuevoGastoState.value.lineaHojaLin
+        val lineaDet = _nuevoGastoState.value.maxLineaDetHolaCalculo!!.plus(1)
         val idGasto = 0
         val concepto = _nuevoGastoState.value.concepto
         val importe = _nuevoGastoState.value.importe.toDouble()
@@ -104,7 +96,6 @@ class NuevoGastoViewModel @Inject constructor (
                 }
             }
         }
-
     }
 
     //Actualizo pagadore de la hojaActual
@@ -123,11 +114,26 @@ class NuevoGastoViewModel @Inject constructor (
                 val idHoja = _nuevoGastoState.value.idHoja!!
                 val pagador = _nuevoGastoState.value.idPagador
                 repositoryHojaCalculo.getLineaPartiHojasCalculosLin(idHoja, pagador).collect { Linea ->
-                    _nuevoGastoState.value =
-                        _nuevoGastoState.value.copy(maxLineaHojaLin = Linea)
+                    _nuevoGastoState.value = _nuevoGastoState.value.copy(lineaHojaLin = Linea)
+                    getMaxLineaDetHojasCalculos()
                 }
             }
         }
+    }
+
+    suspend fun getMaxLineaDetHojasCalculos() {
+        //recojo la linea detalle maxima de la ultima hoja y linea
+        val idHoja = _nuevoGastoState.value.idHoja!!
+        val idLinea = _nuevoGastoState.value.lineaHojaLin
+        repositoryHojaCalculo.getMaxLineaDetHojasCalculos(idHoja, idLinea)
+            .collect { maxLineaDet ->
+                if (maxLineaDet != null) {
+                    _nuevoGastoState.value =
+                        _nuevoGastoState.value.copy(maxLineaDetHolaCalculo = maxLineaDet)
+                }
+                else _nuevoGastoState.value =
+                    _nuevoGastoState.value.copy(maxLineaDetHolaCalculo = 0)
+            }
     }
 
     private fun vaciarTextFields(){
@@ -135,22 +141,4 @@ class NuevoGastoViewModel @Inject constructor (
         _nuevoGastoState.value = _nuevoGastoState.value.copy(concepto = "")
     }
 
-    //RECOGIDA DE DATOS DE LA DDBB
-//    init {
-//        viewModelScope.launch {
-//            withContext(Dispatchers.IO) {
-//
-//
-//                //recojo la linea detalle maxima de la ultima hoja y linea
-//                val idLinea = _nuevoGastoState.value.maxLineaHojaLin
-//                repositoryHojaCalculo.getMaxLineaDetHojasCalculos(id, idLinea)
-//                    .collect { maxLineaDet ->
-//                        _nuevoGastoState.value =
-//                            _nuevoGastoState.value.copy(maxLineaDetHolaCalculo = maxLineaDet)
-//                    }
-//
-//
-//            }
-//        }
-//    }
 }

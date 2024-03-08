@@ -66,6 +66,7 @@ import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.domain.model.IconoGasto
+import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
 
@@ -139,14 +140,12 @@ fun NuevoGastoContent(
     listaIconosGastos: List<IconoGasto>,
     onImporteTextFieldChanged: (String) -> Unit,
     onConceptoTextFieldChanged: (String) -> Unit,
-    onPagadorChosen: (String) -> Unit,
+    onPagadorChosen: (Int) -> Unit,
     onPagadorRadioChanged: (Boolean) -> Unit
     ){
 
     //Oculta Teclado
     val controlTeclado = LocalSoftwareKeyboardController.current
-
-    val pagadorSelected = remember { mutableStateOf("") }
 
      LazyColumn(
         modifier = Modifier
@@ -233,9 +232,9 @@ fun NuevoGastoContent(
 
                                     CustomRadioButton(
                                         pagadorIndex = index,
-                                        pagadorSelected = pagadorSelected,
-                                        pagadorToList = pagadorToList.nombre,
-                                        onPagadorChosen =  { pagadorSelected.value = it }
+                                        idPagadorState = nuevoGastoState.idPagador,
+                                        pagadorToList = pagadorToList,
+                                        onPagadorChosen =  { onPagadorChosen(it) }
                                     )
                                 }
                             }
@@ -344,14 +343,19 @@ fun CustomTextfiel(
 @Composable
 fun CustomRadioButton(
     pagadorIndex: Int,
-    pagadorSelected: MutableState<String>,
-    pagadorToList: String,
-    onPagadorChosen: (String) -> Unit
+    idPagadorState: Int,
+    pagadorToList: Participante,
+    onPagadorChosen: (Int) -> Unit
 ){
-    var isSelected = pagadorToList == pagadorSelected.value
-    if (pagadorSelected.value.isEmpty()) isSelected = pagadorIndex == 0
+    var isSelected = pagadorToList.id == idPagadorState
+    if (idPagadorState == 0 && pagadorIndex == 0) {
+        isSelected = true
+        onPagadorChosen(pagadorToList.id)
+    }
 
-    val interactionSource = remember { MutableInteractionSource() } //Quito el efecto de sombra al clickar
+
+    val interactionSource =
+        remember { MutableInteractionSource() } //Quito el efecto de sombra al clickar
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -360,13 +364,13 @@ fun CustomRadioButton(
                 interactionSource = interactionSource,
                 indication = null//Quito el efecto de sombra al clickar
 
-            ) { onPagadorChosen(pagadorToList) }
+            ) { onPagadorChosen(pagadorToList.id) }
             .padding(bottom = 10.dp, end = 15.dp, top = if (!isSelected) 10.dp else 0.dp)
     ) {
 
         RadioButton(
             selected = isSelected,
-            onClick = null,//{ onPagadorChosen(pagadorToList) },
+            onClick = { onPagadorChosen(pagadorToList.id) },
             modifier = Modifier.padding(end = 7.dp)
         )
         AnimatedContent(
@@ -376,12 +380,13 @@ fun CustomRadioButton(
             }, label = ""
         ) { selected ->
             Text(
-                text = pagadorToList,
+                text = pagadorToList.nombre,
                 style = if (selected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
                 color = if (selected) Color.Blue else Color.Black
             )
         }
     }
+
 }
 
 @Preview

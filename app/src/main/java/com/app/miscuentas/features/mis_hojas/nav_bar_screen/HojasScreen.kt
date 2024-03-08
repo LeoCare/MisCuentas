@@ -47,31 +47,37 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
 import com.app.miscuentas.domain.model.HojaCalculo
 import kotlin.random.Random
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-@Preview
-@Composable
-fun Prev() {
-    val padding = PaddingValues(20.dp)
-    HojasScreen(padding)
-}
+//@Preview
+//@Composable
+//fun Prev() {
+//    val padding = PaddingValues(20.dp)
+//    HojasScreen(padding)
+//}
 
 /** Contenedor del resto de elementos para la pestaña Hojas **/
 @Composable
 fun HojasScreen(
     innerPadding: PaddingValues,
+    onNavGastos: (Int) -> Unit,
     viewModel: HojasViewModel = hiltViewModel()
 ) {
 
     // Screen con las hojas creadas
     //Provisional!!!
-    val itemsTipo = listOf("Activas", "Finalizadas", "Todas")
-    val itemsOrden = listOf("Fecha creacion", "Gasto total")
+    val itemsTipo = listOf("Activas", "Finalizadas", "Anuladas", "Todas")
+    val itemsOrden = listOf("Fecha creacion", "Fecha cierre")
 
     val hojaState by viewModel.hojasState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getCallHojasCalculos()
+    }
 
     if (hojaState.circularIndicator){
         Box(
@@ -92,16 +98,20 @@ fun HojasScreen(
                     .padding(bottom = 30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                SpinnerCustoms("MOSTRAR:", itemsTipo, "Filtrar por tipo")
-                SpinnerCustoms("ORDENAR POR:", itemsOrden, "Opcion de ordenacion")
+                SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo")
+                SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion")
             }
 
             LazyColumn(
                 contentPadding = innerPadding,
             ) {
                 if (hojaState.listaHojas != null){
-                    itemsIndexed(hojaState.listaHojas!!){index, HojaCalculoToList ->
-                        HojaDesing(index = index, hojaCalculo = HojaCalculoToList)
+                    itemsIndexed(hojaState.listaHojas!!){index, hojaCalculoToList ->
+                        HojaDesing(
+                            onNavGastos = {},//{onNavGastos(it)},
+                            index = index,
+                            hojaCalculo = hojaCalculoToList
+                        )
                     }
                 }
             }
@@ -125,21 +135,19 @@ fun SpinnerCustoms(
     Column(
         modifier = Modifier
             .padding(20.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = CenterHorizontally
+        horizontalAlignment = Alignment.Start
     ) {
 
         Text(text = titulo)
 
         Card(
             modifier = Modifier
-                .padding(top = 10.dp)
                 .height(IntrinsicSize.Min)
-                .clip(MaterialTheme.shapes.extraLarge)
+                .clip(MaterialTheme.shapes.extraSmall)
                 .clickable { expanded = !expanded },
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = Color.Black
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White
             )
         ) {
 
@@ -174,6 +182,7 @@ fun SpinnerCustoms(
 @Composable
 fun HojaDesing(
  /** API **/ //  hoja: Hoja
+ onNavGastos: (Int) -> Unit,
  index: Int,
  hojaCalculo: HojaCalculo
 ) {
@@ -181,26 +190,54 @@ fun HojaDesing(
 
     Card(
         modifier = Modifier
-            .padding(start = 25.dp, end = 25.dp, bottom = 20.dp)
-            .clip(MaterialTheme.shapes.extraLarge),
+            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+            .clip(MaterialTheme.shapes.extraLarge)
+            .clickable { onNavGastos(hojaCalculo.id) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = Color.Black)
     ) {
         Column(
             modifier = Modifier
-                .padding(start=20.dp, end=20.dp,bottom=10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(horizontal = 20.dp, vertical =10.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Checkbox(checked = hojaCalculo.principal, onCheckedChange = {hojaCalculo.principal = it})
-                Text(
-                    text = "Principal",
-                )
-                Spacer(Modifier.weight(1f))
-//                Text(text = hoja.id)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Titulo:",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Text(
+                        text = hojaCalculo.titulo,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                /** API **/ //   Text(text = hoja.type)
+                when (hojaCalculo.status) {
+                    "C" ->
+                        Text(
+                            text = "Activa",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    "A" ->
+                        Text(
+                            text = "Anulada",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    else -> Text(
+                        text = "Finalizada",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -215,42 +252,95 @@ fun HojaDesing(
                     )
                 }
                 Column{
-                    //Text(text = hoja.type)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Titulo:")
-                        Text(text = hojaCalculo.titulo)
-                        /** API **/ //   Text(text = hoja.type)
+
+
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Participantes:")
+                        Text(
+                            text = "Participantes:",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = hojaCalculo.participantesHoja?.size.toString(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         /** API **/ //   Text(text = hoja.price.toString())
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Fecha Cierre:")
-                        Text(text = hojaCalculo.fechaCierre ?: "sin definir")
+                        Text(
+                            text = "Fecha Cierre:",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = hojaCalculo.fechaCierre ?: "sin definir",
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         /** API **/ //  Text(text = hoja.id)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Limite:")
-                        Text(text = if(hojaCalculo.limite == null) "sin definir" else hojaCalculo.limite.toString())
+                        Text(
+                            text = "Limite:",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = if(hojaCalculo.limite == null) "sin definir" else hojaCalculo.limite.toString(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         /** API **/ //  Text(text = hoja.id)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-                        Text(text = "Estado:")
-                        Text(text = if(hojaCalculo.status == "C") "en curso" else if(hojaCalculo.status == "A") "anulada" else "cerrada")
-                        /** API **/ //  Text(text = hoja.id)
+                        Text(
+                            text = "Creada el:",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = hojaCalculo.fechaCreacion!!,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        /** API **/ //   Text(text = hoja.type)
                     }
+
                 }
             }
-            Text(
-                text = "Resumen",
-                modifier = Modifier.padding(start = 10.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Resumen",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 10.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "Ver",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 10.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Principal",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Checkbox(
+                        checked = hojaCalculo.principal,
+                        onCheckedChange = { hojaCalculo.principal = it }
+                    )
+                }
+
+            }
+
         }
     }
 }

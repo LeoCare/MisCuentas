@@ -44,7 +44,7 @@ class HojaCalculoRepository @Inject constructor(
     fun getLineaPartiHojasCalculosLin(id: Int, pagador: Int): Flow<Int> =
         hojaCalculoDao.getLineaPartiHojasCalculosLin(id, pagador)
 
-    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int> =
+    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int?> =
         hojaCalculoDao.getMaxLineaDetHojasCalculos(id, linea)
 
     fun getHojaCalculoPrincipal(): Flow<HojaCalculo?> =

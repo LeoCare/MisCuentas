@@ -136,7 +136,7 @@ fun AppNavHost(
                 type = NavType.IntType
             })
         ) {
-            // Reemplaza "key" con la clave utilizada para pasar los datos
+            // idHojaPrincipal es la clave utilizada para pasar los datos
             NuevoGasto(
                 it.arguments?.getInt("idHojaPrincipal"),
                 currentScreen,
@@ -169,20 +169,31 @@ fun AppNavBar(
     navControllerMisHojas: NavHostController,
     navController: NavHostController
 ) {
-
-
     NavHost(
         navController = navControllerMisHojas,
         startDestination = MisHojasScreen.Gastos.route
     ) {
-        composable(MisHojasScreen.Hojas.route) {
-            HojasScreen(innerPadding)
-        }
-        composable( MisHojasScreen.Gastos.route) {
-            GastosScreen(
+        composable( MisHojasScreen.Hojas.route ) {
+            HojasScreen(
                 innerPadding,
-                onNavNuevoGasto = {idHoja -> //lambda que nos permite pasasrle un parametro a la navegacion
-                    navController.navigate( MisCuentasScreen.NuevoGasto.route + "/$idHoja")
+                onNavGastos = {//lambda que nos permite pasarle un parametro a la navegacion
+                        idHoja ->
+                    navControllerMisHojas.navigate(MisHojasScreen.Gastos.route + "/$idHoja")
+                }
+            )
+        }
+        composable( MisHojasScreen.Gastos.route
+//            route = MisHojasScreen.Gastos.route + "/{idHojaMostrar}",
+//            arguments = listOf(navArgument(name = "idHojaMostrar") {
+//                type = NavType.IntType
+//            })
+        ) {
+            GastosScreen(
+              //  it.arguments?.getInt("idHojaMostrar"),
+                innerPadding,
+                onNavNuevoGasto = {//lambda que nos permite pasarle un parametro a la navegacion
+                        idHoja ->
+                    navController.navigate(MisCuentasScreen.NuevoGasto.route + "/$idHoja")
                 }
             )
         }
@@ -202,13 +213,13 @@ fun BottomNavigationBar(navController: NavController) {
         MisHojasScreen.Participantes
     )
     BottomNavigation(
-        backgroundColor = MaterialTheme.colorScheme.primaryContainer
+        backgroundColor = MaterialTheme.colorScheme.primary
     ) {
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
         items.forEach { screen ->
             val isSelected = currentRoute == screen.route //ruta seleccionada para resaltar
-            val colorSeleccionado = if (isSelected) MaterialTheme.colorScheme.tertiary else Color.White //resaltar
+            val colorSeleccionado = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.White //resaltar
 
             BottomNavigationItem(
                 icon = { Icon(screen.icon, contentDescription = null, tint =  colorSeleccionado) },

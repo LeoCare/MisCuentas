@@ -58,7 +58,7 @@ interface DbHojaCalculoDao {
     fun getLineaPartiHojasCalculosLin(id: Int, idParticipante: Int): Flow<Int>
 
     //Obtener el valor de la ultima linea detalle creada (de la hoja y linea especificada) para la insercion en t_hojas_cab_lin_det
-    @Query("SELECT MAX(linea) FROM t_hojas_lin_det WHERE id = :id AND linea = :linea")
-    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int>
+    @Query("SELECT MAX(linea_detalle) FROM t_hojas_lin_det WHERE id = :id AND linea = :linea")
+    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int?>
 
 }

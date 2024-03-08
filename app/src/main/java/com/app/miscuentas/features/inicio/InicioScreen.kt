@@ -177,35 +177,7 @@ fun InicioContent(
             val robotoItalic = FontFamily(Font(R.font.roboto_bolditalic))
             item {
                 CustomSpacer(20.dp)
-//                Card(
-//                    modifier = Modifier
-//                        .padding(20.dp)
-//                        .fillMaxWidth()
-//                        .clip(MaterialTheme.shapes.extraLarge)
-//                        .height(IntrinsicSize.Min)
-//                        .clickable { onNavNuevoGasto() },
-//                    colors = CardDefaults.cardColors(
-//                        containerColor = MaterialTheme.colorScheme.primary,
-//                        contentColor = Color.Black
-//                    )
-//                ) {
-//                    Row(
-//                        modifier = Modifier
-//                            .background(MaterialTheme.colorScheme.inversePrimary)
-//                            .size(330.dp, 150.dp)
-//                            .padding(start = 20.dp, top = 20.dp, bottom = 20.dp),
-//                        horizontalArrangement = Arrangement.SpaceBetween
-//                    ) {
-//                        Text(
-//                            text = "Agregar...",
-//                            modifier = Modifier
-//                                .align(Alignment.Bottom),
-//                            fontSize = 30.sp,
-//                            fontFamily = robotoItalic
-//                        )
-//                        ImagenCustom(R.drawable.mis_hojas, "Boton de Nuevo Gasto")
-//                    }
-//                }
+
                 Card(
                     modifier = Modifier
                         .padding(20.dp)

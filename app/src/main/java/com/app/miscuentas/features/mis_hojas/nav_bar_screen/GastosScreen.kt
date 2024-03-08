@@ -53,6 +53,7 @@ import com.app.miscuentas.util.MiAviso
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun GastosScreen(
+//    idHojaMostrar: Int?,
     innerPadding: PaddingValues,
     onNavNuevoGasto: (Int) -> Unit,
     viewModel: GastosViewModel = hiltViewModel()
@@ -64,6 +65,13 @@ fun GastosScreen(
     val scaffoldState = rememberScaffoldState()
 
 
+    //Hoja a mostrar pasada por el Screen Hojas
+//    LaunchedEffect(Unit) {
+//        viewModel.onHojaAMostrar(idHojaMostrar)
+//    }
+
+    val hojaDeGastos = gastosState.hojaAMostrar ?: gastosState.hojaPrincipal
+
     //Este aviso se lanzara cuando se deniega el permiso...
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     if (showDialog) MiAviso(
@@ -73,7 +81,14 @@ fun GastosScreen(
     { showDialog = false }
     Scaffold(
         scaffoldState = scaffoldState,
-        content = { GastosContent(innerPadding, gastosState.hojaPrincipal, { onNavNuevoGasto(it) }, gasto) }
+        content = {
+            GastosContent(
+                innerPadding,
+                hojaDeGastos,
+                { onNavNuevoGasto(it) },
+                gasto
+            )
+        }
     )
 
 }
@@ -81,7 +96,7 @@ fun GastosScreen(
 @Composable
 fun GastosContent(
     innerPadding: PaddingValues,
-    hojaPrincipal: HojaCalculo?,
+    hojaDeGastos: HojaCalculo?,
     onNavNuevoGasto: (Int) -> Unit,
     gasto: Gasto
 ){
@@ -107,7 +122,7 @@ fun GastosContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = hojaPrincipal?.titulo ?: "aun nada" ,
+                    text = hojaDeGastos?.titulo ?: "aun nada" ,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -126,12 +141,12 @@ fun GastosContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Fecha fin: " + (hojaPrincipal?.fechaCierre ?: "no tiene"),
+                    text = "Fecha fin: " + (hojaDeGastos?.fechaCierre ?: "no tiene"),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelLarge
                 )
                 Text(
-                    text = "Limite: " + (hojaPrincipal?.limite ?: "no tiene"),
+                    text = "Limite: " + (hojaDeGastos?.limite ?: "no tiene"),
                     style = MaterialTheme.typography.labelLarge
                 )
 
@@ -167,7 +182,7 @@ fun GastosContent(
         }
 
         CustomFloatButton(
-            onNavNuevoGasto = { onNavNuevoGasto(hojaPrincipal!!.id) },
+            onNavNuevoGasto = { onNavNuevoGasto(hojaDeGastos!!.id) },
             modifier = Modifier.align(Alignment.BottomEnd) // Alinear el botón en la esquina inferior derecha
         )
     }
@@ -237,7 +252,7 @@ fun CustomFloatButton(
     modifier: Modifier = Modifier
 ) {
     FloatingActionButton(
-        onClick = onNavNuevoGasto,
+        onClick = { onNavNuevoGasto() },
         modifier = modifier
             .height(90.dp)
             .width(90.dp)
@@ -253,10 +268,10 @@ fun CustomFloatButton(
     }
 }
 
-@Preview
-@Composable
-fun Preview(){
-    val innerPadding = PaddingValues()
-    val onNavNuevoGasto: (Int) -> Unit = {}
-    GastosScreen( innerPadding, {onNavNuevoGasto(3)})
-}
+//@Preview
+//@Composable
+//fun Preview(){
+//    val innerPadding = PaddingValues()
+//    val onNavNuevoGasto: (Int) -> Unit = {}
+//    GastosScreen( innerPadding, {onNavNuevoGasto(3)})
+//}

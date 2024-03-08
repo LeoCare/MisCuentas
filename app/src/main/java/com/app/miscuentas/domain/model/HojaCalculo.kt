@@ -6,6 +6,7 @@ import com.app.miscuentas.data.local.dbroom.dbParticipantes.toDomain
 data class HojaCalculo(
     var id: Int,
     var titulo: String,
+    var fechaCreacion: String?,
     var fechaCierre: String?,
     var limite: Double?,
     var status: String,
@@ -22,6 +23,7 @@ data class HojaCalculo(
 fun HojaCalculo.toEntity() = DbHojaCalculoEntity(
     id = id,
     titulo = titulo,
+    fechaCreacion = fechaCreacion,
     fechaCierre = fechaCierre,
     limite = limite,
     status = status,

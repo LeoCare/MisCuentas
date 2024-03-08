@@ -5,5 +5,6 @@ import com.app.miscuentas.domain.model.HojaCalculo
 
 data class GastosState (
     val hojaPrincipal: HojaCalculo? = null,
+    val hojaAMostrar: HojaCalculo? = null,
     val listaGastos: List<Gasto> = listOf()
 )

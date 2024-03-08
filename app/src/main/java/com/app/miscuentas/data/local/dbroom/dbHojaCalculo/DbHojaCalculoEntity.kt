@@ -18,6 +18,7 @@ class DbHojaCalculoEntity (
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id") var id: Int = 0,
     @ColumnInfo(name = "titulo") var titulo: String = "",
+    @ColumnInfo(name = "fechaCreacion") var fechaCreacion: String?,
     @ColumnInfo(name = "fechaCierre") var fechaCierre: String?,
     @ColumnInfo(name = "limite") var limite: Double?,
     @ColumnInfo(name = "status") var status: String,
@@ -27,6 +28,7 @@ class DbHojaCalculoEntity (
 fun DbHojaCalculoEntity.toDomain() = HojaCalculo(
     id = id,
     titulo = titulo,
+    fechaCreacion = fechaCreacion,
     fechaCierre = fechaCierre,
     limite = limite,
     status = status,
@@ -48,8 +50,8 @@ class DbHojaCalculoEntityLin (
 
 @Entity(
     tableName = "t_hojas_lin_det",
-    primaryKeys = ["id", "linea", "linea_detalle"],
-    indices = [Index(value =  ["id", "linea_detalle"], unique = true)] )
+    primaryKeys = ["id", "linea", "linea_detalle"])
+   // indices = [Index(value =  ["id", "linea_detalle"], unique = true)] )
 class DbHojaCalculoEntityLinDet (
     @ColumnInfo(name = "id") var id: Int = 0,
     @ColumnInfo(name = "linea") var linea: Int = 0,

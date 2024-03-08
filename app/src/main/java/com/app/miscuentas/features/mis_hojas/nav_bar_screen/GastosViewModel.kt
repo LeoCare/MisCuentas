@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
+import com.app.miscuentas.domain.model.HojaCalculo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,18 @@ class GastosViewModel @Inject constructor(
     val gastosState: StateFlow<GastosState> = _gastosState
 
 
-    //ESTO ES NECESARIO EN UN METODO EN HOJASSCREEN AL ELEGIR A LA PRINCIPAL, NO AQUÍ
+    fun onHojaAMostrar(idHoja: Int?) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                if (idHoja != null) {
+                    repositoryHojaCalculo.getHojaCalculo(idHoja).collect {
+                        _gastosState.value = _gastosState.value.copy(hojaAMostrar = it)
+                    }
+                }
+            }
+        }
+    }
+
     init {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
