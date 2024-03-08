@@ -53,7 +53,6 @@ import com.app.miscuentas.util.MiAviso
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun GastosScreen(
-//    idHojaMostrar: Int?,
     innerPadding: PaddingValues,
     onNavNuevoGasto: (Int) -> Unit,
     viewModel: GastosViewModel = hiltViewModel()

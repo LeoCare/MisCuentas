@@ -176,23 +176,16 @@ fun AppNavBar(
         composable( MisHojasScreen.Hojas.route ) {
             HojasScreen(
                 innerPadding,
-                onNavGastos = {//lambda que nos permite pasarle un parametro a la navegacion
-                        idHoja ->
+                //lambda que nos permite pasarle un parametro a la navegacion
+                onNavGastos = { idHoja ->
                     navControllerMisHojas.navigate(MisHojasScreen.Gastos.route + "/$idHoja")
                 }
             )
         }
-        composable( MisHojasScreen.Gastos.route
-//            route = MisHojasScreen.Gastos.route + "/{idHojaMostrar}",
-//            arguments = listOf(navArgument(name = "idHojaMostrar") {
-//                type = NavType.IntType
-//            })
-        ) {
+        composable( MisHojasScreen.Gastos.route) {
             GastosScreen(
-              //  it.arguments?.getInt("idHojaMostrar"),
                 innerPadding,
-                onNavNuevoGasto = {//lambda que nos permite pasarle un parametro a la navegacion
-                        idHoja ->
+                onNavNuevoGasto = { idHoja ->
                     navController.navigate(MisCuentasScreen.NuevoGasto.route + "/$idHoja")
                 }
             )
