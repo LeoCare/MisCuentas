@@ -53,23 +53,27 @@ import com.app.miscuentas.util.MiAviso
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun GastosScreen(
-    innerPadding: PaddingValues,
+    innerPadding: PaddingValues?,
+    idHojaAMostrar: Int?,
     onNavNuevoGasto: (Int) -> Unit,
     viewModel: GastosViewModel = hiltViewModel()
 ) {
     val gastosState by viewModel.gastosState.collectAsState()
-
-    val gasto = Gasto(20, "nombre", "ruta")
-
     val scaffoldState = rememberScaffoldState()
 
+    val gasto = Gasto(20, "nombre", "ruta")
+    var hojaDeGastos: HojaCalculo? = null
 
-    //Hoja a mostrar pasada por el Screen Hojas
-//    LaunchedEffect(Unit) {
-//        viewModel.onHojaAMostrar(idHojaMostrar)
-//    }
+    //Hoja a mostrar pasada por el Screen Hojas (si es 0 es por defecto pasada por el NavBar)
+    if (idHojaAMostrar != 0) viewModel.onHojaAMostrar(idHojaAMostrar)
 
-    val hojaDeGastos = gastosState.hojaAMostrar ?: gastosState.hojaPrincipal
+
+    LaunchedEffect(Unit) {
+        viewModel.getHojaCalculoPrincipal()
+
+    }
+    hojaDeGastos = gastosState.hojaAMostrar ?: gastosState.hojaPrincipal
+
 
     //Este aviso se lanzara cuando se deniega el permiso...
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
@@ -94,7 +98,7 @@ fun GastosScreen(
 
 @Composable
 fun GastosContent(
-    innerPadding: PaddingValues,
+    innerPadding: PaddingValues?,
     hojaDeGastos: HojaCalculo?,
     onNavNuevoGasto: (Int) -> Unit,
     gasto: Gasto
@@ -102,7 +106,7 @@ fun GastosContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(innerPadding!!)
     ) {
         //Manejar la vuelta atras del usuario
 //        BackHandler {

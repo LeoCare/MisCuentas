@@ -26,7 +26,7 @@ class MainActivity : FragmentActivity() {
                 ) {
                     //Navegacion con el componente de Composable
                     val navController = rememberNavController()
-                    AppNavHost(navController = navController)
+                    AppNavHost(null, navController = navController)
                 }
             }
         }

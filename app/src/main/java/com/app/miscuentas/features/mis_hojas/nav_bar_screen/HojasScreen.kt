@@ -63,7 +63,7 @@ import kotlin.random.Random
 /** Contenedor del resto de elementos para la pestaña Hojas **/
 @Composable
 fun HojasScreen(
-    innerPadding: PaddingValues,
+    innerPadding: PaddingValues?,
     onNavGastos: (Int) -> Unit,
     viewModel: HojasViewModel = hiltViewModel()
 ) {
@@ -103,12 +103,12 @@ fun HojasScreen(
             }
 
             LazyColumn(
-                contentPadding = innerPadding,
+                contentPadding = innerPadding!!,
             ) {
                 if (hojaState.listaHojas != null){
                     itemsIndexed(hojaState.listaHojas!!){index, hojaCalculoToList ->
                         HojaDesing(
-                            onNavGastos = {},//{onNavGastos(it)},
+                            onNavGastos = {onNavGastos(it)},
                             index = index,
                             hojaCalculo = hojaCalculoToList
                         )
