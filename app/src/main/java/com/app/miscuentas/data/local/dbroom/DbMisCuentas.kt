@@ -2,6 +2,8 @@ package com.app.miscuentas.data.local.dbroom
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastoDao
+import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
@@ -22,6 +24,7 @@ const val DATABASE_VERSION = 1
         DbHojaCalculoEntity::class,
         DbHojaCalculoEntityLin::class,
         DbHojaCalculoEntityLinDet::class,
+        DbGastosEntity::class
     ],
     version = DATABASE_VERSION,
     exportSchema = false
@@ -32,5 +35,6 @@ abstract class DbMisCuentas : RoomDatabase() {
     abstract fun getRegistroDao(): DbRegistroDao
 
     abstract fun getHojaCalculoDao(): DbHojaCalculoDao
+    abstract fun getGastoDao(): DbGastoDao
 
 }

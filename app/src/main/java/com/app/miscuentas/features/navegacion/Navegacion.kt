@@ -24,7 +24,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -58,14 +62,6 @@ import kotlinx.coroutines.launch
 /** ************************INICIO************************** **/
 /** NAVEGACION DEL MAIN ENTRE LAS DISTINTAS SCREEN DE LA APP **/
 /** ******************************************************** **/
-//enum class MisCuentasScreen(@StringRes val title: Int){
-//    Splash(title = R.string.splash),
-//    Login(title = R.string.login),
-//    Inicio(title = R.string.inicio),
-//    NuevaHoja(title = R.string.nueva_hoja),
-//    MisHojas(title = R.string.mis_hojas),
-//    NuevoGasto(title = R.string.nuevo_gasto)
-//}
 sealed class MisCuentasScreen (val route: String) {
 
     object Splash : MisCuentasScreen("splash")
@@ -165,47 +161,6 @@ sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title
 
 }
 
-
-//fun NavGraphBuilder.misHojasGraph(
-//    innerPadding: PaddingValues?,
-//    navControllerMisHojas: NavHostController
-//) {
-//    navigation(
-//        startDestination = MisHojasScreen.Gastos.route,
-//        route = "mis_hojas_graph"
-//    ) {
-//        composable(MisHojasScreen.Hojas.route) {
-//            // Implementación de HojasScreen
-//            HojasScreen(
-//                innerPadding,
-//                onNavGastos = { idHoja ->
-//                    navControllerMisHojas.navigate("${MisHojasScreen.Gastos.route}/$idHoja")
-//                }
-//            )
-//        }
-//        // Asumiendo que quieres pasar un ID a GastosScreen
-//        composable(
-//            route = "${MisHojasScreen.Gastos.route}/{idHoja}",
-//            arguments = listOf(navArgument("idHoja") { type = NavType.IntType })
-//        ) { backStackEntry ->
-//            // Recuperación del ID pasado como argumento
-//            val idHoja = backStackEntry.arguments?.getInt("idHoja")
-//            GastosScreen(
-//                innerPadding,
-//                idHojaAMostrar = idHoja,
-//                onNavNuevoGasto = { id ->
-//                    navControllerMisHojas.navigate("${MisCuentasScreen.NuevoGasto.route}/$id")
-//                }
-//            )
-//        }
-//        composable(MisHojasScreen.Participantes.route) {
-//            // Implementación de ParticipantesScreen
-//            ParticipantesScreen()
-//        }
-//    }
-//}
-
-
 //Composable de navegacion para la barra inferior en Mis_Hojas
 @Composable
 fun AppNavBar(
@@ -220,18 +175,17 @@ fun AppNavBar(
         composable( MisHojasScreen.Hojas.route ) {
             HojasScreen(
                 innerPadding,
-                //lambda que nos permite pasarle un parametro a la navegacion
-                onNavGastos = { idHoja ->
+                onNavGastos = { idHoja -> //lambda que nos permite pasarle un parametro a la navegacion
                     navControllerMisHojas.navigate("${MisHojasScreen.Gastos.route}/$idHoja")
                 }
             )
         }
-        composable(MisHojasScreen.Gastos.route + "/{idHojaPrincipal}",
-          //  route = "${MisHojasScreen.Gastos.route}/{idHojaPrincipal}",
-            arguments = listOf(navArgument("idHojaPrincipal") { type = NavType.IntType })
+        composable(
+            route = MisHojasScreen.Gastos.route + "/{idHojaAMostrar}",
+            arguments = listOf(navArgument("idHojaAMostrar") { type = NavType.IntType })
         ) {backStackEntry ->
 
-            val idHojaAMostrar = backStackEntry.arguments?.getInt("idHojaPrincipal")
+            val idHojaAMostrar = backStackEntry.arguments?.getInt("idHojaAMostrar")
             GastosScreen(
                 innerPadding,
                 idHojaAMostrar,
@@ -258,42 +212,44 @@ fun BottomNavigationBar(navControllerMisHojas: NavController) {
     BottomNavigation(
         backgroundColor = MaterialTheme.colorScheme.primary
     ) {
-        val currentRoute = navControllerMisHojas.currentBackStackEntryAsState().value?.destination?.route
+        val currentRoute =
+            navControllerMisHojas.currentBackStackEntryAsState().value?.destination?.route
 
         items.forEach { screen ->
 
-                val isSelected = currentRoute == screen.route //ruta seleccionada para resaltar
-                val colorSeleccionado =
-                    if (isSelected) MaterialTheme.colorScheme.onBackground else Color.White //resaltar
+            val isSelected =
+                currentRoute?.contains(screen.route) ?: false //ruta seleccionada para resaltar
+            val colorSeleccionado =
+                if (isSelected) MaterialTheme.colorScheme.onBackground else Color.White //resaltar
 
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            screen.icon,
-                            contentDescription = null,
-                            tint = colorSeleccionado
-                        )
-                    },
-                    label = { Text(screen.title, color = colorSeleccionado) },
-                    selected = isSelected,
-                    onClick = {
-                        if (screen == MisHojasScreen.Gastos) {
-                            // idHoja 0 para que no lo tenga en cuenta
-                            val idHojaPredeterminado = 0
-                            navControllerMisHojas.navigate("${screen.route}/$idHojaPredeterminado") {
-                                // Evitar recrear la pantalla si ya está en la pila
-                                popUpTo(navControllerMisHojas.graph.startDestinationId)
-                                launchSingleTop = true
-                            }
-                        } else {
-                            navControllerMisHojas.navigate(screen.route) {
-                                popUpTo(navControllerMisHojas.graph.startDestinationId)
-                                launchSingleTop = true
-                            }
+            BottomNavigationItem(
+                icon = {
+                    Icon(
+                        screen.icon,
+                        contentDescription = null,
+                        tint = colorSeleccionado
+                    )
+                },
+                label = { Text(screen.title, color = colorSeleccionado) },
+                selected = isSelected,
+                onClick = {
+                    if (screen == MisHojasScreen.Gastos) {
+                        // idHoja 0 para que no lo tenga en cuenta
+                        val idHojaPredeterminado = 0
+                        navControllerMisHojas.navigate("${screen.route}/$idHojaPredeterminado") {
+                            // Evitar recrear la pantalla si ya está en la pila
+                            popUpTo(navControllerMisHojas.graph.startDestinationId)
+                            launchSingleTop = true
                         }
-                    },
-                    selectedContentColor = MaterialTheme.colorScheme.tertiary
-                )
+                    } else {
+                        navControllerMisHojas.navigate(screen.route) {
+                            popUpTo(navControllerMisHojas.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                selectedContentColor = MaterialTheme.colorScheme.onSecondary
+            )
 
         }
     }

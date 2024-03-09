@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,6 +70,7 @@ import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
+import com.app.miscuentas.util.MiAviso
 
 
 @Composable
@@ -89,6 +91,26 @@ fun NuevoGasto(
         viewModel.onIdHojaPrincipalChanged(idHojaPrincipal)
     }
 
+    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
+
+    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
+    //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
+    if (showDialog) {
+        MiAviso(
+            true,
+            "No has indicado el IMPORTE.",
+            { showDialog = false }
+        )
+    }
+
+    //Comprobar si tiene importe
+    val onBotonGuardarClick = {
+        when {
+            nuevoGastoState.importe.isNotEmpty() -> viewModel.insertAllHojaCalculoLinDet()
+            else -> showDialog = true
+        }
+    }
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
@@ -104,7 +126,7 @@ fun NuevoGasto(
         },
         floatingActionButton = {
             Button(
-                onClick = { viewModel.insertAllHojaCalculoLinDet() },
+                onClick = { onBotonGuardarClick() },
                 colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier
@@ -309,31 +331,30 @@ fun NuevoGastoContent(
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextfiel(
     placeholder: String,
     value: String,
     onTextFieldChange: (String) -> Unit
 ){
-    val isFocused by rememberSaveable { mutableStateOf(false) }
-
     TextField(
         modifier = Modifier
             .padding(horizontal = 40.dp),
         value = value,
         onValueChange = { onTextFieldChange(it) },
         placeholder = { Text( text = placeholder) },
+        textStyle = MaterialTheme.typography.titleLarge,
         keyboardOptions = when (placeholder) {
             "0" -> KeyboardOptions(keyboardType = KeyboardType.Number)
             else -> KeyboardOptions(keyboardType = KeyboardType.Text)
         },
         singleLine = true,
         maxLines = 1,
-        //textStyle = MaterialTheme.typography.labelMedium,
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.primary,
+            unfocusedTextColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = Color(0xFFD5E8F7),
+            unfocusedContainerColor =  Color(0xFFF4F6F8)
         )
     )
 

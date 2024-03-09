@@ -76,7 +76,7 @@ fun HojasScreen(
     val hojaState by viewModel.hojasState.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.getCallHojasCalculos()
+        viewModel.getAllHojasCalculos()
     }
 
     if (hojaState.circularIndicator){
@@ -210,17 +210,13 @@ fun HojaDesing(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "Titulo:",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Text(
                         text = hojaCalculo.titulo,
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 /** API **/ //   Text(text = hoja.type)
-                when (hojaCalculo.status) {
+                when (hojaCalculo.status) { //pinta segun valor status de la BBDD
                     "C" ->
                         Text(
                             text = "Activa",
@@ -314,13 +310,6 @@ fun HojaDesing(
             ) {
                 Text(
                     text = "Resumen",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 10.dp)
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "Ver",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 10.dp)

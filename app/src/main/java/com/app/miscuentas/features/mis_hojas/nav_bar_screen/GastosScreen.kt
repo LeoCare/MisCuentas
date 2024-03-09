@@ -62,18 +62,14 @@ fun GastosScreen(
     val scaffoldState = rememberScaffoldState()
 
     val gasto = Gasto(20, "nombre", "ruta")
-    var hojaDeGastos: HojaCalculo? = null
 
     //Hoja a mostrar pasada por el Screen Hojas (si es 0 es por defecto pasada por el NavBar)
-    if (idHojaAMostrar != 0) viewModel.onHojaAMostrar(idHojaAMostrar)
-
-
     LaunchedEffect(Unit) {
-        viewModel.getHojaCalculoPrincipal()
-
+        if (idHojaAMostrar != 0)
+            viewModel.onHojaAMostrar(idHojaAMostrar)
+        else
+            viewModel.getHojaCalculoPrincipal()
     }
-    hojaDeGastos = gastosState.hojaAMostrar ?: gastosState.hojaPrincipal
-
 
     //Este aviso se lanzara cuando se deniega el permiso...
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
@@ -87,13 +83,12 @@ fun GastosScreen(
         content = {
             GastosContent(
                 innerPadding,
-                hojaDeGastos,
+                gastosState.hojaAMostrar,
                 { onNavNuevoGasto(it) },
                 gasto
             )
         }
     )
-
 }
 
 @Composable
@@ -127,7 +122,7 @@ fun GastosContent(
                 Text(
                     text = hojaDeGastos?.titulo ?: "aun nada" ,
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Text(
                     text = "principal",
@@ -143,21 +138,37 @@ fun GastosContent(
                     .padding(20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Fecha fin: " + (hojaDeGastos?.fechaCierre ?: "no tiene"),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Text(
-                    text = "Limite: " + (hojaDeGastos?.limite ?: "no tiene"),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Row {
+                    Text(
+                        text = "Fecha fin: ",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Text(
+                        text = hojaDeGastos?.fechaCierre ?: "no tiene",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Row {
+                    Text(
+                        text = "Limite: ",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Text(
+                        text = if(hojaDeGastos?.limite == null) "no tiene" else hojaDeGastos.limite.toString(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
 
             }
 
             LazyColumn(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background)
+                    .padding(top = 40.dp)
 
             ) {
                 item {
@@ -181,9 +192,7 @@ fun GastosContent(
                }*/
                 }
             }
-
         }
-
         CustomFloatButton(
             onNavNuevoGasto = { onNavNuevoGasto(hojaDeGastos!!.id) },
             modifier = Modifier.align(Alignment.BottomEnd) // Alinear el botón en la esquina inferior derecha

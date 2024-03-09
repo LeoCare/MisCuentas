@@ -1,6 +1,5 @@
 package com.app.miscuentas.util
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -8,10 +7,16 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.foundation.background
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import com.app.miscuentas.R
 import java.util.Calendar
 
 
@@ -130,16 +135,31 @@ fun MiDialogo(show:Boolean, texto: String, cerrar: () -> Unit, aceptar: () -> Un
 
 @Composable
 fun MiAviso(show:Boolean, texto: String, cerrar: () -> Unit) {
-    if (show){
+    if (show) {
         AlertDialog(
+            shape = MaterialTheme.shapes.small,
             onDismissRequest = { cerrar() },
             confirmButton = {
                 TextButton(onClick = { cerrar() }) {
-                    Text(text = "Entendido")
+                    Text(
+                        text = "Entendido",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             },
-            title = { Text(text = "Informativo") },
-            text = { Text(text = texto) }
+            title = {
+                Text(
+                    text = "AVISO",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Text(
+                    text = texto,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.errorContainer
         )
     }
 

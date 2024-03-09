@@ -41,7 +41,7 @@ class GastosViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 repositoryHojaCalculo.getHojaCalculoPrincipal().collect {
-                    _gastosState.value = _gastosState.value.copy(hojaPrincipal = it) //Actualizo state con idhoja
+                    _gastosState.value = _gastosState.value.copy(hojaAMostrar = it) //Actualizo state con idhoja
                     dataStoreConfig.putIdHojaPrincipalPreference(it?.id) //Actualizo DataStore con idhoja
                 }
             }

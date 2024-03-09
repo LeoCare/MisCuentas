@@ -46,9 +46,6 @@ class HojasViewModel @Inject constructor(
         }
     }
 
-    fun getCallHojasCalculos(){
-        getAllHojasCalculos()
-    }
 
     /** METODO QUE SE EJECUTA EN UNA CORRUTINA LLAMANDO A UN METODO QUE RECOLECTA DATOS
      * QUE A SU VEZ LLAMA A UNA FUNCION SUSPEND DE MANERA ASINCRONA PARA CADA DATO RECOLECTADO.
@@ -65,7 +62,6 @@ class HojasViewModel @Inject constructor(
                     launch {
                         getListParticipantesToIdHoja(index, hoja.id)
                     }
-
                 }
                 delay(1000)
                 _hojasState.value = _hojasState.value.copy(circularIndicator = false)

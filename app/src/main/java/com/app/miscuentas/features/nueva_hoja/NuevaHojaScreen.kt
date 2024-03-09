@@ -158,10 +158,8 @@ fun NuevaHojaScreen(
 
     val tieneLimite = remember { mutableStateOf(true) }
     val tieneFecha = remember{ mutableStateOf(true) }
-    val principal = remember { mutableStateOf(false)}
 
     //Tipo letra
-    val robotoBlack = FontFamily(Font(R.font.roboto_black))
     val robotoMedItalic = FontFamily(Font(R.font.roboto_mediumitalic))
 
     //Oculta Teclado
@@ -305,12 +303,12 @@ fun Titulo(
             .onFocusChanged { focusState ->
                 isFocused = focusState.isFocused
             },
-        textStyle = TextStyle(
-            fontSize = 17.sp,
-            textAlign = TextAlign.Start
-        ),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
+        textStyle = MaterialTheme.typography.titleLarge,
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.primary,
+            unfocusedTextColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = Color(0xFFD5E8F7),
+            unfocusedContainerColor =  Color(0xFFF4F6F8)
         ),
         singleLine = true,
         maxLines = 1
@@ -374,15 +372,13 @@ fun Participantes(
             onValueChange = { onParticipanteFieldChange(it) },
             modifier = Modifier
                 .width(220.dp)
-                .height(IntrinsicSize.Min)
-                .onFocusChanged { focusState ->
-                    isFocused = focusState.isFocused
-                },
-            textStyle = TextStyle(
-                fontSize = 17.sp
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
+                .height(IntrinsicSize.Min),
+            textStyle = MaterialTheme.typography.titleLarge,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.primary,
+                unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = Color(0xFFD5E8F7),
+                unfocusedContainerColor =  Color(0xFFF4F6F8)
             ),
             singleLine = true,
             maxLines = 1
@@ -432,7 +428,6 @@ fun ListaParticipantes(
     if (mostrarParticipantes) {
         LazyRow(
             modifier = Modifier
-//                .padding(top = 10.dp)
                 .fillMaxWidth()
         ) {
             //mostrar lista de participantes
@@ -449,8 +444,6 @@ fun ListaParticipantes(
 }
 
 /** Composable para el recuadro de LimiteGasto **/
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LimiteGasto(
     robotoMedItalic: FontFamily,
@@ -486,17 +479,14 @@ fun LimiteGasto(
             },
             modifier = Modifier
                 .padding(start = 10.dp, top = 10.dp)
-                .width(100.dp)
-                .height(IntrinsicSize.Min)
-                .onFocusChanged { focusState ->
-                    isFocused = focusState.isFocused
-                },
-            textStyle = TextStyle(
-                fontSize = 17.sp,
-                textAlign = TextAlign.Start
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = if (isFocused) Color(0xFFD5E8F7) else Color(0xFFF4F6F8)
+                .width(120.dp)
+                .height(IntrinsicSize.Min),
+            textStyle = MaterialTheme.typography.titleLarge,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.primary,
+                unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = Color(0xFFD5E8F7),
+                unfocusedContainerColor =  Color(0xFFF4F6F8)
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -563,25 +553,26 @@ fun LimiteFecha(
             onValueChange = { if (fechaCierre.isEmpty()) tieneFecha.value = true },
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 10.dp)
-                .width(180.dp)
+                .width(160.dp)
                 .height(IntrinsicSize.Min),
             enabled = false,
-            textStyle = TextStyle(
-                fontSize = 17.sp,
-                textAlign = TextAlign.Start
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor =  Color(0xFFF4F6F8)
+            textStyle = MaterialTheme.typography.titleLarge,
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = MaterialTheme.colorScheme.primary,
+                unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = Color(0xFFD5E8F7),
+                unfocusedContainerColor =  Color(0xFFF4F6F8)
             ),
             singleLine = true,
             maxLines = 1
         )
+        Spacer(Modifier.weight(1f))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            Spacer(Modifier.weight(1f))
+           // Spacer(Modifier.weight(1f))
             Checkbox(
                 checked = tieneFecha.value,
                 onCheckedChange = {
@@ -633,7 +624,13 @@ fun BotonCrear(
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
-    if (showDialog) MiAviso(true, "Como minimo debe contener Titulo y un participante.", {showDialog = false})
+    if (showDialog) {
+        MiAviso(
+            true,
+            "Como minimo debe contener Titulo y un participante.",
+            { showDialog = false }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -659,7 +656,6 @@ fun BotonCrear(
         }
     }
 }
-
 
 /** ESPACIADOR  **/
 @Composable
