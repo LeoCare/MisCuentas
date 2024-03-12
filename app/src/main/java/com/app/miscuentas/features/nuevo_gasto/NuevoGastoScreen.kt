@@ -148,6 +148,7 @@ fun NuevoGasto(
             nuevoGastoState,
             listaIconosGastos,
             { viewModel.onImporteTextFieldChanged(it)},
+            { viewModel.onIdGastoFieldChanged(it) },
             { viewModel.onConceptoTextFieldChanged(it)},
             { viewModel.onPagadorChosen(it) },
             { viewModel.onPagadorRadioChanged(it) }
@@ -161,6 +162,7 @@ fun NuevoGastoContent(
     nuevoGastoState: NuevoGastoState,
     listaIconosGastos: List<IconoGasto>,
     onImporteTextFieldChanged: (String) -> Unit,
+    onIdGastoFieldChanged: (Int) -> Unit,
     onConceptoTextFieldChanged: (String) -> Unit,
     onPagadorChosen: (Int) -> Unit,
     onPagadorRadioChanged: (Boolean) -> Unit
@@ -250,7 +252,7 @@ fun NuevoGastoContent(
                         )
                         LazyRow {
                             if (nuevoGastoState.hojaActual?.participantesHoja != null) {
-                                itemsIndexed(nuevoGastoState.hojaActual.participantesHoja!!) { index, pagadorToList ->
+                                itemsIndexed(nuevoGastoState.hojaActual.participantesHoja) { index, pagadorToList ->
 
                                     CustomRadioButton(
                                         pagadorIndex = index,
@@ -318,7 +320,10 @@ fun NuevoGastoContent(
                                                  .width(55.dp)
                                                  .height(55.dp)
                                                  .padding(bottom = 1.dp)
-                                                 .clickable { onConceptoTextFieldChanged(icono.nombre) }
+                                                 .clickable {
+                                                     onConceptoTextFieldChanged(icono.nombre)
+                                                     onIdGastoFieldChanged(icono.id)
+                                                 }
                                          )
                                      }
                                  }
@@ -365,13 +370,13 @@ fun CustomTextfiel(
 fun CustomRadioButton(
     pagadorIndex: Int,
     idPagadorState: Int,
-    pagadorToList: Participante,
+    pagadorToList: Participante?,
     onPagadorChosen: (Int) -> Unit
 ){
-    var isSelected = pagadorToList.id == idPagadorState
+    var isSelected = pagadorToList?.id == idPagadorState
     if (idPagadorState == 0 && pagadorIndex == 0) {
         isSelected = true
-        onPagadorChosen(pagadorToList.id)
+        onPagadorChosen(pagadorToList!!.id)
     }
 
 
@@ -385,13 +390,13 @@ fun CustomRadioButton(
                 interactionSource = interactionSource,
                 indication = null//Quito el efecto de sombra al clickar
 
-            ) { onPagadorChosen(pagadorToList.id) }
+            ) { onPagadorChosen(pagadorToList!!.id) }
             .padding(bottom = 10.dp, end = 15.dp, top = if (!isSelected) 10.dp else 0.dp)
     ) {
 
         RadioButton(
             selected = isSelected,
-            onClick = { onPagadorChosen(pagadorToList.id) },
+            onClick = { onPagadorChosen(pagadorToList!!.id) },
             modifier = Modifier.padding(end = 7.dp)
         )
         AnimatedContent(
@@ -401,7 +406,7 @@ fun CustomRadioButton(
             }, label = ""
         ) { selected ->
             Text(
-                text = pagadorToList.nombre,
+                text = pagadorToList!!.nombre,
                 style = if (selected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
                 color = if (selected) Color.Blue else Color.Black
             )

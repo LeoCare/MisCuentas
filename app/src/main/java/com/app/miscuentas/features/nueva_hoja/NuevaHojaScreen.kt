@@ -279,7 +279,6 @@ fun NuevaHojaScreen(
 }
 
 /** Composable para el recuadro de Titulo **/
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Titulo(
     value: String,
@@ -316,7 +315,6 @@ fun Titulo(
 }
 
 /** Composable para el recuadro de Paraticipantes **/
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Participantes(
     listParticipantes: List<Participante>,

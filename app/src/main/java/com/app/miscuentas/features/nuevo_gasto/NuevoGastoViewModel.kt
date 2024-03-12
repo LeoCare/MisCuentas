@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLinDet
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
+import com.app.miscuentas.domain.Validaciones
 import com.app.miscuentas.domain.model.Participante
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +26,9 @@ class NuevoGastoViewModel @Inject constructor (
     val nuevoGastoState: StateFlow<NuevoGastoState> = _nuevoGastoState
     fun onImporteTextFieldChanged(importe: String){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(importe = importe)
+    }
+    fun onIdGastoFieldChanged(idGasto: Int){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(idGastoElegdo = idGasto)
     }
     fun onConceptoTextFieldChanged(concepto: String){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(concepto = concepto)
@@ -63,9 +68,9 @@ class NuevoGastoViewModel @Inject constructor (
         val idHoja = _nuevoGastoState.value.idHoja!!
         val maxLinea = _nuevoGastoState.value.lineaHojaLin
         val lineaDet = _nuevoGastoState.value.maxLineaDetHolaCalculo!!.plus(1)
-        val idGasto = 0
-        val concepto = _nuevoGastoState.value.concepto
-        val importe = _nuevoGastoState.value.importe.toDouble()
+        val idGasto = _nuevoGastoState.value.idGastoElegdo
+        val concepto = _nuevoGastoState.value.concepto.ifEmpty { "Varios" }
+        val importe = _nuevoGastoState.value.importe
 
         return try {
             repositoryHojaCalculo.insertAllHojaCalculoLinDet(
@@ -75,7 +80,8 @@ class NuevoGastoViewModel @Inject constructor (
                     linea_detalle = lineaDet,
                     id_gasto = idGasto,
                     concepto = concepto,
-                    importe = importe
+                    importe = importe,
+                    fecha_gasto = Validaciones.fechaToStringFormat(LocalDate.now())
                 )
             )
             true

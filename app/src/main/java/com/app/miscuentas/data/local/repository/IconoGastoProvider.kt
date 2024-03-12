@@ -36,7 +36,8 @@ object IconoGastoProvider {
 
         imagenResIdList.forEachIndexed { index, resId ->
             val imagen: Int = resId
-            imagenGastoList.add(IconoGasto(imagen, nombreImagenes[index], index))
+            val id = index + 1
+            imagenGastoList.add(IconoGasto(imagen, nombreImagenes[index], id))
         }
 
         return imagenGastoList

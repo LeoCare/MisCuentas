@@ -10,6 +10,7 @@ import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesEntit
 import com.app.miscuentas.data.local.dbroom.dbParticipantes.toDomain
 import com.app.miscuentas.domain.model.HojaCalculo
 import java.time.LocalDate
+import java.math.BigDecimal
 
 @Entity(
     tableName = "t_hojas_cab"
@@ -20,7 +21,7 @@ class DbHojaCalculoEntity (
     @ColumnInfo(name = "titulo") var titulo: String = "",
     @ColumnInfo(name = "fechaCreacion") var fechaCreacion: String?,
     @ColumnInfo(name = "fechaCierre") var fechaCierre: String?,
-    @ColumnInfo(name = "limite") var limite: Double?,
+    @ColumnInfo(name = "limite") var limite: String?,
     @ColumnInfo(name = "status") var status: String,
     @ColumnInfo(name = "principal") var principal: String = "N",
 )
@@ -32,7 +33,7 @@ fun DbHojaCalculoEntity.toDomain() = HojaCalculo(
     fechaCierre = fechaCierre,
     limite = limite,
     status = status,
-    participantesHoja = null,
+    participantesHoja = listOf(),
     principal = principal == "S"
 )
 
@@ -58,6 +59,7 @@ class DbHojaCalculoEntityLinDet (
     @ColumnInfo(name = "linea_detalle") var linea_detalle: Int = 0,
     @ColumnInfo(name = "id_gasto") var id_gasto: Int = 0,
     @ColumnInfo(name = "concepto") var concepto: String = "",
-    @ColumnInfo(name = "importe") var importe: Double = 0.0
+    @ColumnInfo(name = "importe") var importe: String?,
+    @ColumnInfo(name = "fecha_gasto") var fecha_gasto: String?
 )
 

@@ -8,14 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
@@ -31,20 +30,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.room.util.foreignKeyCheck
 import com.app.miscuentas.R
-import com.app.miscuentas.data.model.Gasto
-import com.app.miscuentas.data.model.Hoja
+import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.util.MiAviso
 
 /** Contenedor del resto de elementos para la pestaña Gastos **/
@@ -60,8 +57,6 @@ fun GastosScreen(
 ) {
     val gastosState by viewModel.gastosState.collectAsState()
     val scaffoldState = rememberScaffoldState()
-
-    val gasto = Gasto(20, "nombre", "ruta")
 
     //Hoja a mostrar pasada por el Screen Hojas (si es 0 es por defecto pasada por el NavBar)
     LaunchedEffect(Unit) {
@@ -84,8 +79,7 @@ fun GastosScreen(
             GastosContent(
                 innerPadding,
                 gastosState.hojaAMostrar,
-                { onNavNuevoGasto(it) },
-                gasto
+                { onNavNuevoGasto(it) }
             )
         }
     )
@@ -95,8 +89,7 @@ fun GastosScreen(
 fun GastosContent(
     innerPadding: PaddingValues?,
     hojaDeGastos: HojaCalculo?,
-    onNavNuevoGasto: (Int) -> Unit,
-    gasto: Gasto
+    onNavNuevoGasto: (Int) -> Unit
 ){
     Box(
         modifier = Modifier
@@ -157,7 +150,7 @@ fun GastosContent(
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(
-                        text = if(hojaDeGastos?.limite == null) "no tiene" else hojaDeGastos.limite.toString(),
+                        text = if(hojaDeGastos?.limite == null) "no tiene" else hojaDeGastos.limite!!.toString(),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -171,18 +164,16 @@ fun GastosContent(
                     .padding(top = 40.dp)
 
             ) {
-                item {
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-                    GastoDesing(gasto)
-
+                if (hojaDeGastos != null) {
+                    itemsIndexed(hojaDeGastos.participantesHoja) { index, participante ->
+                        for (gasto in participante!!.listaGastos) {
+                            GastoDesing(
+                                gasto = gasto,
+                                participante = participante
+                            )
+                        }
+                    }
+                }
 
                     /*Prev -> LazyColumn{
                    items(gastosState.listaGastos){gasto ->
@@ -190,7 +181,7 @@ fun GastosContent(
 
                    }
                }*/
-                }
+
             }
         }
         CustomFloatButton(
@@ -201,55 +192,64 @@ fun GastosContent(
 }
 
 @Composable
-fun GastoDesing(gasto: Gasto) {
+fun GastoDesing(
+    gasto: Gasto?,
+    participante: Participante
+) {
     var isChecked by rememberSaveable { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 40.dp, end = 40.dp, bottom = 20.dp)
-            .clip(MaterialTheme.shapes.extraSmall),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = Color.Black)
-    ) {
-        Column(
+    if (gasto != null) {
+        Card(
             modifier = Modifier
-                .padding(start=10.dp, end=40.dp, bottom=10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .fillMaxSize()
+                .padding(vertical = 10.dp, horizontal = 20.dp)
+                .clip(MaterialTheme.shapes.extraSmall),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = Color.Black
+            )
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Column {
-                    Image(
-                        painter = painterResource(id = R.drawable.hoja), //IMAGEN DEL GASTO
-                        contentDescription = "Logo Hoja",
-                        modifier = Modifier
-                            .width(80.dp)
-                            .height(80.dp)
-                    )
-                }
-                Column{
-                    //Text(text = hoja.type)
-                    Row(
-                        modifier = Modifier
-                            .padding(bottom = 15.dp)
-                            .fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    )
-                    {
-                        Text(text = gasto.type) //NOMBRE DEL GASTO
-                        Text(text = gasto.type) //FECHA DE CIERRE
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+
+                ) {
+                    Column {
+                        Image(
+                            painter = painterResource(id = R.drawable.hoja), //IMAGEN DEL GASTO
+                            contentDescription = "Logo Hoja",
+                            modifier = Modifier
+                                .width(80.dp)
+                                .height(80.dp)
+                        )
                     }
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    )
-                    {
-                        Text(text = gasto.type) //PARTICIPANTE
-                        Text(text = gasto.price.toString()) //IMPORTE
+                    Column {
+                        //Text(text = hoja.type)
+                        Row(
+                            modifier = Modifier
+                                .padding(bottom = 10.dp)
+                                .fillMaxSize(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        )
+                        {
+                            Text(
+                                text = participante.nombre,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(text = gasto.importe + "€",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 10.dp),
+                            text = gasto.concepto
+                        )
+                        Text(text = gasto.fecha_gasto.toString())
                     }
                 }
             }

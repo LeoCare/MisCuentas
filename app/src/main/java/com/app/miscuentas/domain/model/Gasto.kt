@@ -1,26 +1,24 @@
 package com.app.miscuentas.domain.model
 
-import android.media.Image
-import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastosEntity
-import java.time.LocalDateTime
+import java.math.BigDecimal
 
 data class Gasto (
-    var id: Int,
+    var id_gasto: String,
     var concepto: String,
-    var imagen: IconoGasto?,
-    private var _fechaPago: LocalDateTime?
+    val importe: String,
+    var fecha_gasto: String?
 ){
     /** Establece la fecha del gasto en el momento actual **/
-    var fechaPago: LocalDateTime?
-        get () = _fechaPago
-        set(value) {
-            _fechaPago = value ?: LocalDateTime.now()
-        }
+//    var fechaGasto: LocalDateTime?
+//        get () = _fechaGasto
+//        set(value) {
+//            _fechaGasto = value ?: LocalDateTime.now()
+//        }
 
 }
 
-fun Gasto.toEntity() = DbGastosEntity(
-    id = id,
-    concepto = concepto
-)
+//fun Gasto.toEntity() = DbGastosEntity(
+//    id = id,
+//    concepto = concepto
+//)
 

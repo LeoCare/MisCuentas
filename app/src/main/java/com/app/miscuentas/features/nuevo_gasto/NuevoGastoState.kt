@@ -4,6 +4,7 @@ import com.app.miscuentas.domain.model.HojaCalculo
 
 data class NuevoGastoState(
     val importe: String = "",
+    val idGastoElegdo: Int = 1,
     val concepto: String = "",
     val pagador: String = "",
     val idPagador: Int = 0,

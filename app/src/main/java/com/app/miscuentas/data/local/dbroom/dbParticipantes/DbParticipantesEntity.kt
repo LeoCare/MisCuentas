@@ -23,5 +23,5 @@ fun DbParticipantesEntity.toDomain() = Participante(
     id = id,
     nombre = nombre,
     correo = correo,
-    listaGastos = null
+    listaGastos = listOf()
 )

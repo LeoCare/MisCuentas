@@ -7,9 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesEntity
-import com.app.miscuentas.domain.model.HojaCalculo
-import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastosEntity
+import com.app.miscuentas.domain.model.Gasto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -61,4 +60,12 @@ interface DbHojaCalculoDao {
     @Query("SELECT MAX(linea_detalle) FROM t_hojas_lin_det WHERE id = :id AND linea = :linea")
     fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int?>
 
+    @Query("SELECT * FROM t_hojas_lin_det WHERE id = :id AND linea = :idParticipante")
+    fun getGastos(id: Int, idParticipante: Int): Flow<List<DbGastosEntity>>
+
+    @Query("SELECT id_gasto, importe, concepto, fecha_gasto FROM t_hojas_lin_det WHERE id = :id AND linea = :linea")
+    fun getGastosParticipante(id: Int, linea: Int): Flow<List<Gasto?>>
+
+    @Query("SELECT * FROM t_hojas_lin_det ORDER BY id DESC")
+    fun getAllGastos(): Flow<List<DbGastosEntity>>
 }

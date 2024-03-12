@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.ColumnInfo
+import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.domain.model.Participante
@@ -26,7 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
     private val repositoryParticipante: ParticipanteRepository,
-    private val repositoryHojaCalculo: HojaCalculoRepository
+    private val repositoryHojaCalculo: HojaCalculoRepository,
+    private val dataStoreConfig: DataStoreConfig
 ) : ViewModel() {
 
     private val _nuevaHojaState = MutableStateFlow(NuevaHojaState())
@@ -135,16 +137,19 @@ class NuevaHojaViewModel @Inject constructor(
     fun instanceNuevaHoja(): HojaCalculo {
         val fechaCreacion: String? = Validaciones.fechaToStringFormat(LocalDate.now())
         val fechaCierre: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
+        val hojaPrincipal = (_nuevaHojaState.value.maxIdHolaCalculo == 0)
+
+        if (hojaPrincipal) putIdHojaPrincipalPreference(1) //por defecto, la primera en la principal
 
         return  HojaCalculo(
-            id = 0,
+            id = 0, //no lo tiene en cuenta. En Room es autoincremental.
             titulo = _nuevaHojaState.value.titulo,
             fechaCreacion = fechaCreacion,
             fechaCierre = fechaCierre,
-            limite = _nuevaHojaState.value.limiteGasto.toDoubleOrNull(),
+            limite = _nuevaHojaState.value.limiteGasto,
             status = _nuevaHojaState.value.status,
             participantesHoja = _nuevaHojaState.value.listaParticipantes,
-            principal = (_nuevaHojaState.value.maxIdHolaCalculo == 0)
+            principal = hojaPrincipal
         )
     }
 
@@ -215,6 +220,13 @@ class NuevaHojaViewModel @Inject constructor(
         return insertLinOK
     }
 
+    fun putIdHojaPrincipalPreference(idHoja: Int){
+        viewModelScope.launch {
+            dataStoreConfig.putIdHojaPrincipalPreference(idHoja)
+        }
+    }
+
+
     private fun vaciarTextFields(){
         _nuevaHojaState.value = _nuevaHojaState.value.copy(titulo = "")
         _nuevaHojaState.value = _nuevaHojaState.value.copy(listaParticipantes = emptyList())
@@ -235,6 +247,5 @@ class NuevaHojaViewModel @Inject constructor(
                 _nuevaHojaState.value = _nuevaHojaState.value.copy(maxLineaHolaCalculo = maxLinea)
             }
         }
-
     }
 }

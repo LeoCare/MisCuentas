@@ -1,10 +1,10 @@
 package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 
-import com.app.miscuentas.data.model.Gasto
+import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.HojaCalculo
 
 data class GastosState (
     val hojaPrincipal: HojaCalculo? = null,
     val hojaAMostrar: HojaCalculo? = null,
-    val listaGastos: List<Gasto> = listOf()
+    val listaGastosOk: Boolean = false
 )

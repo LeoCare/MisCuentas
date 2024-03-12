@@ -6,7 +6,7 @@ data class Participante(
     var id: Int = 0,
     var nombre: String,
     var correo: String? = "", //se inicializa para simular una sobrecarga como en Java
-    var listaGastos: List<Gasto>? = null
+    var listaGastos: List<Gasto?> = listOf()
 )
 
 fun Participante.toEntity(idPart: Int) = DbParticipantesEntity(

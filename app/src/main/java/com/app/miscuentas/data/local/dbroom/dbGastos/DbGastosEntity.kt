@@ -17,10 +17,12 @@ class DbGastosEntity (
     @ColumnInfo(name = "concepto") var concepto: String = ""
 )
 
-fun DbGastosEntity.toDomain() = Gasto(
-    id = id,
-    concepto = concepto,
-    imagen = null,
-    _fechaPago = null
-)
+//fun DbGastosEntity.toDomain() = Gasto(
+//    id = id,
+//    concepto = concepto,
+//    importe = 0.0,
+//    imagen = null,
+//    _fechaGasto = null
+//)
+
 

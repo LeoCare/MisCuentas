@@ -260,7 +260,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = hojaCalculo.participantesHoja?.size.toString(),
+                            text = hojaCalculo.participantesHoja.size.toString(),
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/ //   Text(text = hoja.price.toString())
