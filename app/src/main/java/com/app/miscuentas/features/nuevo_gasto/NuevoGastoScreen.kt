@@ -91,6 +91,12 @@ fun NuevoGasto(
         viewModel.onIdHojaPrincipalChanged(idHojaPrincipal)
     }
 
+    LaunchedEffect(nuevoGastoState.insertOk) {
+        when {
+            (nuevoGastoState.insertOk) -> navigateUp()
+        }
+    }
+
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!

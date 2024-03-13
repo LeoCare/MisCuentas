@@ -58,6 +58,7 @@ class NuevoGastoViewModel @Inject constructor (
                     _nuevoGastoState.value = _nuevoGastoState.value.copy(insertOk = true)
                     vaciarTextFields()
                 }
+                else _nuevoGastoState.value = _nuevoGastoState.value.copy(insertOk = false)
             }
         }
 

@@ -63,8 +63,13 @@ interface DbHojaCalculoDao {
     @Query("SELECT * FROM t_hojas_lin_det WHERE id = :id AND linea = :idParticipante")
     fun getGastos(id: Int, idParticipante: Int): Flow<List<DbGastosEntity>>
 
-    @Query("SELECT id_gasto, importe, concepto, fecha_gasto FROM t_hojas_lin_det WHERE id = :id AND linea = :linea")
-    fun getGastosParticipante(id: Int, linea: Int): Flow<List<Gasto?>>
+    @Query("SELECT hld.id_gasto, hld.importe, hld.concepto, hld.fecha_gasto " +
+            "FROM t_hojas_lin_det hld, t_hojas_lin hl " +
+            "WHERE hl.id = :id " +
+            "AND hl.id_participante = :idParticipante " +
+            "AND hld.id = hl.id " +
+            "AND hld.linea = hl.linea")
+    fun getGastosParticipante(id: Int, idParticipante: Int): Flow<List<Gasto?>>
 
     @Query("SELECT * FROM t_hojas_lin_det ORDER BY id DESC")
     fun getAllGastos(): Flow<List<DbGastosEntity>>
