@@ -194,7 +194,7 @@ fun HojaDesing(
             .clip(MaterialTheme.shapes.extraLarge)
             .clickable { onNavGastos(hojaCalculo.id) },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.outline,
             contentColor = Color.Black)
     ) {
         Column(

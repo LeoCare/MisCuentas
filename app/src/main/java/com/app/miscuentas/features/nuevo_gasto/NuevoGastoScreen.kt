@@ -199,7 +199,7 @@ fun NuevoGastoContent(
                      .clip(MaterialTheme.shapes.large),
 
                  colors = CardDefaults.cardColors(
-                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                     containerColor = MaterialTheme.colorScheme.outline,
                      contentColor = Color.Black
                  )
              ) {
@@ -207,7 +207,7 @@ fun NuevoGastoContent(
                  Column(
                      modifier = Modifier
                          .fillMaxWidth()
-                         .padding(horizontal = 100.dp, vertical = 15.dp),
+                         .padding(horizontal = 80.dp, vertical = 10.dp),
                      horizontalAlignment = Alignment.CenterHorizontally,
                      verticalArrangement = Arrangement.spacedBy(10.dp)
                  ) {
@@ -240,7 +240,7 @@ fun NuevoGastoContent(
                         .clip(MaterialTheme.shapes.large),
 
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.outline,
                         contentColor = Color.Black
                     )
                 ) {
@@ -284,7 +284,7 @@ fun NuevoGastoContent(
                          .clip(MaterialTheme.shapes.large),
 
                      colors = CardDefaults.cardColors(
-                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                         containerColor = MaterialTheme.colorScheme.outline,
                          contentColor = Color.Black
                      )
                  ) {

@@ -2,6 +2,7 @@ package com.app.miscuentas.features.inicio
 
 import android.app.Activity
 import android.content.Context
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -59,25 +61,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-@Preview
-@Composable
-fun Prev(){
-    val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.route
-
-    val onNavSplash: () -> Unit = {}
-    val onNavMisHojas: () -> Unit = {}
-    val onNavNuevaHoja: () -> Unit = {}
-
-    Inicio(
-        currentScreen,
-        {navController.navigateUp()},
-        onNavSplash = onNavSplash,
-        onNavMisHojas = onNavMisHojas,
-        onNavNuevaHoja = onNavNuevaHoja
-    )
-}
+//@Preview
+//@Composable
+//fun Prev(){
+//    val navController = rememberNavController()
+//    val backStackEntry by navController.currentBackStackEntryAsState()
+//    val currentScreen = backStackEntry?.destination?.route ?: MisCuentasScreen.MisHojas.route
+//
+//    val onNavSplash: () -> Unit = {}
+//    val onNavMisHojas: () -> Unit = {}
+//    val onNavNuevaHoja: () -> Unit = {}
+//
+//    Inicio(
+//        currentScreen,
+//        {navController.navigateUp()},
+//        onNavSplash = onNavSplash,
+//        onNavMisHojas = onNavMisHojas,
+//        onNavNuevaHoja = onNavNuevaHoja
+//    )
+//}
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
 @Composable
@@ -87,6 +89,7 @@ fun Inicio(
     onNavSplash: () -> Unit,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
+    onNavNuevoGasto: (Int) -> Unit,
     viewModel: InicioViewModel = hiltViewModel()
 ){
 
@@ -128,9 +131,9 @@ fun Inicio(
             content = { innerPadding ->
                 InicioContent(
                     innerPadding,
-                    //  onNavNuevoGasto,
                     onNavMisHojas,
                     onNavNuevaHoja,
+                    onNavNuevoGasto,
                     inicioState.idHojaPrincipal
                 )
             }
@@ -143,9 +146,9 @@ fun Inicio(
 @Composable
 fun InicioContent(
     innerPadding: PaddingValues,
-//    onNavNuevoGasto: () -> Unit,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
+    onNavNuevoGasto: (Int) -> Unit,
     idHojaPrincipal: Int
 ) {
 
@@ -234,6 +237,42 @@ fun InicioContent(
                             fontFamily = robotoItalic
                         )
                         ImagenCustom(R.drawable.nueva_hoja, "Boton de Nueva_Hoja")
+                    }
+                }
+                CustomSpacer(60.dp)
+                Row(
+                    modifier = Modifier.padding(vertical = 20.dp, horizontal = 20.dp)
+                        .fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.extraLarge)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.btn_config),
+                            contentDescription = "Boton de configuracion",
+                            modifier = Modifier
+                                .width(70.dp)
+                                .height(70.dp)
+                                .clickable { }
+                                .fillMaxSize()
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.large)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.nuevo_gasto),
+                            contentDescription = "Boton de nuevo gasto",
+                            modifier = Modifier
+                                .width(67.dp)
+                                .height(67.dp)
+                                .clickable { onNavNuevoGasto(1) }
+                                .fillMaxSize()
+                        )
                     }
                 }
             }

@@ -3,6 +3,7 @@ package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -218,10 +219,10 @@ fun GastoDesing(
                     // Aplica una rotación en el eje Y para crear el efecto 3D
                     rotationY = 22f
                     // Ajusta la perspectiva para mejorar el efecto 3D
-                    cameraDistance = 17 * density
+                    cameraDistance = 12 * density
                 },
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 contentColor = Color.Black
             )
 
@@ -229,9 +230,10 @@ fun GastoDesing(
             Card(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 5.dp, start = 7.dp, top = 2.dp, end = 1.dp),
+                    .padding(bottom = 4.dp, start = 6.dp, top = 1.dp, end = 1.dp)
+                    .clickable {  },
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = MaterialTheme.colorScheme.outline,
                     contentColor = Color.Black
                 )
             ) {
@@ -280,9 +282,13 @@ fun GastoDesing(
                             Text(
                                 modifier = Modifier
                                     .padding(bottom = 10.dp),
-                                text = gasto.concepto
+                                text = gasto.concepto,
+                                style = MaterialTheme.typography.labelLarge
                             )
-                            Text(text = "Pagado el " + gasto.fecha_gasto.toString())
+                            Text(
+                                text = "Pagado el " + gasto.fecha_gasto.toString(),
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
                     }
                 }
@@ -300,10 +306,10 @@ fun CustomFloatButton(
     FloatingActionButton(
         onClick = { onNavNuevoGasto() },
         modifier = modifier
-            .height(90.dp)
-            .width(90.dp)
+            .height(80.dp)
+            .width(80.dp)
             .padding(bottom = 14.dp, end = 14.dp), // Añade el padding al botón flotante
-        shape = MaterialTheme.shapes.extraLarge
+        shape = MaterialTheme.shapes.large
     ) {
         Image(
             modifier = Modifier

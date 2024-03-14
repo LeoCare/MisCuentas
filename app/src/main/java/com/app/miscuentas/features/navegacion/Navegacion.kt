@@ -110,7 +110,10 @@ fun AppNavHost(
                 {navController.navigateUp()},
                 onNavSplash = { navController.navigate(MisCuentasScreen.Splash.route) },
                 onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.route) },
-                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.route) }
+                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.route) },
+                onNavNuevoGasto = { idHoja ->
+                    navController.navigate(MisCuentasScreen.NuevoGasto.route + "/$idHoja")
+                }
             )
         }
         composable(MisCuentasScreen.NuevaHoja.route) {
