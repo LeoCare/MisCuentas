@@ -75,6 +75,7 @@ fun HojasScreen(
 
     val hojaState by viewModel.hojasState.collectAsState()
 
+
     LaunchedEffect(Unit) {
         viewModel.getAllHojasCalculos()
     }
@@ -146,7 +147,7 @@ fun SpinnerCustoms(
                 .clip(MaterialTheme.shapes.extraSmall)
                 .clickable { expanded = !expanded },
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor =  MaterialTheme.colorScheme.primary,
                 contentColor = Color.White
             )
         ) {
@@ -315,21 +316,7 @@ fun HojaDesing(
                     modifier = Modifier.padding(start = 10.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Principal",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Checkbox(
-                        checked = hojaCalculo.principal,
-                        onCheckedChange = { hojaCalculo.principal = it }
-                    )
-                }
-
             }
-
         }
     }
 }

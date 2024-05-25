@@ -75,8 +75,6 @@ fun Login(
 ){
 
     val controlTeclado = LocalSoftwareKeyboardController.current
-
-    //Uso de Hilt para el control de los estados del viewModel.
     val loginState by viewModel.loginState.collectAsState()
 
     Box(

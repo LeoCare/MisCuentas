@@ -52,6 +52,7 @@ class NuevaHojaViewModel @Inject constructor(
 
     fun onInsertOkFieldChanged(insert: Boolean) {
         _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = insert)
+        vaciarTextFields() //Vacio estados
     }
 
     /** METODOS PARA EL STATE DE PARTICIPANTES **/
@@ -185,7 +186,7 @@ class NuevaHojaViewModel @Inject constructor(
                 val insertLinOK = insertHojaCalculoLin()
                 if (insertLinOK) {//si la insercion devuelve true, se insertan los participantes
                     _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
-                    vaciarTextFields() //Vacio estados
+                    getMaxIdHojasCalculos()
                 }
             }
         }
@@ -195,7 +196,7 @@ class NuevaHojaViewModel @Inject constructor(
     private suspend fun insertHojaCalculoLin(): Boolean{
         var insertLinOK = false
 
-        //Datos a para insertar:
+        //Datos para insertar:
         val id = _nuevaHojaState.value.maxIdHolaCalculo
         var linea = 0
 
@@ -226,6 +227,13 @@ class NuevaHojaViewModel @Inject constructor(
         }
     }
 
+    suspend fun getMaxIdHojasCalculos(){
+        repositoryHojaCalculo.getMaxIdHojasCalculos().collect { maxId ->
+            _nuevaHojaState.value = _nuevaHojaState.value.copy(maxIdHolaCalculo = maxId)
+        }
+        putIdHojaPrincipalPreference(_nuevaHojaState.value.maxIdHolaCalculo)
+    }
+
 
     private fun vaciarTextFields(){
         _nuevaHojaState.value = _nuevaHojaState.value.copy(titulo = "")
@@ -237,9 +245,7 @@ class NuevaHojaViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             //recojo el id de hoja maximo
-            repositoryHojaCalculo.getMaxIdHojasCalculos().collect { maxId ->
-                _nuevaHojaState.value = _nuevaHojaState.value.copy(maxIdHolaCalculo = maxId)
-            }
+            getMaxIdHojasCalculos()
 
             //recojo la linea maxima de la ultima hoja
             val id = _nuevaHojaState.value.maxIdHolaCalculo

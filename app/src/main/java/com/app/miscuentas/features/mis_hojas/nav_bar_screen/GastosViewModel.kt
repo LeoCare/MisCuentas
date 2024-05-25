@@ -42,7 +42,7 @@ class GastosViewModel @Inject constructor(
                 if (idHoja != null) {
                     hojaCalculoRepository.getHojaCalculo(idHoja).collect { hojaCalculo ->
                         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
-
+                        dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.id) //Actualizo DataStore con idhoja
                         getListParticipantesToIdHoja(idHoja)
                     }
                 }
@@ -53,11 +53,11 @@ class GastosViewModel @Inject constructor(
     fun getHojaCalculoPrincipal(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaCalculoPrincipal().collect {
+                hojaCalculoRepository.getHojaCalculo(_gastosState.value.idHojaPrincipal!!).collect {
                     _gastosState.value = _gastosState.value.copy(hojaAMostrar = it) //Actualizo state con idhoja
-                    dataStoreConfig.putIdHojaPrincipalPreference(it?.id) //Actualizo DataStore con idhoja
+                    dataStoreConfig.putIdHojaPrincipalPreference(it.id) //Actualizo DataStore con idhoja
 
-                    getListParticipantesToIdHoja(it!!.id)
+                    getListParticipantesToIdHoja(it.id)
                 }
             }
         }
@@ -86,6 +86,14 @@ class GastosViewModel @Inject constructor(
     fun getGastosParticipante(idParticipante: Int): Flow<List<Gasto?>> {
         val idHoja = _gastosState.value.hojaAMostrar!!.id
         return gastoRepository.getGastosParticipante(idHoja, idParticipante)
+    }
+
+    init {
+        viewModelScope.launch {
+            val idUltimaHoja = dataStoreConfig.getIdHojaPrincipalPreference()
+            _gastosState.value = _gastosState.value.copy(idHojaPrincipal = idUltimaHoja)
+        }
+
     }
 
 }

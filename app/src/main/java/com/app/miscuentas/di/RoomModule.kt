@@ -25,7 +25,6 @@ object DatabaseModule {
             .fallbackToDestructiveMigration() //Al no especificar una migracion adecuada, permitimos la destruccion ante un cambio en el Schema
             .build()
 
-
     @Provides
     fun provideParticipantesDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getParticipantesDao()
 

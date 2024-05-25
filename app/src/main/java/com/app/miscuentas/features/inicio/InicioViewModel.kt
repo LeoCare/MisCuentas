@@ -3,6 +3,7 @@ package com.app.miscuentas.features.inicio
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +13,7 @@ import javax.inject.Inject
 @HiltViewModel
 class InicioViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig, // DATASTORE
+    private val hojaCalculoRepository: HojaCalculoRepository
 ) : ViewModel()
 {
 
@@ -54,6 +56,8 @@ class InicioViewModel @Inject constructor(
             val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
             if (inicioHuella == "SI") _inicioState.value =
                 _inicioState.value.copy(huellaDigital = true)
+
+
 
         }
     }

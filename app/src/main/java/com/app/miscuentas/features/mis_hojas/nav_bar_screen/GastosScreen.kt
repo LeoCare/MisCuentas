@@ -185,12 +185,12 @@ fun GastosContent(
                     }
                 }
 
-                    /*Prev -> LazyColumn{
-                   items(gastosState.listaGastos){gasto ->
-                       GastoDesing(gasto = gasto)
+                /*Prev -> LazyColumn{
+               items(gastosState.listaGastos){gasto ->
+                   GastoDesing(gasto = gasto)
 
-                   }
-               }*/
+               }
+           }*/
 
             }
         }
@@ -213,13 +213,13 @@ fun GastoDesing(
         Card(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 10.dp, horizontal = 10.dp)
+                .padding(start = 30.dp, bottom = 15.dp)
                 .padding(4.dp)
                 .graphicsLayer {
                     // Aplica una rotación en el eje Y para crear el efecto 3D
                     rotationY = 22f
                     // Ajusta la perspectiva para mejorar el efecto 3D
-                    cameraDistance = 12 * density
+                    cameraDistance = 13 * density
                 },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -231,7 +231,7 @@ fun GastoDesing(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 4.dp, start = 6.dp, top = 1.dp, end = 1.dp)
-                    .clickable {  },
+                    .clickable { },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.outline,
                     contentColor = Color.Black
