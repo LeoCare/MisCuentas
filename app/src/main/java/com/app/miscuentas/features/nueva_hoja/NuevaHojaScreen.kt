@@ -324,7 +324,6 @@ fun Participantes(
     getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
 ) {
-    //val viewModel: NuevaHojaViewModel = viewModel()
     var isFocused by remember { mutableStateOf(false) }
     var mostrarParticipantes by remember { mutableStateOf(true) }
 

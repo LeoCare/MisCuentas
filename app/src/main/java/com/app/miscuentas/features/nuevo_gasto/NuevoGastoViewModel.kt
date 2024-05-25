@@ -44,8 +44,10 @@ class NuevoGastoViewModel @Inject constructor (
 
     //recojo valor de parametro pasado por en navController. Borrar si no es necesario!!
     fun onIdHojaPrincipalChanged(idHoja: Int?){
-        _nuevoGastoState.value = _nuevoGastoState.value.copy(idHoja = idHoja)
-        getHojaCalculo()
+        viewModelScope.launch(Dispatchers.Main) {
+            _nuevoGastoState.value = _nuevoGastoState.value.copy(idHoja = idHoja)
+            getHojaCalculo()
+        }
     }
 
 
@@ -92,23 +94,21 @@ class NuevoGastoViewModel @Inject constructor (
     }
 
     //Actualizo state hojaActual
-    fun getHojaCalculo(){
+    suspend fun getHojaCalculo(){
         //Hoja a la cual sumarle este nuevo gasto
         val id = _nuevoGastoState.value.idHoja!!
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                repositoryHojaCalculo.getHojaCalculo(id).collect {
-                    _nuevoGastoState.value = _nuevoGastoState.value.copy(hojaActual = it) //Actualizo state con la hoja actual
-                    getListParticipantesToIdHoja(id) //seguido actualizo los pagadores de dicha hoja
-                }
-            }
+        repositoryHojaCalculo.getHojaCalculo(id).collect {
+            _nuevoGastoState.value = _nuevoGastoState.value.copy(hojaActual = it) //Actualizo state con la hoja actual
+            getListParticipantesToIdHoja(id) //seguido actualizo los pagadores de dicha hoja
         }
+
     }
+
 
     //Actualizo pagadore de la hojaActual
     suspend fun getListParticipantesToIdHoja(idHoja: Int?) {
         //Obtener participantes de la hoja y agregarlas al state
-        if (idHoja != null) {
+        idHoja?.let {
             repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
                 _nuevoGastoState.value.hojaActual?.participantesHoja = participantes
             }

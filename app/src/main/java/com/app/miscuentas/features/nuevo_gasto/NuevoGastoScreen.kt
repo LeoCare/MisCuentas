@@ -71,6 +71,7 @@ import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
 import com.app.miscuentas.util.MiAviso
+import kotlinx.coroutines.Dispatchers
 
 
 @Composable
@@ -86,18 +87,20 @@ fun NuevoGasto(
     val scaffoldState = rememberScaffoldState()
     val nuevoGastoState by viewModel.nuevoGastoState.collectAsState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
+    var tituloHoja by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
 
-    LaunchedEffect(Unit) {
+    //paso el id de la hoja para registrar el gasto sobre esta misma.
+    LaunchedEffect(idHojaPrincipal) {
         viewModel.onIdHojaPrincipalChanged(idHojaPrincipal)
     }
 
-    LaunchedEffect(nuevoGastoState.insertOk) {
+    LaunchedEffect(nuevoGastoState) {
         when {
             (nuevoGastoState.insertOk) -> navigateUp()
+            (nuevoGastoState.hojaActual != null) -> tituloHoja = nuevoGastoState.hojaActual!!.titulo
         }
     }
-
-    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
 
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
@@ -150,6 +153,7 @@ fun NuevoGasto(
         },
         floatingActionButtonPosition = FabPosition.Center,
         content = { innerPadding -> NuevoGastoContent(
+            tituloHoja,
             innerPadding,
             nuevoGastoState,
             listaIconosGastos,
@@ -164,6 +168,7 @@ fun NuevoGasto(
 
 @Composable
 fun NuevoGastoContent(
+    tituloHoja: String,
     innerPadding: PaddingValues,
     nuevoGastoState: NuevoGastoState,
     listaIconosGastos: List<IconoGasto>,
@@ -191,10 +196,15 @@ fun NuevoGastoContent(
     ) {
 
          item {
+             /**  TITULO **/
+             Text(
+                 text = tituloHoja,
+                 style = MaterialTheme.typography.headlineLarge
+             )
              /** IMPORTE **/
              Card(
                  modifier = Modifier
-                     .padding(start = 15.dp, end = 15.dp, top = 10.dp)
+                     .padding(start = 15.dp, end = 15.dp, top = 5.dp)
                      .fillMaxWidth()
                      .clip(MaterialTheme.shapes.large),
 
@@ -207,7 +217,7 @@ fun NuevoGastoContent(
                  Column(
                      modifier = Modifier
                          .fillMaxWidth()
-                         .padding(horizontal = 80.dp, vertical = 10.dp),
+                         .padding(horizontal = 80.dp, vertical = 7.dp),
                      horizontalAlignment = Alignment.CenterHorizontally,
                      verticalArrangement = Arrangement.spacedBy(10.dp)
                  ) {
@@ -291,7 +301,7 @@ fun NuevoGastoContent(
                      Column(
                          modifier = Modifier
                              .fillMaxWidth()
-                             .padding(15.dp),
+                             .padding(10.dp),
                          horizontalAlignment = Alignment.CenterHorizontally,
                          verticalArrangement = Arrangement.spacedBy(10.dp)
 

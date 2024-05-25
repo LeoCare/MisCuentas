@@ -8,6 +8,7 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.GetMisHojas
+import com.app.miscuentas.domain.Validaciones
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +64,7 @@ class HojasViewModel @Inject constructor(
                         getListParticipantesToIdHoja(index, hoja.id)
                     }
                 }
-                delay(1000)
+                delay(3000)
                 _hojasState.value = _hojasState.value.copy(circularIndicator = false)
             }
         }
@@ -75,6 +76,17 @@ class HojasViewModel @Inject constructor(
         repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
             _hojasState.value.listaHojas?.get(index)?.participantesHoja = participantes
         }
+    }
+
+    fun ordenHoja(){
+        _hojasState.value = _hojasState.value.copy(
+            listaHojas = hojasState.value.listaHojas?.sortedBy { Validaciones.fechaToDateFormat(it.fechaCreacion) }
+        )
+    }
+    fun ordenHojadesc(){
+        _hojasState.value = _hojasState.value.copy(
+            listaHojas = hojasState.value.listaHojas?.sortedByDescending { Validaciones.fechaToDateFormat(it.fechaCreacion) }
+        )
     }
 
     /** API **/

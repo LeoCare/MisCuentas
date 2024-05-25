@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.LaunchedEffect
 import com.app.miscuentas.domain.model.HojaCalculo
 import kotlin.random.Random
@@ -99,8 +101,21 @@ fun HojasScreen(
                     .padding(bottom = 30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo")
-                SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion")
+                SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo"){ mostrar ->
+                    when(mostrar) {
+                        "Activas" -> {}
+                        "Finalizadas" -> {}
+                        "Anuladas" -> {}
+                        "Todas" -> {}
+                    }
+
+                }
+                SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion"){ Orden ->
+                    when(Orden) {
+                        "Fecha creacion" -> { viewModel.ordenHoja() }
+                        "Fecha cierre" -> { viewModel.ordenHojadesc() }
+                    }
+                }
             }
 
             LazyColumn(
@@ -128,7 +143,8 @@ fun HojasScreen(
 fun SpinnerCustoms(
     titulo: String,
     items: List<String>,
-    contentDescription: String
+    contentDescription: String,
+    onOptionSelected: (String) -> Unit
 ){
     var expanded by rememberSaveable { mutableStateOf(false) }
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -156,9 +172,9 @@ fun SpinnerCustoms(
             {
                 Text(text = AnnotatedString(items[selectedIndex]))
                 Icon(
-                    imageVector = Icons.Filled.ExpandMore,
+                    imageVector = if(expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                     contentDescription = contentDescription,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = Color.White
                 )
 
                 DropdownMenu(
@@ -170,6 +186,7 @@ fun SpinnerCustoms(
                         DropdownMenuItem(onClick = {
                             selectedIndex = index
                             expanded = false
+                            onOptionSelected( item)
                         }) {
                             Text(text = item)
                         }
@@ -179,6 +196,7 @@ fun SpinnerCustoms(
         }
     }
 }
+
 
 @Composable
 fun HojaDesing(

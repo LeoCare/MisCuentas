@@ -1,12 +1,14 @@
 package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,19 +16,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -36,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -48,8 +62,6 @@ import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.util.MiAviso
-
-/** Contenedor del resto de elementos para la pestaña Gastos **/
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -99,6 +111,16 @@ fun GastosContent(
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Int) -> Unit
 ){
+
+    //Aviso de la opcion elegida:
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+
+    if (showDialog) MiAviso(
+        show = true,
+        texto = mensaje
+    ) { showDialog = false }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -112,6 +134,7 @@ fun GastosContent(
 //                viewModel.setDatosGuardados(false)
 //            }
 //        }
+
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -127,12 +150,24 @@ fun GastosContent(
                     style = MaterialTheme.typography.displayMedium,
                     color = Color.Black
                 )
-                Text(
-                    text = "Principal",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.Green
-                )
 
+                OpcionesMenu { opcionSeleccionada ->
+                    // Manejar la opción seleccionada
+                     when(opcionSeleccionada) {
+                         "Resumen" -> {
+                             mensaje = "Este es el resumen"
+                             showDialog = true
+                         }
+                         "Finalizar" -> {
+                             mensaje = "Finalizar la hoja"
+                             showDialog = true
+                         }
+                         "Eliminar" -> {
+                             mensaje = "Eliminar la hoja y sus gastos"
+                             showDialog = true
+                         }
+                     }
+                }
             }
 
             Row(
@@ -317,6 +352,49 @@ fun CustomFloatButton(
             painter = painterResource(id = R.drawable.nuevo_gasto), //IMAGEN DEL GASTO
             contentDescription = "Logo Hoja",
         )
+    }
+}
+
+/** Composable para las opciones de la hoja **/
+@Composable
+fun OpcionesMenu(
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
+    ) {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Default.MoreHoriz,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Resumen")
+            }) {
+                Text("Resumen")
+            }
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Finalizar")
+            }) {
+                Text("Finalizar")
+            }
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Eliminar")
+            }) {
+                Text("Eliminar")
+            }
+        }
     }
 }
 
