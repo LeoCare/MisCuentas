@@ -8,6 +8,7 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.domain.model.toEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -35,6 +36,10 @@ class GastosViewModel @Inject constructor(
     private val _gastosState = MutableStateFlow(GastosState())
     val gastosState: StateFlow<GastosState> = _gastosState
 
+
+    fun onOpcionSelectedChanged(opcionElegida: String){
+        _gastosState.value = _gastosState.value.copy(opcionSelected = opcionElegida)
+    }
 
     fun onHojaAMostrar(idHoja: Int?) {
         viewModelScope.launch {
@@ -94,6 +99,16 @@ class GastosViewModel @Inject constructor(
             _gastosState.value = _gastosState.value.copy(idHojaPrincipal = idUltimaHoja)
         }
 
+    }
+
+    /** OPCIONES DE LA HOJA **/
+    //Borrar
+    suspend fun delete(hojaCalculo: HojaCalculo){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                delete(hojaCalculo)
+            }
+        }
     }
 
 }

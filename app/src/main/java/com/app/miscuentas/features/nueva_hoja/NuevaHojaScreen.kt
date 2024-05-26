@@ -68,7 +68,8 @@ import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
-import com.app.miscuentas.util.MiAviso
+import com.app.miscuentas.util.Desing.Companion.MiAviso
+
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
 //@Preview

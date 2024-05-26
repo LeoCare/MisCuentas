@@ -104,66 +104,65 @@ class Desing {
             }
         }
 
-
-
-    }
-}
-
-/** CUADRO DE DIALOGO **/
-//Esta funcion recibe el resultado de cada una de las dos funciones de sus parametros, para ser usados dentro de ella.
-//Al recibir valores lambda, se entiende que el resultado de esas funciones lambda tienen sentido desde donde se llame a MiDialogo().
-//Es decir, dependiendo lo que pase en AlertDialog() ejecutara una lambda u otra (cerrar() o aceptar() )
-@Composable
-fun MiDialogo(show:Boolean, texto: String, cerrar: () -> Unit, aceptar: () -> Unit) {
-    if (show) {
-        AlertDialog(onDismissRequest = { cerrar() },
-            confirmButton = {
-                TextButton(onClick = { aceptar() }) {
-                    Text(text = "Aceptar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { cerrar() }) {
-                    Text(text = "Cerrar")
-                }
-            },
-            title = { Text(text = "Mi Diaologo") },
-            text = { Text(text = texto) }
-        )
-    }
-}
-
-@Composable
-fun MiAviso(show:Boolean, texto: String, cerrar: () -> Unit) {
-    if (show) {
-        AlertDialog(
-            shape = MaterialTheme.shapes.small,
-            onDismissRequest = { cerrar() },
-            confirmButton = {
-                TextButton(onClick = { cerrar() }) {
-                    Text(
-                        text = "Entendido",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-            },
-            title = {
-                Text(
-                    text = "AVISO",
-                    style = MaterialTheme.typography.titleLarge
+        /** CUADRO DE DIALOGO **/
+        //Esta funcion recibe el resultado de cada una de las dos funciones de sus parametros, para ser usados dentro de ella.
+        //Al recibir valores lambda, se entiende que el resultado de esas funciones lambda tienen sentido desde donde se llame a MiDialogo().
+        //Es decir, dependiendo lo que pase en AlertDialog() ejecutara una lambda u otra (cerrar() o aceptar() )
+        @Composable
+        fun MiDialogo(show:Boolean, texto: String, cerrar: () -> Unit, aceptar: () -> Unit) {
+            if (show) {
+                AlertDialog(onDismissRequest = { cerrar() },
+                    confirmButton = {
+                        TextButton(onClick = { aceptar() }) {
+                            Text(text = "Aceptar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { cerrar() }) {
+                            Text(text = "Cerrar")
+                        }
+                    },
+                    title = { Text(text = "Mi Diaologo") },
+                    text = { Text(text = texto) }
                 )
-            },
-            text = {
-                Text(
-                    text = texto,
-                    style = MaterialTheme.typography.titleSmall
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    }
+            }
+        }
 
+        @Composable
+        fun MiAviso(show:Boolean, texto: String, cerrar: () -> Unit) {
+            if (show) {
+                AlertDialog(
+                    shape = MaterialTheme.shapes.small,
+                    onDismissRequest = { cerrar() },
+                    confirmButton = {
+                        TextButton(onClick = { cerrar() }) {
+                            Text(
+                                text = "Entendido",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    },
+                    title = {
+                        Text(
+                            text = "AVISO",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = texto,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    },
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            }
+
+        }
+
+    }
 }
+
 
 
 

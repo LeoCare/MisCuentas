@@ -54,7 +54,7 @@ import com.app.miscuentas.R
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
 import com.app.miscuentas.util.Desing
-import com.app.miscuentas.util.MiAviso
+import com.app.miscuentas.util.Desing.Companion.MiAviso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

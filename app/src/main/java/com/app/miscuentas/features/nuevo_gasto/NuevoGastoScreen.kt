@@ -70,7 +70,7 @@ import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.features.navegacion.MisCuentasScreen
-import com.app.miscuentas.util.MiAviso
+import com.app.miscuentas.util.Desing.Companion.MiAviso
 import kotlinx.coroutines.Dispatchers
 
 
@@ -217,7 +217,7 @@ fun NuevoGastoContent(
                  Column(
                      modifier = Modifier
                          .fillMaxWidth()
-                         .padding(horizontal = 80.dp, vertical = 7.dp),
+                         .padding(horizontal = 80.dp, vertical = 4.dp),
                      horizontalAlignment = Alignment.CenterHorizontally,
                      verticalArrangement = Arrangement.spacedBy(10.dp)
                  ) {
@@ -257,7 +257,7 @@ fun NuevoGastoContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(10.dp),
+                            .padding(4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
 
@@ -301,7 +301,7 @@ fun NuevoGastoContent(
                      Column(
                          modifier = Modifier
                              .fillMaxWidth()
-                             .padding(10.dp),
+                             .padding(4.dp),
                          horizontalAlignment = Alignment.CenterHorizontally,
                          verticalArrangement = Arrangement.spacedBy(10.dp)
 

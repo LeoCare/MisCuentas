@@ -9,6 +9,7 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.GetMisHojas
 import com.app.miscuentas.domain.Validaciones
+import com.app.miscuentas.domain.model.HojaCalculo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,79 @@ class HojasViewModel @Inject constructor(
     private val _hojasState by lazy { MutableStateFlow(HojasState()) }
     val hojasState: StateFlow<HojasState> = _hojasState
 
+
+    fun onCircularIndicatorChanged(circular: Boolean){
+        _hojasState.value = _hojasState.value.copy(circularIndicator = circular)
+    }
+
+    /** ORDEN DE LAS HOJAS **/
+    //Metodo que define el orden elegido
+    fun onTipoOrdenChanged(tipoOrden: String){
+        _hojasState.value = _hojasState.value.copy(tipoOrden = tipoOrden)
+        ordenHoja()
+    }
+    //Metodo que indica la direccion asc. o desc.
+    fun onOrdenDescChanged(ordenDesc: Boolean){
+        _hojasState.value = _hojasState.value.copy(ordenDesc = ordenDesc)
+        ordenHoja()
+    }
+    //Metodo que ordena dependiendo de los estados elegidos en los dos metodos anteriores
+    fun ordenHoja(){
+        if(hojasState.value.tipoOrden == "Fecha creacion"){
+            if(hojasState.value.ordenDesc){
+                _hojasState.value = _hojasState.value.copy(
+                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedByDescending { Validaciones.fechaToDateFormat(it.fechaCreacion) }
+                )
+            }
+            else {
+                _hojasState.value = _hojasState.value.copy(
+                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedBy { Validaciones.fechaToDateFormat(it.fechaCreacion) }
+                )
+            }
+        }
+        else if (hojasState.value.tipoOrden == "Fecha cierre"){
+            if(hojasState.value.ordenDesc){
+                _hojasState.value = _hojasState.value.copy(
+                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedByDescending { Validaciones.fechaToDateFormat(it.fechaCierre) }
+                )
+            }
+            else {
+                _hojasState.value = _hojasState.value.copy(
+                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedBy { Validaciones.fechaToDateFormat(it.fechaCierre) }
+                )
+            }
+        }
+
+    }
+
+    /** MOSTRAR POR: **/
+    //Metodo que define el tipo a mostrar
+    fun onMostrarTipoChanged(mostrarTipo: String){
+        _hojasState.value = _hojasState.value.copy(mostrarTipo = mostrarTipo)
+        mostrarSolo()
+    }
+
+    //Metodo que muestra solo las del tipo elegido en el metodo anterior
+     fun mostrarSolo(){
+        when(hojasState.value.mostrarTipo){
+            "A" -> _hojasState.value = _hojasState.value.copy(
+                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "A" }
+            )
+
+            "F" -> _hojasState.value = _hojasState.value.copy(
+                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "F" }
+            )
+
+            "C" -> _hojasState.value = _hojasState.value.copy(
+                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "C" }
+            )
+
+            else -> _hojasState.value = _hojasState.value.copy(
+                listaHojasAMostrar = hojasState.value.listaHojas
+            )
+
+        }
+    }
 
     //Guarda la hojaPrincipal en el dataStore al presionar el CheckBox
     fun onHojaPrincipalChanged(){
@@ -64,10 +138,12 @@ class HojasViewModel @Inject constructor(
                         getListParticipantesToIdHoja(index, hoja.id)
                     }
                 }
+                mostrarSolo()
                 delay(3000)
                 _hojasState.value = _hojasState.value.copy(circularIndicator = false)
             }
         }
+
     }
 
     //Actualizo participantes de las hojas
@@ -76,18 +152,10 @@ class HojasViewModel @Inject constructor(
         repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
             _hojasState.value.listaHojas?.get(index)?.participantesHoja = participantes
         }
+
     }
 
-    fun ordenHoja(){
-        _hojasState.value = _hojasState.value.copy(
-            listaHojas = hojasState.value.listaHojas?.sortedBy { Validaciones.fechaToDateFormat(it.fechaCreacion) }
-        )
-    }
-    fun ordenHojadesc(){
-        _hojasState.value = _hojasState.value.copy(
-            listaHojas = hojasState.value.listaHojas?.sortedByDescending { Validaciones.fechaToDateFormat(it.fechaCreacion) }
-        )
-    }
+
 
     /** API **/
     //rellena la lista de hojas del state

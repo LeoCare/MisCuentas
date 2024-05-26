@@ -49,7 +49,10 @@ import com.app.miscuentas.R
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.text.style.TextAlign
 import com.app.miscuentas.domain.model.HojaCalculo
 import kotlin.random.Random
 
@@ -70,8 +73,7 @@ fun HojasScreen(
     viewModel: HojasViewModel = hiltViewModel()
 ) {
 
-    // Screen con las hojas creadas
-    //Provisional!!!
+
     val itemsTipo = listOf("Activas", "Finalizadas", "Anuladas", "Todas")
     val itemsOrden = listOf("Fecha creacion", "Fecha cierre")
 
@@ -97,32 +99,47 @@ fun HojasScreen(
         Column(horizontalAlignment = CenterHorizontally) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 30.dp),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo"){ mostrar ->
                     when(mostrar) {
-                        "Activas" -> {}
-                        "Finalizadas" -> {}
-                        "Anuladas" -> {}
-                        "Todas" -> {}
+                        "Activas" -> {viewModel.onMostrarTipoChanged("C")}
+                        "Finalizadas" -> {viewModel.onMostrarTipoChanged("F")}
+                        "Anuladas" -> {viewModel.onMostrarTipoChanged("A")}
+                        "Todas" -> {viewModel.onMostrarTipoChanged("T")}
                     }
 
                 }
                 SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion"){ Orden ->
-                    when(Orden) {
-                        "Fecha creacion" -> { viewModel.ordenHoja() }
-                        "Fecha cierre" -> { viewModel.ordenHojadesc() }
-                    }
+                     viewModel.onTipoOrdenChanged(Orden)
                 }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Descendente",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Checkbox(
+                    checked = hojaState.ordenDesc,
+                    onCheckedChange = {
+                        viewModel.onOrdenDescChanged(it)
+
+                    }
+                )
             }
 
             LazyColumn(
                 contentPadding = innerPadding!!,
             ) {
-                if (hojaState.listaHojas != null){
-                    itemsIndexed(hojaState.listaHojas!!){index, hojaCalculoToList ->
+                if (hojaState.listaHojasAMostrar != null){
+                    itemsIndexed(hojaState.listaHojasAMostrar!!){index, hojaCalculoToList ->
                         HojaDesing(
                             onNavGastos = {onNavGastos(it)},
                             index = index,
@@ -155,7 +172,10 @@ fun SpinnerCustoms(
         horizontalAlignment = Alignment.Start
     ) {
 
-        Text(text = titulo)
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.titleSmall
+        )
 
         Card(
             modifier = Modifier

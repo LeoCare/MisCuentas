@@ -1,14 +1,12 @@
 package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,10 +21,7 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,29 +34,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.room.util.foreignKeyCheck
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.domain.model.Participante
-import com.app.miscuentas.util.MiAviso
+import com.app.miscuentas.util.Desing.Companion.MiAviso
+import com.app.miscuentas.util.Desing.Companion.MiDialogo
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -84,6 +75,15 @@ fun GastosScreen(
             viewModel.getHojaCalculoPrincipal()
     }
 
+    LaunchedEffect(gastosState.opcionSelected){
+        when(gastosState.opcionSelected) {
+            "Resumen" ->  { viewModel.delete(gastosState.hojaAMostrar!!) }
+            "Finalizar" -> { viewModel.delete(gastosState.hojaAMostrar!!) }
+            "Eliminar" -> { viewModel.delete(gastosState.hojaAMostrar!!) }
+            "Anular" -> { viewModel.delete(gastosState.hojaAMostrar!!) }
+        }
+    }
+
     //Este aviso se lanzara cuando se deniega el permiso...
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     if (showDialog) MiAviso(
@@ -97,8 +97,11 @@ fun GastosScreen(
             GastosContent(
                 innerPadding,
                 gastosState.hojaAMostrar,
+                gastosState.opcionSelected,
                 listaIconosGastos,
-                { onNavNuevoGasto(it) }
+                { onNavNuevoGasto(it) },
+                { viewModel.onOpcionSelectedChanged(it) },
+                viewModel
             )
         }
     )
@@ -108,18 +111,27 @@ fun GastosScreen(
 fun GastosContent(
     innerPadding: PaddingValues?,
     hojaDeGastos: HojaCalculo?,
+    opcionSelected: String,
     listaIconosGastos: List<IconoGasto>,
-    onNavNuevoGasto: (Int) -> Unit
+    onNavNuevoGasto: (Int) -> Unit,
+    onOpcionSelectedChanged: (String) -> Unit,
+    viewModel: GastosViewModel
 ){
 
     //Aviso de la opcion elegida:
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+    var opcionSeleccionada: String = ""
 
-    if (showDialog) MiAviso(
+    if (showDialog) MiDialogo(
         show = true,
-        texto = mensaje
-    ) { showDialog = false }
+        texto = mensaje,
+        cerrar = { showDialog = false },
+        aceptar = {
+            onOpcionSelectedChanged(opcionSeleccionada)
+            showDialog = false
+        }
+    )
 
     Box(
         modifier = Modifier
@@ -151,22 +163,18 @@ fun GastosContent(
                     color = Color.Black
                 )
 
-                OpcionesMenu { opcionSeleccionada ->
-                    // Manejar la opción seleccionada
-                     when(opcionSeleccionada) {
-                         "Resumen" -> {
-                             mensaje = "Este es el resumen"
-                             showDialog = true
-                         }
-                         "Finalizar" -> {
-                             mensaje = "Finalizar la hoja"
-                             showDialog = true
-                         }
-                         "Eliminar" -> {
-                             mensaje = "Eliminar la hoja y sus gastos"
-                             showDialog = true
-                         }
-                     }
+                OpcionesMenu { opcion ->
+                    when(opcion) {
+                        "Resumen" ->  mensaje = "Este es el resumen"
+
+                        "Finalizar" ->  mensaje = "Finalizar la hoja"
+
+                        "Eliminar" -> mensaje = "Eliminar la hoja y sus gastos"
+
+                        "Anular" ->  mensaje = "Anular la hoja"
+                    }
+                    opcionSeleccionada = opcion
+                    showDialog = true
                 }
             }
 
