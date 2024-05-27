@@ -77,6 +77,10 @@ class HojasViewModel @Inject constructor(
         }
 
     }
+    /************************/
+
+
+
 
     /** MOSTRAR POR: **/
     //Metodo que define el tipo a mostrar
@@ -106,6 +110,31 @@ class HojasViewModel @Inject constructor(
 
         }
     }
+    /************************/
+
+
+
+    /** OPCIONES DE CADA HOJA **/
+    fun onOpcionSelectedChanged(opcionElegida: String){
+        _hojasState.value = _hojasState.value.copy(opcionSelected = opcionElegida)
+    }
+
+    //Cambio de status
+    fun onStatusChanged(hojaCalculo: HojaCalculo, status: String){
+        _hojasState.value = _hojasState.value.copy(hojaAModificar = hojaCalculo)
+        _hojasState.value = _hojasState.value.copy(statusHoja = status)
+    }
+
+    //Borrar
+    suspend fun update(){
+        _hojasState.value.hojaAModificar?.status = hojasState.value.statusHoja
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repositoryHojaCalculo.update(hojasState.value.hojaAModificar!!)
+            }
+        }
+    }
+    /************************/
 
     //Guarda la hojaPrincipal en el dataStore al presionar el CheckBox
     fun onHojaPrincipalChanged(){
@@ -154,8 +183,6 @@ class HojasViewModel @Inject constructor(
         }
 
     }
-
-
 
     /** API **/
     //rellena la lista de hojas del state

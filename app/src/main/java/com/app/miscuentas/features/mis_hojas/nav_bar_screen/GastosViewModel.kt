@@ -107,12 +107,12 @@ class GastosViewModel @Inject constructor(
 
     /** OPCIONES DE LA HOJA **/
     //Borrar
-    suspend fun update(hojaCalculo: HojaCalculo){
+    suspend fun update(gasto: Gasto){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                hojaCalculoRepository.update(hojaCalculo)
+                gastoRepository.update(gasto)
             }
         }
     }
-
+    /************************/
 }

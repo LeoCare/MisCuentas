@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -48,12 +49,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.style.TextAlign
 import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.util.Desing
 import kotlin.random.Random
 
 
@@ -72,8 +75,6 @@ fun HojasScreen(
     onNavGastos: (Int) -> Unit,
     viewModel: HojasViewModel = hiltViewModel()
 ) {
-
-
     val itemsTipo = listOf("Activas", "Finalizadas", "Anuladas", "Todas")
     val itemsOrden = listOf("Fecha creacion", "Fecha cierre")
 
@@ -82,6 +83,14 @@ fun HojasScreen(
 
     LaunchedEffect(Unit) {
         viewModel.getAllHojasCalculos()
+    }
+
+    LaunchedEffect(hojaState.opcionSelected){
+        when(hojaState.opcionSelected) {
+            //  "Resumen" ->  { viewModel.update(gastosState.hojaAMostrar!!) }
+            "Finalizar" -> { viewModel.update() }
+            "Anular" -> { viewModel.update() }
+        }
     }
 
     if (hojaState.circularIndicator){
@@ -143,7 +152,9 @@ fun HojasScreen(
                         HojaDesing(
                             onNavGastos = {onNavGastos(it)},
                             index = index,
-                            hojaCalculo = hojaCalculoToList
+                            hojaCalculo = hojaCalculoToList,
+                            onOpcionSelectedChanged = {viewModel.onOpcionSelectedChanged(it)},
+                            onStatusChanged = {viewModel.onStatusChanged(hojaCalculoToList, it)}
                         )
                     }
                 }
@@ -223,9 +234,25 @@ fun HojaDesing(
  /** API **/ //  hoja: Hoja
  onNavGastos: (Int) -> Unit,
  index: Int,
- hojaCalculo: HojaCalculo
+ hojaCalculo: HojaCalculo,
+ onOpcionSelectedChanged: (String) -> Unit,
+ onStatusChanged: (String) -> Unit
 ) {
     var isChecked by rememberSaveable { mutableStateOf(false) }
+    //Aviso de la opcion elegida:
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+
+    if (showDialog) Desing.MiDialogo(
+        show = true,
+        texto = mensaje,
+        cerrar = { showDialog = false },
+        aceptar = {
+            onOpcionSelectedChanged(opcionSeleccionada)
+            showDialog = false
+        }
+    )
 
     Card(
         modifier = Modifier
@@ -289,11 +316,6 @@ fun HojaDesing(
                 Column{
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
-
-
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
-                    {
                         Text(
                             text = "Participantes:",
                             style = MaterialTheme.typography.labelLarge
@@ -344,16 +366,70 @@ fun HojaDesing(
                 }
             }
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.Top,
+                //horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Resumen",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 10.dp)
-                )
-                Spacer(modifier = Modifier.weight(1f))
+                OpcionesHoja { opcion ->
+                    when(opcion) {
+                        "Resumen" ->  mensaje = "Este es el resumen"
+
+                        "Finalizar" ->  {
+                            onStatusChanged("F")
+                            mensaje = "Finalizar la hoja"
+                        }
+
+                        "Anular" ->  {
+                            onStatusChanged("A")
+                            mensaje = "Anular la hoja"
+                        }
+                    }
+                    opcionSeleccionada = opcion
+                    showDialog = true
+                }
+            }
+        }
+    }
+}
+
+
+/** Composable para las opciones de la hoja **/
+@Composable
+fun OpcionesHoja(
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box(
+        //modifier = Modifier.wrapContentSize(Alignment.TopStart)
+    ) {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Default.MoreHoriz,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Resumen")
+            }) {
+                Text("Resumen")
+            }
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Finalizar")
+            }) {
+                Text("Finalizar")
+            }
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Anular")
+            }) {
+                Text("Anular")
             }
         }
     }

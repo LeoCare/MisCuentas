@@ -21,6 +21,7 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
@@ -100,7 +101,7 @@ fun GastosScreen(
                 listaIconosGastos,
                 { onNavNuevoGasto(it) },
                 { viewModel.onOpcionSelectedChanged(it) },
-                viewModel
+                { viewModel.onStatusChanged(it) }
             )
         }
     )
@@ -114,23 +115,8 @@ fun GastosContent(
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Int) -> Unit,
     onOpcionSelectedChanged: (String) -> Unit,
-    viewModel: GastosViewModel
+    onStatusChanged: (String) -> Unit,
 ){
-
-    //Aviso de la opcion elegida:
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
-    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
-
-    if (showDialog) MiDialogo(
-        show = true,
-        texto = mensaje,
-        cerrar = { showDialog = false },
-        aceptar = {
-            onOpcionSelectedChanged(opcionSeleccionada)
-            showDialog = false
-        }
-    )
 
     Box(
         modifier = Modifier
@@ -161,24 +147,6 @@ fun GastosContent(
                     style = MaterialTheme.typography.displayMedium,
                     color = Color.Black
                 )
-
-                OpcionesMenu { opcion ->
-                    when(opcion) {
-                        "Resumen" ->  mensaje = "Este es el resumen"
-
-                        "Finalizar" ->  {
-                            viewModel.onStatusChanged("F")
-                            mensaje = "Finalizar la hoja"
-                        }
-
-                        "Anular" ->  {
-                            viewModel.onStatusChanged("A")
-                            mensaje = "Anular la hoja"
-                        }
-                    }
-                    opcionSeleccionada = opcion
-                    showDialog = true
-                }
             }
 
             Row(
@@ -225,7 +193,8 @@ fun GastosContent(
                             GastoDesing(
                                 gasto = gasto,
                                 participante = participante,
-                                listaIconosGastos
+                                listaIconosGastos,
+                                {onOpcionSelectedChanged(it)}
                             )
                         }
                     }
@@ -252,8 +221,25 @@ fun GastoDesing(
     gasto: Gasto?,
     participante: Participante,
     listaIconosGastos: List<IconoGasto>,
+    onOpcionSelectedChanged: (String) -> Unit
+
 ) {
     var isChecked by rememberSaveable { mutableStateOf(false) }
+
+    //Aviso de la opcion elegida:
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+
+    if (showDialog) MiDialogo(
+        show = true,
+        texto = mensaje,
+        cerrar = { showDialog = false },
+        aceptar = {
+            onOpcionSelectedChanged(opcionSeleccionada) //cambiar a funcion de update gasto por A de anulado!!
+            showDialog = false
+        }
+    )
 
     if (gasto != null) {
         Card(
@@ -331,10 +317,23 @@ fun GastoDesing(
                                 text = gasto.concepto,
                                 style = MaterialTheme.typography.labelLarge
                             )
-                            Text(
-                                text = "Pagado el " + gasto.fecha_gasto.toString(),
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Row(
+                                modifier =  Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Pagado el " + gasto.fecha_gasto.toString(),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                IconButton(onClick = { showDialog = true }) {
+                                    Icon(
+                                        Icons.Default.DeleteForever,
+                                        contentDescription = "Menu de opciones",
+                                        tint = Color.Red
+                                    )
+                                }
+                            }
+
                         }
                     }
                 }
@@ -363,49 +362,6 @@ fun CustomFloatButton(
             painter = painterResource(id = R.drawable.nuevo_gasto), //IMAGEN DEL GASTO
             contentDescription = "Logo Hoja",
         )
-    }
-}
-
-/** Composable para las opciones de la hoja **/
-@Composable
-fun OpcionesMenu(
-    onOptionSelected: (String) -> Unit
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
-    ) {
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                Icons.Default.MoreHoriz,
-                contentDescription = "Menu de opciones",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Resumen")
-            }) {
-                Text("Resumen")
-            }
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Finalizar")
-            }) {
-                Text("Finalizar")
-            }
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Anular")
-            }) {
-                Text("Anular")
-            }
-        }
     }
 }
 

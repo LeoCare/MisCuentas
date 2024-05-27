@@ -7,6 +7,6 @@ data class GastosState (
     val hojaPrincipal: HojaCalculo? = null,
     val hojaAMostrar: HojaCalculo? = null,
     val listaGastosOk: Boolean = false,
-    val idHojaPrincipal: Int? = null,
-    val opcionSelected: String = ""
+    val idHojaPrincipal: Int? = null
+
 )

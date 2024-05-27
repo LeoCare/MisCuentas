@@ -11,5 +11,8 @@ data class HojasState(
     val hojaPrincipal: HojaCalculo? = null,
     val tipoOrden: String = "Fecha creacion",
     val ordenDesc: Boolean = true,
-    val mostrarTipo: String = "T"
+    val mostrarTipo: String = "T",
+    val hojaAModificar: HojaCalculo? = null,
+    val opcionSelected: String = "",
+    val statusHoja: String = ""
 )
