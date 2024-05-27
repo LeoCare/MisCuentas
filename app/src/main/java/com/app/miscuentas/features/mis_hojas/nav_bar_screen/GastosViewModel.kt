@@ -41,6 +41,10 @@ class GastosViewModel @Inject constructor(
         _gastosState.value = _gastosState.value.copy(opcionSelected = opcionElegida)
     }
 
+    fun onStatusChanged(status: String){
+        _gastosState.value.hojaAMostrar?.status = status
+    }
+
     fun onHojaAMostrar(idHoja: Int?) {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
@@ -103,10 +107,10 @@ class GastosViewModel @Inject constructor(
 
     /** OPCIONES DE LA HOJA **/
     //Borrar
-    suspend fun delete(hojaCalculo: HojaCalculo){
+    suspend fun update(hojaCalculo: HojaCalculo){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                delete(hojaCalculo)
+                hojaCalculoRepository.update(hojaCalculo)
             }
         }
     }

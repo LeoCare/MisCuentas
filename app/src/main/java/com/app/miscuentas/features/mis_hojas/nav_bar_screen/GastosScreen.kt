@@ -77,10 +77,9 @@ fun GastosScreen(
 
     LaunchedEffect(gastosState.opcionSelected){
         when(gastosState.opcionSelected) {
-            "Resumen" ->  { viewModel.delete(gastosState.hojaAMostrar!!) }
-            "Finalizar" -> { viewModel.delete(gastosState.hojaAMostrar!!) }
-            "Eliminar" -> { viewModel.delete(gastosState.hojaAMostrar!!) }
-            "Anular" -> { viewModel.delete(gastosState.hojaAMostrar!!) }
+          //  "Resumen" ->  { viewModel.update(gastosState.hojaAMostrar!!) }
+            "Finalizar" -> { viewModel.update(gastosState.hojaAMostrar!!) }
+            "Anular" -> { viewModel.update(gastosState.hojaAMostrar!!) }
         }
     }
 
@@ -121,7 +120,7 @@ fun GastosContent(
     //Aviso de la opcion elegida:
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
-    var opcionSeleccionada: String = ""
+    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
 
     if (showDialog) MiDialogo(
         show = true,
@@ -167,11 +166,15 @@ fun GastosContent(
                     when(opcion) {
                         "Resumen" ->  mensaje = "Este es el resumen"
 
-                        "Finalizar" ->  mensaje = "Finalizar la hoja"
+                        "Finalizar" ->  {
+                            viewModel.onStatusChanged("F")
+                            mensaje = "Finalizar la hoja"
+                        }
 
-                        "Eliminar" -> mensaje = "Eliminar la hoja y sus gastos"
-
-                        "Anular" ->  mensaje = "Anular la hoja"
+                        "Anular" ->  {
+                            viewModel.onStatusChanged("A")
+                            mensaje = "Anular la hoja"
+                        }
                     }
                     opcionSeleccionada = opcion
                     showDialog = true
@@ -398,9 +401,9 @@ fun OpcionesMenu(
             }
             DropdownMenuItem(onClick = {
                 expanded = false
-                onOptionSelected("Eliminar")
+                onOptionSelected("Anular")
             }) {
-                Text("Eliminar")
+                Text("Anular")
             }
         }
     }
