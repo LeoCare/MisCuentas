@@ -17,7 +17,7 @@ data class Gasto (
 //            _fechaGasto = value ?: LocalDateTime.now()
 //        }
 //
-//}
+}
 
 fun Gasto.toEntity() = DbGastosEntity(
     id = id_gasto,

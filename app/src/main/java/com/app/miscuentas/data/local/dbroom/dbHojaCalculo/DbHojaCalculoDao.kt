@@ -32,6 +32,11 @@ interface DbHojaCalculoDao {
     @Delete
     suspend fun delete(hojaCalculo: DbHojaCalculoEntity)
 
+
+    @Query("DELETE FROM t_hojas_lin_det WHERE id = :idHoja AND linea = :idParticipante AND id_gasto = :idGasto")
+    fun deleteGasto(idHoja: Int, idParticipante: Int, idGasto: Int)
+
+
     //Room mantiene el Flow actualizado, por lo que solo se necesita obtener los datos una vez.
     //Luego Room se encarga de notificarnos con cada cambio en los datos
     @Query("SELECT * FROM t_hojas_cab WHERE id = :id")

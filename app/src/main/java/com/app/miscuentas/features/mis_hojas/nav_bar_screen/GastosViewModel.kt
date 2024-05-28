@@ -36,13 +36,8 @@ class GastosViewModel @Inject constructor(
     private val _gastosState = MutableStateFlow(GastosState())
     val gastosState: StateFlow<GastosState> = _gastosState
 
-
-    fun onOpcionSelectedChanged(opcionElegida: String){
-        _gastosState.value = _gastosState.value.copy(opcionSelected = opcionElegida)
-    }
-
-    fun onStatusChanged(status: String){
-        _gastosState.value.hojaAMostrar?.status = status
+    fun onBorrarGastoChanged(gasto: Array<Int>?){
+        _gastosState.value = _gastosState.value.copy( borrarGasto = gasto)
     }
 
     fun onHojaAMostrar(idHoja: Int?) {
@@ -105,12 +100,15 @@ class GastosViewModel @Inject constructor(
 
     }
 
-    /** OPCIONES DE LA HOJA **/
+    /** ELIMINAR GASTO **/
     //Borrar
-    suspend fun update(gasto: Gasto){
+    suspend fun deleteGasto(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                gastoRepository.update(gasto)
+                val idHoja = gastosState.value.borrarGasto!![0]
+                val idParticipante = gastosState.value.borrarGasto!![1]
+                val idGasto = gastosState.value.borrarGasto!![2]
+                hojaCalculoRepository.deleteGasto(idHoja, idParticipante, idGasto)
             }
         }
     }

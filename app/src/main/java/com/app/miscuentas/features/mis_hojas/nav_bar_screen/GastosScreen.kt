@@ -14,19 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -76,11 +72,10 @@ fun GastosScreen(
             viewModel.getHojaCalculoPrincipal()
     }
 
-    LaunchedEffect(gastosState.opcionSelected){
-        when(gastosState.opcionSelected) {
-          //  "Resumen" ->  { viewModel.update(gastosState.hojaAMostrar!!) }
-            "Finalizar" -> { viewModel.update(gastosState.hojaAMostrar!!) }
-            "Anular" -> { viewModel.update(gastosState.hojaAMostrar!!) }
+    //Borrar un gasto
+    LaunchedEffect(gastosState.borrarGasto){
+        if(gastosState.borrarGasto != null){
+            viewModel.deleteGasto()
         }
     }
 
@@ -97,11 +92,9 @@ fun GastosScreen(
             GastosContent(
                 innerPadding,
                 gastosState.hojaAMostrar,
-                gastosState.opcionSelected,
                 listaIconosGastos,
                 { onNavNuevoGasto(it) },
-                { viewModel.onOpcionSelectedChanged(it) },
-                { viewModel.onStatusChanged(it) }
+                { viewModel.onBorrarGastoChanged(it) }
             )
         }
     )
@@ -111,11 +104,9 @@ fun GastosScreen(
 fun GastosContent(
     innerPadding: PaddingValues?,
     hojaDeGastos: HojaCalculo?,
-    opcionSelected: String,
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Int) -> Unit,
-    onOpcionSelectedChanged: (String) -> Unit,
-    onStatusChanged: (String) -> Unit,
+    onBorrarGastoChanged: (Array<Int>?) -> Unit
 ){
 
     Box(
@@ -191,10 +182,11 @@ fun GastosContent(
                     itemsIndexed(hojaDeGastos.participantesHoja) { index, participante ->
                         for (gasto in participante!!.listaGastos) {
                             GastoDesing(
+                                idHoja = hojaDeGastos.id,
                                 gasto = gasto,
                                 participante = participante,
                                 listaIconosGastos,
-                                {onOpcionSelectedChanged(it)}
+                                { onBorrarGastoChanged(it) }
                             )
                         }
                     }
@@ -218,25 +210,22 @@ fun GastosContent(
 
 @Composable
 fun GastoDesing(
+    idHoja: Int,
     gasto: Gasto?,
     participante: Participante,
     listaIconosGastos: List<IconoGasto>,
-    onOpcionSelectedChanged: (String) -> Unit
-
+    onBorrarGastoChanged: (Array<Int>?) -> Unit
 ) {
-    var isChecked by rememberSaveable { mutableStateOf(false) }
-
     //Aviso de la opcion elegida:
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
-    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+    var gastoABorrar = arrayOf(idHoja, participante.id, gasto!!.id_gasto)
 
     if (showDialog) MiDialogo(
         show = true,
-        texto = mensaje,
+        texto = "¿Borrar este gasto?",
         cerrar = { showDialog = false },
         aceptar = {
-            onOpcionSelectedChanged(opcionSeleccionada) //cambiar a funcion de update gasto por A de anulado!!
+            onBorrarGastoChanged(gastoABorrar)
             showDialog = false
         }
     )

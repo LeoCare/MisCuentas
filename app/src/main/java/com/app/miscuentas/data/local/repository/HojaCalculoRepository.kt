@@ -1,6 +1,10 @@
 package com.app.miscuentas.data.local.repository
 
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
 import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLinDet
@@ -17,17 +21,25 @@ class HojaCalculoRepository @Inject constructor(
 ) {
 
     @Transaction
+    @Insert
     suspend fun insertAllHojaCalculo(hojaCalculo: HojaCalculo) { hojaCalculoDao.insertAllHojaCalculo(hojaCalculo.toEntity()) }
 
     @Transaction
+    @Insert
     suspend fun insertAllHojaCalculoLin(hojaCalculoEntitylin: DbHojaCalculoEntityLin) { hojaCalculoDao.insertAllHojaCalculoLin(hojaCalculoEntitylin) }
 
     @Transaction
+    @Insert
     suspend fun insertAllHojaCalculoLinDet(hojaCalculoEntitylinDet: DbHojaCalculoEntityLinDet) { hojaCalculoDao.insertAllHojaCalculoLinDet(hojaCalculoEntitylinDet) }
 
+    @Update
     suspend fun update(hojaCalculo: HojaCalculo) = hojaCalculoDao.update(hojaCalculo.toEntity())
 
+    @Delete
     suspend fun delete(hojaCalculo: HojaCalculo) = hojaCalculoDao.delete(hojaCalculo.toEntity())
+
+
+    fun deleteGasto(idHoja: Int, idParticipante: Int, idGasto: Int) = hojaCalculoDao.deleteGasto(idHoja, idParticipante, idGasto)
 
     fun getHojaCalculo(id: Int): Flow<HojaCalculo> =
         hojaCalculoDao.getHojaCalculo(id).map { it.toDomain() }
