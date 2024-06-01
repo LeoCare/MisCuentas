@@ -24,7 +24,7 @@ class MainActivity : FragmentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    //Navegacion con el componente de Composable
+                    //Navegacion:
                     val navController = rememberNavController()
                     AppNavHost(null, navController = navController)
                 }

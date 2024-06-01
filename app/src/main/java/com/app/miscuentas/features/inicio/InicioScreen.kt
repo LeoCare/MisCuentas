@@ -84,7 +84,6 @@ import kotlinx.coroutines.launch
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
 @Composable
 fun Inicio(
-    currentScreen: String,
     navigateUp: () -> Unit,
     onNavSplash: () -> Unit,
     onNavMisHojas: () -> Unit,

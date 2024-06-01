@@ -41,7 +41,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SplashScreen(
-    activity: FragmentActivity,
     onLoginNavigate: () -> Unit,
     onInicioNavigate: () -> Unit,
    viewModel: SplashViewModel = hiltViewModel()

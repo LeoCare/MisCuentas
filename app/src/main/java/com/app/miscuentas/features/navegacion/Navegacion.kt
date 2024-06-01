@@ -94,7 +94,6 @@ fun AppNavHost(
 
         composable(MisCuentasScreen.Splash.route) {
             SplashScreen(
-                activity,
                 onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.route) },
                 onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.route) }
             )
@@ -106,7 +105,6 @@ fun AppNavHost(
         }
         composable(MisCuentasScreen.Inicio.route) {
             Inicio(
-                currentScreen,
                 {navController.navigateUp()},
                 onNavSplash = { navController.navigate(MisCuentasScreen.Splash.route) },
                 onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.route) },
@@ -157,9 +155,8 @@ fun AppNavHost(
 /** NAVEGACION DE LA BARRA INFERIOR EN MIS_HOJAS **/
 /** ******************************************** **/
 sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title: String) {
-
-    object Hojas : MisHojasScreen("hojas", Icons.Default.Difference, "Hojas")
-    object Gastos : MisHojasScreen("gastos", Icons.Default.ShoppingCart, "Gastos")
+    object MisHojas : MisHojasScreen("hojas", Icons.Default.Difference, "Mis Hojas")
+    object MisGastos : MisHojasScreen("gastos", Icons.Default.ShoppingCart, "Mis Gastos")
     object Participantes : MisHojasScreen("participantes", Icons.Default.Person, "Participantes")
 
 }
@@ -173,18 +170,18 @@ fun AppNavBar(
 ) {
     NavHost(
         navController = navControllerMisHojas,
-        startDestination = MisHojasScreen.Hojas.route
+        startDestination = MisHojasScreen.MisHojas.route
     ) {
-        composable( MisHojasScreen.Hojas.route ) {
+        composable( MisHojasScreen.MisHojas.route ) {
             HojasScreen(
                 innerPadding,
                 onNavGastos = { idHoja -> //lambda que nos permite pasarle un parametro a la navegacion
-                    navControllerMisHojas.navigate("${MisHojasScreen.Gastos.route}/$idHoja")
+                    navControllerMisHojas.navigate("${MisHojasScreen.MisGastos.route}/$idHoja")
                 }
             )
         }
         composable(
-            route = MisHojasScreen.Gastos.route + "/{idHojaAMostrar}",
+            route = MisHojasScreen.MisGastos.route + "/{idHojaAMostrar}",
             arguments = listOf(navArgument("idHojaAMostrar") { type = NavType.LongType })
         ) {backStackEntry ->
 
@@ -208,8 +205,8 @@ fun AppNavBar(
 @Composable
 fun BottomNavigationBar(navControllerMisHojas: NavController) {
     val items = listOf(
-        MisHojasScreen.Hojas,
-        MisHojasScreen.Gastos,
+        MisHojasScreen.MisHojas,
+        MisHojasScreen.MisGastos,
         MisHojasScreen.Participantes
     )
     BottomNavigation(
@@ -236,7 +233,7 @@ fun BottomNavigationBar(navControllerMisHojas: NavController) {
                 label = { Text(screen.title, color = colorSeleccionado) },
                 selected = isSelected,
                 onClick = {
-                    if (screen == MisHojasScreen.Gastos) {
+                    if (screen == MisHojasScreen.MisGastos) {
                         // idHoja 0 para que no lo tenga en cuenta
                         val idHojaPredeterminado = 0
                         navControllerMisHojas.navigate("${screen.route}/$idHojaPredeterminado") {
