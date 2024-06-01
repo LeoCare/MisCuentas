@@ -3,6 +3,7 @@ package com.app.miscuentas.features.mis_hojas.nav_bar_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
@@ -36,18 +37,17 @@ class GastosViewModel @Inject constructor(
     private val _gastosState = MutableStateFlow(GastosState())
     val gastosState: StateFlow<GastosState> = _gastosState
 
-    fun onBorrarGastoChanged(gasto: Array<Int>?){
-        _gastosState.value = _gastosState.value.copy( borrarGasto = gasto)
+    fun onBorrarGastoChanged(gasto: DbGastosEntity?){
+        _gastosState.value = _gastosState.value.copy(gastoElegido = gasto)
     }
 
-    fun onHojaAMostrar(idHoja: Int?) {
+    fun onHojaAMostrar(idHoja: Long?) {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 if (idHoja != null) {
-                    hojaCalculoRepository.getHojaCalculo(idHoja).collect { hojaCalculo ->
+                    hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
-                        dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.id) //Actualizo DataStore con idhoja
-                        getListParticipantesToIdHoja(idHoja)
+                        dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo!!.hoja.idHoja) //Actualizo DataStore con idhoja
                     }
                 }
             }
@@ -57,16 +57,17 @@ class GastosViewModel @Inject constructor(
     fun getHojaCalculoPrincipal(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaCalculo(_gastosState.value.idHojaPrincipal!!).collect {
+                hojaCalculoRepository.getHojaConParticipantes(_gastosState.value.idHojaPrincipal!!).collect {
                     _gastosState.value = _gastosState.value.copy(hojaAMostrar = it) //Actualizo state con idhoja
-                    dataStoreConfig.putIdHojaPrincipalPreference(it.id) //Actualizo DataStore con idhoja
+                    dataStoreConfig.putIdHojaPrincipalPreference(it?.hoja?.idHoja) //Actualizo DataStore con idhoja
 
-                    getListParticipantesToIdHoja(it.id)
+                   // getListParticipantesToIdHoja(it.idHoja)
                 }
             }
         }
     }
 
+    /*
     suspend fun getListParticipantesToIdHoja(idHoja: Int) {
         viewModelScope.launch {
             repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
@@ -87,11 +88,13 @@ class GastosViewModel @Inject constructor(
         }
     }
 
+
+
     fun getGastosParticipante(idParticipante: Int): Flow<List<Gasto?>> {
         val idHoja = _gastosState.value.hojaAMostrar!!.id
         return gastoRepository.getGastosParticipante(idHoja, idParticipante)
     }
-
+    */
     init {
         viewModelScope.launch {
             val idUltimaHoja = dataStoreConfig.getIdHojaPrincipalPreference()
@@ -105,10 +108,7 @@ class GastosViewModel @Inject constructor(
     suspend fun deleteGasto(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val idHoja = gastosState.value.borrarGasto!![0]
-                val idParticipante = gastosState.value.borrarGasto!![1]
-                val idGasto = gastosState.value.borrarGasto!![2]
-                hojaCalculoRepository.deleteGasto(idHoja, idParticipante, idGasto)
+                gastoRepository.delete(gastosState.value.gastoElegido)
             }
         }
     }

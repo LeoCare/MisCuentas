@@ -1,9 +1,7 @@
 package com.app.miscuentas.data.local.repository
 
-import android.provider.ContactsContract.Contacts.AggregationSuggestions
-import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistroDao
-import com.app.miscuentas.data.local.dbroom.dbRegistros.toDomain
-import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.data.local.dbroom.dao.DbRegistroDao
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.domain.model.Registro
 import com.app.miscuentas.domain.model.toEntity
 import kotlinx.coroutines.flow.Flow

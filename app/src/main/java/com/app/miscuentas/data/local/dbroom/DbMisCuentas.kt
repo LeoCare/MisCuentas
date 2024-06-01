@@ -2,16 +2,14 @@ package com.app.miscuentas.data.local.dbroom
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastoDao
-import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastosEntity
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntity
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLinDet
-import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesDao
-import com.app.miscuentas.data.local.dbroom.dbParticipantes.DbParticipantesEntity
-import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistroDao
-import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistrosEntity
+import com.app.miscuentas.data.local.dbroom.dao.DbGastoDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.dao.DbHojaCalculoDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
+import com.app.miscuentas.data.local.dbroom.dao.DbParticipantesDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.dao.DbRegistroDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 
 const val DATABASE_VERSION = 1
 //Instancia de la BBDD
@@ -21,8 +19,6 @@ const val DATABASE_VERSION = 1
         DbParticipantesEntity::class,
         DbRegistrosEntity::class,
         DbHojaCalculoEntity::class,
-        DbHojaCalculoEntityLin::class,
-        DbHojaCalculoEntityLinDet::class,
         DbGastosEntity::class
     ],
     version = DATABASE_VERSION,

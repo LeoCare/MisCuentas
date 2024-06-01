@@ -1,14 +1,13 @@
 package com.app.miscuentas.domain.model
 
-import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastosEntity
-import java.math.BigDecimal
-import java.time.LocalDateTime
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 
 data class Gasto (
-    var id_gasto: Int,
+    var idGasto: Long,
+    var tipo: Long = 0,
     var concepto: String,
     val importe: String,
-    var fecha_gasto: String?
+    var fechaGasto: String?
 ){
     /** Establece la fecha del gasto en el momento actual **/
 //    var fechaGasto: LocalDateTime?
@@ -19,8 +18,11 @@ data class Gasto (
 //
 }
 
-fun Gasto.toEntity() = DbGastosEntity(
-    id = id_gasto,
-    concepto = concepto
+fun Gasto.toEntity(idParticipante: Long) = DbGastosEntity(
+    tipo = tipo,
+    concepto = concepto,
+    importe = importe,
+    fechaGasto = fechaGasto,
+    idParticipanteGasto = idParticipante,
 )
 

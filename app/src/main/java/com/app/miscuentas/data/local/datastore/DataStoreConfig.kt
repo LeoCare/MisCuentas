@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
@@ -71,8 +72,8 @@ class DataStoreConfig @Inject constructor(
     }
 
     //Metodo para guardar TRUE en caso de que se hayan registrado
-    suspend fun putIdHojaPrincipalPreference(idHoja: Int?){
-        val preferenceIdHoja = intPreferencesKey(name = "IdHojaPrincipal")
+    suspend fun putIdHojaPrincipalPreference(idHoja: Long?){
+        val preferenceIdHoja = longPreferencesKey(name = "IdHojaPrincipal")
 
         if (idHoja != null) {
             context.dataStore.edit { preferences ->
@@ -82,9 +83,9 @@ class DataStoreConfig @Inject constructor(
     }
 
     //Metodo que retorna el valor guardado en las preference
-    suspend fun getIdHojaPrincipalPreference(): Int? {
+    suspend fun getIdHojaPrincipalPreference(): Long? {
         return try {
-            val preferenceIdHoja = intPreferencesKey(name = "IdHojaPrincipal")
+            val preferenceIdHoja = longPreferencesKey(name = "IdHojaPrincipal")
             val preferences = context.dataStore.data.first()
 
             preferences[preferenceIdHoja]

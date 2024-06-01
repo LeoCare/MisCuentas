@@ -1,6 +1,6 @@
 package com.app.miscuentas.domain.model
 
-import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistrosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 
 data class Registro(
     var id: Int = 0,

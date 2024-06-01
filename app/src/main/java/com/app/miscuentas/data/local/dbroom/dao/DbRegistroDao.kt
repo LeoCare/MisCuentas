@@ -1,4 +1,4 @@
-package com.app.miscuentas.data.local.dbroom.dbRegistros
+package com.app.miscuentas.data.local.dbroom.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -149,7 +149,7 @@ fun InicioContent(
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
     onNavNuevoGasto: (Int) -> Unit,
-    idHojaPrincipal: Int
+    idHojaPrincipal: Long
 ) {
 
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
@@ -160,7 +160,7 @@ fun InicioContent(
 
     val existeHoja = {
         when {
-            idHojaPrincipal != 0 ->  onNavMisHojas()
+            idHojaPrincipal.toInt() != 0 ->  onNavMisHojas()
             else -> { showDialog = true}
         }
     }

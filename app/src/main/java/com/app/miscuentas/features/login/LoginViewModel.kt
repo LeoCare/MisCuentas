@@ -1,11 +1,9 @@
 package com.app.miscuentas.features.login
 
-import android.database.sqlite.SQLiteConstraintException
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.data.local.dbroom.dbRegistros.DbRegistroDao
 import com.app.miscuentas.data.local.repository.RegistroRepository
 import com.app.miscuentas.domain.model.Registro
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject

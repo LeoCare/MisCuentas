@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.domain.model.IconoGasto
@@ -76,7 +77,7 @@ import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun NuevoGasto(
-    idHojaPrincipal: Int?,
+    idHojaPrincipal: Long?,
     currentScreen: String,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
@@ -87,7 +88,6 @@ fun NuevoGasto(
     val scaffoldState = rememberScaffoldState()
     val nuevoGastoState by viewModel.nuevoGastoState.collectAsState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
-    var tituloHoja by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
 
     //paso el id de la hoja para registrar el gasto sobre esta misma.
@@ -98,12 +98,9 @@ fun NuevoGasto(
     LaunchedEffect(nuevoGastoState) {
         when {
             (nuevoGastoState.insertOk) -> navigateUp()
-            (nuevoGastoState.hojaActual != null) -> tituloHoja = nuevoGastoState.hojaActual!!.titulo
         }
     }
 
-    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
-    //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
     if (showDialog) {
         MiAviso(
             true,
@@ -115,7 +112,10 @@ fun NuevoGasto(
     //Comprobar si tiene importe
     val onBotonGuardarClick = {
         when {
-            nuevoGastoState.importe.isNotEmpty() -> viewModel.insertAllHojaCalculoLinDet()
+            nuevoGastoState.importe.isNotEmpty() -> {
+                //METODO PARA GUARDAR EL GASTO
+                viewModel.insertaGasto()
+            }
             else -> showDialog = true
         }
     }
@@ -153,36 +153,31 @@ fun NuevoGasto(
         },
         floatingActionButtonPosition = FabPosition.Center,
         content = { innerPadding -> NuevoGastoContent(
-            tituloHoja,
             innerPadding,
             nuevoGastoState,
             listaIconosGastos,
-            { viewModel.onImporteTextFieldChanged(it)},
+            { viewModel.onImporteTextFieldChanged(it) },
             { viewModel.onIdGastoFieldChanged(it) },
-            { viewModel.onConceptoTextFieldChanged(it)},
-            { viewModel.onPagadorChosen(it) },
-            { viewModel.onPagadorRadioChanged(it) }
+            { viewModel.onConceptoTextFieldChanged(it) },
+            { viewModel.onPagadorChosen(it) }
         )}
     )
 }
 
 @Composable
 fun NuevoGastoContent(
-    tituloHoja: String,
     innerPadding: PaddingValues,
     nuevoGastoState: NuevoGastoState,
     listaIconosGastos: List<IconoGasto>,
     onImporteTextFieldChanged: (String) -> Unit,
-    onIdGastoFieldChanged: (Int) -> Unit,
+    onIdGastoFieldChanged: (Long) -> Unit,
     onConceptoTextFieldChanged: (String) -> Unit,
-    onPagadorChosen: (Int) -> Unit,
-    onPagadorRadioChanged: (Boolean) -> Unit
-    ){
-
+    onPagadorChosen: (ParticipanteConGastos) -> Unit
+){
     //Oculta Teclado
     val controlTeclado = LocalSoftwareKeyboardController.current
 
-     LazyColumn(
+    LazyColumn(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
@@ -195,54 +190,98 @@ fun NuevoGastoContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-         item {
-             /**  TITULO **/
-             Text(
-                 text = tituloHoja,
-                 style = MaterialTheme.typography.headlineLarge
-             )
-             /** IMPORTE **/
-             Card(
-                 modifier = Modifier
-                     .padding(start = 15.dp, end = 15.dp, top = 5.dp)
-                     .fillMaxWidth()
-                     .clip(MaterialTheme.shapes.large),
+        item {
+            /**  TITULO **/
+            Text(
+                text = nuevoGastoState.hojaActual?.hoja?.titulo ?: "aun nada",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            /** IMPORTE **/
+            Card(
+                modifier = Modifier
+                    .padding(start = 15.dp, end = 15.dp, top = 5.dp)
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large),
 
-                 colors = CardDefaults.cardColors(
-                     containerColor = MaterialTheme.colorScheme.outline,
-                     contentColor = Color.Black
-                 )
-             ) {
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outline,
+                    contentColor = Color.Black
+                )
+            ) {
 
-                 Column(
-                     modifier = Modifier
-                         .fillMaxWidth()
-                         .padding(horizontal = 80.dp, vertical = 4.dp),
-                     horizontalAlignment = Alignment.CenterHorizontally,
-                     verticalArrangement = Arrangement.spacedBy(10.dp)
-                 ) {
-                     Text(
-                         text = "Importe",
-                         style = MaterialTheme.typography.titleLarge
-                     )
-                     CustomTextfiel(
-                         placeholder = "0",
-                         value = nuevoGastoState.importe,
-                         onTextFieldChange = { newValue ->
-                             //Marca o desmarca el check:
-                             if (newValue == "") {
-                                 onImporteTextFieldChanged(newValue)
-                             } else if (isValid(newValue, 2)) {
-                                 onImporteTextFieldChanged(newValue)
-                             }
-                         }
-                     )
-                 }
-             }
-         }
-       item{
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 80.dp, vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Importe",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    CustomTextfiel(
+                        placeholder = "0",
+                        value = nuevoGastoState.importe,
+                        onTextFieldChange = { newValue ->
+                            //Marca o desmarca el check:
+                            if (newValue == "") {
+                                onImporteTextFieldChanged(newValue)
+                            } else if (isValid(newValue, 2)) {
+                                onImporteTextFieldChanged(newValue)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        item{
 
-                /** ELECCION PAGADOR **/
+            /** ELECCION PAGADOR **/
+            Card(
+                modifier = Modifier
+                    .padding(start = 15.dp, end = 15.dp, top = 5.dp)
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large),
+
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outline,
+                    contentColor = Color.Black
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+
+                ) {
+                    Text(
+                        text = "Pagador",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    LazyRow {
+                        if (nuevoGastoState.hojaActual?.participantes != null) {
+                            itemsIndexed(nuevoGastoState.hojaActual.participantes) { index, pagadorToList ->
+
+                                CustomRadioButton(
+                                    pagadorIndex = index,
+                                    idPagadorState = nuevoGastoState.idPagador,
+                                    pagador = pagadorToList,
+                                    onPagadorChosen =  { onPagadorChosen(it) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item {
+
+            Column {
+
+                /** CONCEPTO/IMAGEN **/
                 Card(
                     modifier = Modifier
                         .padding(start = 15.dp, end = 15.dp, top = 5.dp)
@@ -263,92 +302,48 @@ fun NuevoGastoContent(
 
                     ) {
                         Text(
-                            text = "Pagador",
+                            text = "Concepto",
                             style = MaterialTheme.typography.titleLarge
                         )
-                        LazyRow {
-                            if (nuevoGastoState.hojaActual?.participantesHoja != null) {
-                                itemsIndexed(nuevoGastoState.hojaActual.participantesHoja) { index, pagadorToList ->
+                        CustomTextfiel(
+                            placeholder = "Varios",
+                            value = nuevoGastoState.concepto,
+                            onTextFieldChange = { onConceptoTextFieldChanged(it) }
+                        )
 
-                                    CustomRadioButton(
-                                        pagadorIndex = index,
-                                        idPagadorState = nuevoGastoState.idPagador,
-                                        pagadorToList = pagadorToList,
-                                        onPagadorChosen =  { onPagadorChosen(it) }
-                                    )
+                        //Pintamos imagenes
+                        // Iconos de gastos en filas desplazables horizontalmente
+                        listaIconosGastos.chunked(4).forEach { filaIconos ->
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                items(filaIconos) { icono ->
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(MaterialTheme.shapes.small)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = icono.imagen),
+                                            contentDescription = "imagen gasto",
+                                            modifier = Modifier
+                                                .width(55.dp)
+                                                .height(55.dp)
+                                                .padding(bottom = 1.dp)
+                                                .clickable {
+                                                    onConceptoTextFieldChanged(icono.nombre)
+                                                    onIdGastoFieldChanged(icono.id.toLong())
+                                                }
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-         item {
-
-             Column {
-
-                 /** CONCEPTO/IMAGEN **/
-                 Card(
-                     modifier = Modifier
-                         .padding(start = 15.dp, end = 15.dp, top = 5.dp)
-                         .fillMaxWidth()
-                         .clip(MaterialTheme.shapes.large),
-
-                     colors = CardDefaults.cardColors(
-                         containerColor = MaterialTheme.colorScheme.outline,
-                         contentColor = Color.Black
-                     )
-                 ) {
-                     Column(
-                         modifier = Modifier
-                             .fillMaxWidth()
-                             .padding(4.dp),
-                         horizontalAlignment = Alignment.CenterHorizontally,
-                         verticalArrangement = Arrangement.spacedBy(10.dp)
-
-                     ) {
-                         Text(
-                             text = "Concepto",
-                             style = MaterialTheme.typography.titleLarge
-                         )
-                         CustomTextfiel(
-                             placeholder = "Varios",
-                             value = nuevoGastoState.concepto,
-                             onTextFieldChange = { onConceptoTextFieldChanged(it) }
-                         )
-
-                         //Pintamos imagenes
-                         // Iconos de gastos en filas desplazables horizontalmente
-                         listaIconosGastos.chunked(4).forEach { filaIconos ->
-                             LazyRow(
-                                 modifier = Modifier.fillMaxWidth(),
-                                 horizontalArrangement = Arrangement.SpaceEvenly,
-                                 verticalAlignment = Alignment.CenterVertically
-                             ) {
-                                 items(filaIconos) { icono ->
-                                     Box(
-                                         modifier = Modifier
-                                             .clip(MaterialTheme.shapes.small)
-                                     ) {
-                                         Image(
-                                             painter = painterResource(id = icono.imagen),
-                                             contentDescription = "imagen gasto",
-                                             modifier = Modifier
-                                                 .width(55.dp)
-                                                 .height(55.dp)
-                                                 .padding(bottom = 1.dp)
-                                                 .clickable {
-                                                     onConceptoTextFieldChanged(icono.nombre)
-                                                     onIdGastoFieldChanged(icono.id)
-                                                 }
-                                         )
-                                     }
-                                 }
-                             }
-                         }
-                     }
-                 }
-             }
-         }
+        }
     }
 }
 
@@ -385,16 +380,15 @@ fun CustomTextfiel(
 @Composable
 fun CustomRadioButton(
     pagadorIndex: Int,
-    idPagadorState: Int,
-    pagadorToList: Participante?,
-    onPagadorChosen: (Int) -> Unit
+    idPagadorState: Long,
+    pagador: ParticipanteConGastos?,
+    onPagadorChosen: (ParticipanteConGastos) -> Unit
 ){
-    var isSelected = pagadorToList?.id == idPagadorState
-    if (idPagadorState == 0 && pagadorIndex == 0) {
+    var isSelected = pagador?.participante?.idParticipante == idPagadorState
+    if (idPagadorState.toInt() == 0 && pagadorIndex == 0) {
         isSelected = true
-        onPagadorChosen(pagadorToList!!.id)
+        onPagadorChosen(pagador!!)
     }
-
 
     val interactionSource =
         remember { MutableInteractionSource() } //Quito el efecto de sombra al clickar
@@ -406,13 +400,13 @@ fun CustomRadioButton(
                 interactionSource = interactionSource,
                 indication = null//Quito el efecto de sombra al clickar
 
-            ) { onPagadorChosen(pagadorToList!!.id) }
+            ) { onPagadorChosen(pagador!!) }
             .padding(bottom = 10.dp, end = 15.dp, top = if (!isSelected) 10.dp else 0.dp)
     ) {
 
         RadioButton(
             selected = isSelected,
-            onClick = { onPagadorChosen(pagadorToList!!.id) },
+            onClick = { onPagadorChosen(pagador!!) },
             modifier = Modifier.padding(end = 7.dp)
         )
         AnimatedContent(
@@ -422,7 +416,7 @@ fun CustomRadioButton(
             }, label = ""
         ) { selected ->
             Text(
-                text = pagadorToList!!.nombre,
+                text = pagador!!.participante.nombre,
                 style = if (selected) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
                 color = if (selected) Color.Blue else Color.Black
             )

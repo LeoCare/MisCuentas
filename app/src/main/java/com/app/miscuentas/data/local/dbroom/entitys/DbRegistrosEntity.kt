@@ -1,4 +1,4 @@
-package com.app.miscuentas.data.local.dbroom.dbRegistros
+package com.app.miscuentas.data.local.dbroom.entitys
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -10,7 +10,7 @@ import com.app.miscuentas.domain.model.Registro
     tableName = "t_registros",
     indices = [Index(value = ["correo"], unique = true)]
 )
-class DbRegistrosEntity (
+data class DbRegistrosEntity (
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "nombre") val nombre: String = "",

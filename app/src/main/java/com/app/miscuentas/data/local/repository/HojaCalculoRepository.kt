@@ -2,15 +2,14 @@ package com.app.miscuentas.data.local.repository
 
 import androidx.room.Delete
 import androidx.room.Insert
-import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLin
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntityLinDet
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.toDomain
+import com.app.miscuentas.data.local.dbroom.dao.DbHojaCalculoDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.HojaCalculo
-import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,15 +21,18 @@ class HojaCalculoRepository @Inject constructor(
 
     @Transaction
     @Insert
-    suspend fun insertAllHojaCalculo(hojaCalculo: HojaCalculo) { hojaCalculoDao.insertAllHojaCalculo(hojaCalculo.toEntity()) }
+    suspend fun insertAllHojaCalculo(hojaCalculo: HojaCalculo) {
+        hojaCalculoDao.insertAllHojaCalculo(hojaCalculo.toEntity())
+    }
 
     @Transaction
     @Insert
-    suspend fun insertAllHojaCalculoLin(hojaCalculoEntitylin: DbHojaCalculoEntityLin) { hojaCalculoDao.insertAllHojaCalculoLin(hojaCalculoEntitylin) }
-
-    @Transaction
-    @Insert
-    suspend fun insertAllHojaCalculoLinDet(hojaCalculoEntitylinDet: DbHojaCalculoEntityLinDet) { hojaCalculoDao.insertAllHojaCalculoLinDet(hojaCalculoEntitylinDet) }
+    suspend fun insertHojaConParticipantes(
+        hoja: DbHojaCalculoEntity,
+        participantes: List<DbParticipantesEntity>
+    ) {
+        hojaCalculoDao.insertHojaConParticipantes(hoja, participantes)
+    }
 
     @Update
     suspend fun update(hojaCalculo: HojaCalculo) = hojaCalculoDao.update(hojaCalculo.toEntity())
@@ -39,17 +41,24 @@ class HojaCalculoRepository @Inject constructor(
     suspend fun delete(hojaCalculo: HojaCalculo) = hojaCalculoDao.delete(hojaCalculo.toEntity())
 
 
-    fun deleteGasto(idHoja: Int, idParticipante: Int, idGasto: Int) = hojaCalculoDao.deleteGasto(idHoja, idParticipante, idGasto)
-
-    fun getHojaCalculo(id: Int): Flow<HojaCalculo> =
+    fun getHojaCalculo(id: Long): Flow<HojaCalculo> =
         hojaCalculoDao.getHojaCalculo(id).map { it.toDomain() }
 
     fun getAllHojasCalculos(): Flow<List<HojaCalculo>> =
         hojaCalculoDao.getAllHojasCalculos().map { list -> list.map { it.toDomain() } }
 
-    fun getMaxIdHojasCalculos(): Flow<Int> =
+    fun getAllHojaConParticipantes(): Flow<List<HojaConParticipantes>> =
+        hojaCalculoDao.getAllHojaConParticipantes().map { list -> list.map { it } }
+
+    fun getMaxIdHojasCalculos(): Flow<Long> =
         hojaCalculoDao.getMaxIdHojasCalculos()
 
+    fun getHojaCalculoPrincipal(): Flow<HojaCalculo?> =
+        hojaCalculoDao.getHojaCalculoPrincipal().map { it?.toDomain() }
+
+    fun getHojaConParticipantes(id: Long): Flow<HojaConParticipantes?> =
+        hojaCalculoDao.getHojaConParticipantes(id)
+    /*
     fun getMaxLineaHojasCalculos(id: Int): Flow<Int> =
         hojaCalculoDao.getMaxLineaHojasCalculos(id)
 
@@ -59,7 +68,6 @@ class HojaCalculoRepository @Inject constructor(
     fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int?> =
         hojaCalculoDao.getMaxLineaDetHojasCalculos(id, linea)
 
-    fun getHojaCalculoPrincipal(): Flow<HojaCalculo?> =
-        hojaCalculoDao.getHojaCalculoPrincipal().map { it?.toDomain() }
+    */
 
 }

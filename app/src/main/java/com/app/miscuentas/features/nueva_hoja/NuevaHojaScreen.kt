@@ -112,7 +112,6 @@ fun NuevaHoja(
         }
     }
 
-
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
@@ -135,7 +134,7 @@ fun NuevaHoja(
             { viewModel.onLimiteGastoFieldChanged(it) },
             { viewModel.onFechaCierreFieldChanged(it) },
             { viewModel.addParticipante(it) },
-            { viewModel.insertAllHojaCalculo() },
+            { viewModel.insertHoja() },
             { viewModel.getTotalParticipantes() },
             { viewModel.deleteUltimoParticipante() }
         )}
@@ -152,7 +151,7 @@ fun NuevaHojaScreen(
     onLimiteGastoFieldChanged: (String) -> Unit,
     onFechaCierreFieldChanged: (String) -> Unit,
     addParticipante: (Participante) -> Unit,
-    insertAllHojaCalculo: () -> Unit,
+    insertHoja: () -> Unit,
     getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
 ) {
@@ -273,7 +272,7 @@ fun NuevaHojaScreen(
             BotonCrear(
                 eventoState.titulo,
                 eventoState.listaParticipantes,
-                { insertAllHojaCalculo() }
+                { insertHoja() }
             )
         }
     }
@@ -389,7 +388,7 @@ fun Participantes(
                 .align(CenterVertically)
                 .clickable {
                     if (statusParticipante.isNotBlank()) {
-                        addParticipante(Participante(id = 0, nombre = statusParticipante))
+                        addParticipante(Participante(idParticipante = 0, nombre = statusParticipante))
                         onParticipanteFieldChange("")
                     }
                 }
@@ -615,7 +614,7 @@ fun IconoVerParticipantes(
 fun BotonCrear(
     titulo: String,
     listaParticipantes: List<Participante>,
-    insertAllHojaCalculo: () -> Unit
+    insertHoja: () -> Unit
 ) {
 
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
@@ -639,7 +638,7 @@ fun BotonCrear(
         Button(
             onClick = {
                 if (titulo.isEmpty() || listaParticipantes.isEmpty()) showDialog = true
-                else { insertAllHojaCalculo() }
+                else { insertHoja() }
             },
             modifier = Modifier
                 .height(60.dp)

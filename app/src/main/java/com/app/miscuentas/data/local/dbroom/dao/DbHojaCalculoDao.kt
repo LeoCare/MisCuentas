@@ -1,4 +1,4 @@
-package com.app.miscuentas.data.local.dbroom.dbHojaCalculo
+package com.app.miscuentas.data.local.dbroom.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,25 +7,23 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+//import com.app.miscuentas.data.local.dbroom.entitys.DbHojaParticipantesGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.Gasto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DbHojaCalculoDao {
-    @Transaction
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllHojaCalculo( hojaCalculo: DbHojaCalculoEntity)
 
-    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllHojaCalculoLin( hojaCalculoLin: DbHojaCalculoEntityLin)
+    suspend fun insertAllHojaCalculo( hojaCalculo: DbHojaCalculoEntity): Long
 
-    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllHojaCalculoLinDet( hojaCalculoLinDet: DbHojaCalculoEntityLinDet)
+    suspend fun insertParticipante(participante: DbParticipantesEntity): Long
 
-    //Como la entidad representa una fila en concreto, si se le pasa la entidad modificada la actualizara en la BBDD
     @Update
     suspend fun update(hojaCalculo: DbHojaCalculoEntity)
 
@@ -33,26 +31,45 @@ interface DbHojaCalculoDao {
     suspend fun delete(hojaCalculo: DbHojaCalculoEntity)
 
 
-    @Query("DELETE FROM t_hojas_lin_det WHERE id = :idHoja AND linea = :idParticipante AND id_gasto = :idGasto")
-    fun deleteGasto(idHoja: Int, idParticipante: Int, idGasto: Int)
-
-
     //Room mantiene el Flow actualizado, por lo que solo se necesita obtener los datos una vez.
     //Luego Room se encarga de notificarnos con cada cambio en los datos
-    @Query("SELECT * FROM t_hojas_cab WHERE id = :id")
-    fun getHojaCalculo(id: Int): Flow<DbHojaCalculoEntity>
+    @Query("SELECT * FROM t_hojas_cab WHERE idHoja = :id")
+    fun getHojaCalculo(id: Long): Flow<DbHojaCalculoEntity>
 
-    @Query("SELECT * FROM t_hojas_cab ORDER BY id DESC")
+    @Query("SELECT * FROM t_hojas_cab ORDER BY idHoja DESC")
     fun getAllHojasCalculos(): Flow<List<DbHojaCalculoEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM t_hojas_cab ORDER BY idHoja DESC")
+    fun getAllHojaConParticipantes(): Flow<List<HojaConParticipantes>>
 
     //Obtener la hoja principal
     @Query("SELECT * FROM t_hojas_cab WHERE principal = 'S'")
     fun getHojaCalculoPrincipal(): Flow<DbHojaCalculoEntity?>
 
     //Obtener el ID de la ultima hoja creada para la insercion en t_hojas_cab_lin
-    @Query("SELECT MAX(id) FROM t_hojas_cab")
-    fun getMaxIdHojasCalculos(): Flow<Int>
+    @Query("SELECT MAX(idHoja) FROM t_hojas_cab")
+    fun getMaxIdHojasCalculos(): Flow<Long>
 
+    //PARA INSERTAR DOS CLASES RELACIONADAS DEBEN INSERTARSE EN UNA MISMA TRANSACCION:
+    @Transaction
+    suspend fun insertHojaConParticipantes(hoja: DbHojaCalculoEntity, participantes: List<DbParticipantesEntity>) {
+        val hojaId = insertAllHojaCalculo(hoja)
+        participantes.forEach { participante ->
+            val participanteConHojaId = participante.copy(idHojaParti = hojaId)
+            insertParticipante(participanteConHojaId)
+        }
+    }
+
+    @Transaction
+    @Query("SELECT * FROM t_hojas_cab WHERE idHoja = :id")
+    fun getHojaConParticipantes(id: Long): Flow<HojaConParticipantes?>
+
+//    @Transaction
+//    @Query("SELECT * FROM t_hojas_cab")
+//    fun getHojaConParticipantesGastos(): List<DbHojaParticipantesGastosEntity>
+
+    /*
     //Obtener el valor de la linea del pagador (de la hoja especificada) para la insercion en t_hojas_cab_lin_det
     @Query("SELECT MAX(linea) FROM t_hojas_lin WHERE id = :id ORDER BY linea DESC")
     fun getMaxLineaHojasCalculos(id: Int): Flow<Int>
@@ -78,4 +95,6 @@ interface DbHojaCalculoDao {
 
     @Query("SELECT * FROM t_hojas_lin_det ORDER BY id DESC")
     fun getAllGastos(): Flow<List<DbGastosEntity>>
+    */
+
 }

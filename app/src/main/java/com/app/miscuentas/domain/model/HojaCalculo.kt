@@ -1,11 +1,9 @@
 package com.app.miscuentas.domain.model
 
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoEntity
-import com.app.miscuentas.data.local.dbroom.dbParticipantes.toDomain
-import java.math.BigDecimal
+import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 
 data class HojaCalculo(
-    var id: Int,
+    var idHoja: Long,
     var titulo: String,
     var fechaCreacion: String?,
     var fechaCierre: String?,
@@ -22,12 +20,12 @@ data class HojaCalculo(
 }
 
 fun HojaCalculo.toEntity() = DbHojaCalculoEntity(
-    id = id,
+    idHoja = idHoja,
     titulo = titulo,
     fechaCreacion = fechaCreacion,
     fechaCierre = fechaCierre,
     limite = limite,
     status = status,
-    principal = if(principal) "S" else "N"
+    principal = principal
 
 )

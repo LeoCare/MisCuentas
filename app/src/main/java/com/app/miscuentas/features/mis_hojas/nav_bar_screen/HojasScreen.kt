@@ -55,6 +55,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.style.TextAlign
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.util.Desing
 import kotlin.random.Random
@@ -72,7 +74,7 @@ import kotlin.random.Random
 @Composable
 fun HojasScreen(
     innerPadding: PaddingValues?,
-    onNavGastos: (Int) -> Unit,
+    onNavGastos: (Long) -> Unit,
     viewModel: HojasViewModel = hiltViewModel()
 ) {
     val itemsTipo = listOf("Activas", "Finalizadas", "Anuladas", "Todas")
@@ -82,7 +84,7 @@ fun HojasScreen(
 
 
     LaunchedEffect(Unit) {
-        viewModel.getAllHojasCalculos()
+        viewModel.getAllHojaConParticipantes()
     }
 
     LaunchedEffect(hojaState.opcionSelected){
@@ -148,13 +150,13 @@ fun HojasScreen(
                 contentPadding = innerPadding!!,
             ) {
                 if (hojaState.listaHojasAMostrar != null){
-                    itemsIndexed(hojaState.listaHojasAMostrar!!){index, hojaCalculoToList ->
+                    itemsIndexed(hojaState.listaHojasAMostrar!!){index, hojaConParticipantes ->
                         HojaDesing(
                             onNavGastos = {onNavGastos(it)},
                             index = index,
-                            hojaCalculo = hojaCalculoToList,
+                            hojaConParticipantes = hojaConParticipantes,
                             onOpcionSelectedChanged = {viewModel.onOpcionSelectedChanged(it)},
-                            onStatusChanged = {viewModel.onStatusChanged(hojaCalculoToList, it)}
+                            onStatusChanged = {viewModel.onStatusChanged(hojaConParticipantes.hoja.toDomain(), it)}
                         )
                     }
                 }
@@ -232,9 +234,9 @@ fun SpinnerCustoms(
 @Composable
 fun HojaDesing(
  /** API **/ //  hoja: Hoja
- onNavGastos: (Int) -> Unit,
+ onNavGastos: (Long) -> Unit,
  index: Int,
- hojaCalculo: HojaCalculo,
+ hojaConParticipantes: HojaConParticipantes,
  onOpcionSelectedChanged: (String) -> Unit,
  onStatusChanged: (String) -> Unit
 ) {
@@ -258,7 +260,7 @@ fun HojaDesing(
         modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
             .clip(MaterialTheme.shapes.extraLarge)
-            .clickable { onNavGastos(hojaCalculo.id) },
+            .clickable { onNavGastos(hojaConParticipantes.hoja.idHoja) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.outline,
             contentColor = Color.Black)
@@ -276,13 +278,13 @@ fun HojaDesing(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = hojaCalculo.titulo,
+                        text = hojaConParticipantes.hoja.titulo,
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 /** API **/ //   Text(text = hoja.type)
-                when (hojaCalculo.status) { //pinta segun valor status de la BBDD
+                when (hojaConParticipantes.hoja.status) { //pinta segun valor status de la BBDD
                     "C" ->
                         Text(
                             text = "Activa",
@@ -321,7 +323,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = hojaCalculo.participantesHoja.size.toString(),
+                            text = hojaConParticipantes.participantes.size.toString(),
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/ //   Text(text = hoja.price.toString())
@@ -333,7 +335,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = hojaCalculo.fechaCierre ?: "sin definir",
+                            text = hojaConParticipantes.hoja.fechaCierre ?: "sin definir",
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/ //  Text(text = hoja.id)
@@ -345,7 +347,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = if(hojaCalculo.limite == null) "sin definir" else hojaCalculo.limite.toString(),
+                            text = if(hojaConParticipantes.hoja.limite == null) "sin definir" else hojaConParticipantes.hoja.limite.toString(),
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/ //  Text(text = hoja.id)
@@ -357,7 +359,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = hojaCalculo.fechaCreacion!!,
+                            text = hojaConParticipantes.hoja.fechaCreacion!!,
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/ //   Text(text = hoja.type)

@@ -135,12 +135,12 @@ fun AppNavHost(
         composable(//composable de navegacion el cual recibe un argumentod e tipo Int
             route = MisCuentasScreen.NuevoGasto.route + "/{idHojaPrincipal}",
             arguments = listOf(navArgument(name = "idHojaPrincipal"){
-                type = NavType.IntType
+                type = NavType.LongType
             })
         ) {
             // idHojaPrincipal es la clave utilizada para pasar los datos
             NuevoGasto(
-                it.arguments?.getInt("idHojaPrincipal"),
+                it.arguments?.getLong("idHojaPrincipal"),
                 currentScreen,
                 canNavigateBack,
                 {navController.navigateUp()}
@@ -185,10 +185,10 @@ fun AppNavBar(
         }
         composable(
             route = MisHojasScreen.Gastos.route + "/{idHojaAMostrar}",
-            arguments = listOf(navArgument("idHojaAMostrar") { type = NavType.IntType })
+            arguments = listOf(navArgument("idHojaAMostrar") { type = NavType.LongType })
         ) {backStackEntry ->
 
-            val idHojaAMostrar = backStackEntry.arguments?.getInt("idHojaAMostrar")
+            val idHojaAMostrar = backStackEntry.arguments?.getLong("idHojaAMostrar")
             GastosScreen(
                 innerPadding,
                 idHojaAMostrar,

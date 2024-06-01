@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.nueva_hoja
 
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.Participante
 
 data class NuevaHojaState(
@@ -13,6 +14,7 @@ data class NuevaHojaState(
 
     //Valores de la BBDD Room
     val insertOk: Boolean = false,
-    val maxIdHolaCalculo: Int = 0,
-    val maxLineaHolaCalculo: Int = 0
+    val maxIdHolaCalculo: Long = 0,
+    val maxLineaHolaCalculo: Int = 0,
+    val hojaConParticipantes: HojaConParticipantes? = null
 )

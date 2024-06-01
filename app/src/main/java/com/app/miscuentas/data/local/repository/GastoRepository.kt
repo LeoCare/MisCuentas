@@ -5,8 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Transaction
 import androidx.room.Update
-import com.app.miscuentas.data.local.dbroom.dbGastos.DbGastoDao
-import com.app.miscuentas.data.local.dbroom.dbHojaCalculo.DbHojaCalculoDao
+import com.app.miscuentas.data.local.dbroom.dao.DbGastoDao
+import com.app.miscuentas.data.local.dbroom.dao.DbHojaCalculoDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.toEntity
 import kotlinx.coroutines.flow.Flow
@@ -17,20 +18,15 @@ class GastoRepository @Inject constructor(
     private val gastoDao: DbGastoDao,
     private val hojaCalculoDao: DbHojaCalculoDao
 ) {
-
-    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllGastos(gasto: Gasto) { gastoDao.insertAllGastos(gasto.toEntity())}
+    fun insertaGasto(gasto: DbGastosEntity) {
+        gastoDao.insertaGasto(gasto)
+    }
 
     @Update
-    suspend fun update(gasto: Gasto) { gastoDao.update(gasto.toEntity())}
+    suspend fun update(gasto: Gasto, idParticipante: Long) { gastoDao.update(gasto.toEntity(idParticipante))}
 
     @Delete
-    suspend fun delete(gasto: Gasto) { gastoDao.delete(gasto.toEntity())}
-//
-//    fun getGastos(idHoja: Int, idParticipante: Int): Flow<List<Gasto>> =
-//        hojaCalculoDao.getGastos(idHoja, idParticipante).map { list -> list.map { it.toDomain() } }
+    suspend fun delete(gasto: DbGastosEntity?) { gastoDao.delete(gasto) }
 
-    fun getGastosParticipante(idHoja: Int, idParticipante: Int): Flow<List<Gasto?>> =
-        hojaCalculoDao.getGastosParticipante(idHoja, idParticipante).map { list -> list.map { it } }
 }

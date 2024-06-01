@@ -1,4 +1,4 @@
-package com.app.miscuentas.data.local.dbroom.dbParticipantes
+package com.app.miscuentas.data.local.dbroom.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,23 +20,25 @@ interface DbParticipantesDao {
     @Update
     suspend fun update(participante: DbParticipantesEntity)
 
+    @Update
+    suspend fun updateParticipanteConGasto(participante: DbParticipantesEntity)
+
     @Delete
     suspend fun delete(participante: DbParticipantesEntity)
 
     //Room mantiene el Flow actualizado, por lo que solo se necesita obtener los datos una vez.
     //Luego Room se encarga de notificarnos con cada cambio en los datos
-    @Query("SELECT * FROM t_participantes WHERE id = :id")
+    @Query("SELECT * FROM t_participantes WHERE idParticipante = :id")
     fun getParticipante(id: Int): Flow<DbParticipantesEntity>
 
-    @Query("SELECT * FROM t_participantes ORDER BY id DESC")
+    @Query("SELECT * FROM t_participantes ORDER BY idParticipante DESC")
     fun getAllParticipantes(): Flow<List<DbParticipantesEntity>>
 
-    @Query("SELECT tp.* FROM t_participantes tp, t_hojas_lin hl WHERE tp.id = hl.id_participante AND hl.id = :idHoja")
-    fun getListParticipantesToIdHoja(idHoja: Int): Flow<List<DbParticipantesEntity>>
 
-    @Query("SELECT id FROM t_participantes WHERE nombre = :nombre ORDER BY id DESC")
+    @Query("SELECT idParticipante FROM t_participantes WHERE nombre = :nombre ORDER BY idParticipante DESC")
     fun getIdParticipante(nombre: String): Int
 
-    @Query("SELECT MAX(id) FROM t_participantes")
+    @Query("SELECT MAX(idParticipante) FROM t_participantes")
     fun getMaxIdParticipantes(): Int
+
 }

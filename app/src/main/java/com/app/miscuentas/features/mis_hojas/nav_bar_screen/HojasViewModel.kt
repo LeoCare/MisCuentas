@@ -54,24 +54,32 @@ class HojasViewModel @Inject constructor(
         if(hojasState.value.tipoOrden == "Fecha creacion"){
             if(hojasState.value.ordenDesc){
                 _hojasState.value = _hojasState.value.copy(
-                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedByDescending { Validaciones.fechaToDateFormat(it.fechaCreacion) }
+                    listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.sortedByDescending {
+                        Validaciones.fechaToDateFormat(it.hoja.fechaCreacion)
+                    }
                 )
             }
             else {
                 _hojasState.value = _hojasState.value.copy(
-                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedBy { Validaciones.fechaToDateFormat(it.fechaCreacion) }
+                    listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.sortedBy {
+                        Validaciones.fechaToDateFormat(it.hoja.fechaCreacion)
+                    }
                 )
             }
         }
         else if (hojasState.value.tipoOrden == "Fecha cierre"){
             if(hojasState.value.ordenDesc){
                 _hojasState.value = _hojasState.value.copy(
-                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedByDescending { Validaciones.fechaToDateFormat(it.fechaCierre) }
+                    listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.sortedByDescending {
+                        Validaciones.fechaToDateFormat(it.hoja.fechaCierre)
+                    }
                 )
             }
             else {
                 _hojasState.value = _hojasState.value.copy(
-                    listaHojasAMostrar = hojasState.value.listaHojasAMostrar?.sortedBy { Validaciones.fechaToDateFormat(it.fechaCierre) }
+                    listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.sortedBy {
+                        Validaciones.fechaToDateFormat(it.hoja.fechaCierre)
+                    }
                 )
             }
         }
@@ -90,22 +98,44 @@ class HojasViewModel @Inject constructor(
     }
 
     //Metodo que muestra solo las del tipo elegido en el metodo anterior
-     fun mostrarSolo(){
+//     fun mostrarSolo(){
+//        when(hojasState.value.mostrarTipo){
+//            "A" -> _hojasState.value = _hojasState.value.copy(
+//                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "A" }
+//            )
+//
+//            "F" -> _hojasState.value = _hojasState.value.copy(
+//                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "F" }
+//            )
+//
+//            "C" -> _hojasState.value = _hojasState.value.copy(
+//                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "C" }
+//            )
+//
+//            else -> _hojasState.value = _hojasState.value.copy(
+//                listaHojasAMostrar = hojasState.value.listaHojas
+//            )
+//
+//        }
+//    }
+
+    //Metodo que muestra solo las del tipo elegido en el metodo anterior
+    fun mostrarSolo(){
         when(hojasState.value.mostrarTipo){
             "A" -> _hojasState.value = _hojasState.value.copy(
-                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "A" }
+                listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.filter { it.hoja.status == "A" }
             )
 
             "F" -> _hojasState.value = _hojasState.value.copy(
-                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "F" }
+                listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.filter { it.hoja.status == "F" }
             )
 
             "C" -> _hojasState.value = _hojasState.value.copy(
-                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "C" }
+                listaHojasAMostrar = hojasState.value.listaHojasConParticipantes?.filter { it.hoja.status == "C" }
             )
 
             else -> _hojasState.value = _hojasState.value.copy(
-                listaHojasAMostrar = hojasState.value.listaHojas
+                listaHojasAMostrar = hojasState.value.listaHojasConParticipantes
             )
 
         }
@@ -122,12 +152,12 @@ class HojasViewModel @Inject constructor(
     //Cambio de status
     fun onStatusChanged(hojaCalculo: HojaCalculo, status: String){
         _hojasState.value = _hojasState.value.copy(hojaAModificar = hojaCalculo)
-        _hojasState.value = _hojasState.value.copy(statusHoja = status)
+        _hojasState.value = _hojasState.value.copy(nuevoStatusHoja = status)
     }
 
     //Borrar
     suspend fun update(){
-        _hojasState.value.hojaAModificar?.status = hojasState.value.statusHoja
+        _hojasState.value.hojaAModificar?.status = hojasState.value.nuevoStatusHoja
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 repositoryHojaCalculo.update(hojasState.value.hojaAModificar!!)
@@ -143,7 +173,7 @@ class HojasViewModel @Inject constructor(
                 repositoryHojaCalculo.getHojaCalculoPrincipal().collect {
                     _hojasState.value = _hojasState.value.copy(hojaPrincipal = it) //Actualizo state con idhoja
 
-                    val idHoja = _hojasState.value.hojaPrincipal?.id
+                    val idHoja = _hojasState.value.hojaPrincipal?.idHoja
                     dataStoreConfig.putIdHojaPrincipalPreference(idHoja) //Actualizo DataStore con idhoja
                 }
             }
@@ -155,26 +185,43 @@ class HojasViewModel @Inject constructor(
      * QUE A SU VEZ LLAMA A UNA FUNCION SUSPEND DE MANERA ASINCRONA PARA CADA DATO RECOLECTADO.
      * ESTO HACE QUE SE EJECUTEN LAS SUSPEND TODAS A LA VEZ EN HILOS SEPARADOS.
      */
-    fun getAllHojasCalculos() {
-        viewModelScope.launch {
-            repositoryHojaCalculo.getAllHojasCalculos().collect { listHojasCalculo ->
-                //guardo la liste hojas
-                _hojasState.value = _hojasState.value.copy(listaHojas = listHojasCalculo)
+//    fun getAllHojasCalculos() {
+//        viewModelScope.launch {
+//            repositoryHojaCalculo.getAllHojasCalculos().collect { listHojasCalculo ->
+//                //guardo la liste hojas
+//                _hojasState.value = _hojasState.value.copy(listaHojas = listHojasCalculo)
+//
+//                //obtego la lista de participantes de cada una de ellas
+//                listHojasCalculo.forEachIndexed { index, hoja ->
+//                    launch {
+//                        //getListParticipantesToIdHoja(index, hoja.idHoja)
+//                    }
+//                }
+//                mostrarSolo()
+//                delay(3000)
+//                _hojasState.value = _hojasState.value.copy(circularIndicator = false)
+//            }
+//        }
+//
+//    }
 
-                //obtego la lista de participantes de cada una de ellas
-                listHojasCalculo.forEachIndexed { index, hoja ->
-                    launch {
-                        getListParticipantesToIdHoja(index, hoja.id)
-                    }
+    fun getAllHojaConParticipantes() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repositoryHojaCalculo.getAllHojaConParticipantes().collect { listaHojasConParticipantes ->
+                    //guardo la lista de hojas
+                    _hojasState.value = _hojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
+
+                    mostrarSolo() //lleno la listaHojasAMostrar con la lista original
+                    delay(1000)
+                    _hojasState.value = _hojasState.value.copy(circularIndicator = false)
                 }
-                mostrarSolo()
-                delay(3000)
-                _hojasState.value = _hojasState.value.copy(circularIndicator = false)
             }
         }
 
     }
 
+    /*
     //Actualizo participantes de las hojas
     suspend fun getListParticipantesToIdHoja(index: Int, idHoja: Int) {
         //Obtener participantes de la hoja y agregarlas al state
@@ -183,6 +230,8 @@ class HojasViewModel @Inject constructor(
         }
 
     }
+
+     */
 
     /** API **/
     //rellena la lista de hojas del state
