@@ -17,7 +17,7 @@ fun NavGraphBuilder.misHojasScreen(
     navControllerMisHojas: NavHostController,
     navHostController: NavHostController
 ){
-    composable( com.app.miscuentas.features.navegacion.MisHojasScreen.MisHojas.route ) {
+    composable( route = MIS_HOJAS_ROUTE ) {
         MisHojasScreen(
             innerPadding,
             onNavGastos = { idHoja -> //lambda que nos permite pasarle un parametro a la navegacion

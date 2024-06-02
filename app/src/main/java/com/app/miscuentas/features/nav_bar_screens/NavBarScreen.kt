@@ -9,7 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.features.navegacion.AppNavBar
 import com.app.miscuentas.features.navegacion.BottomNavigationBar
-import com.app.miscuentas.features.navegacion.MiTopBar
 
 
 //BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
@@ -33,28 +32,19 @@ import com.app.miscuentas.features.navegacion.MiTopBar
 /** Composable principal de la Screen **/
 @Composable
 fun NavBar(
-    canNavigateBack: Boolean,
     navController: NavHostController
 ) {
-    val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
-    val scope = rememberCoroutineScope()
     val navControllerMisHojas = rememberNavController()
 
     Scaffold(
         scaffoldState = scaffoldState,
-        topBar = {
-            MiTopBar(
-                context,
-                null,
-                "MIS HOJAS",
-                scope = scope,
-                scaffoldState = scaffoldState,
-                canNavigateBack = canNavigateBack,
-                navigateUp = { navControllerMisHojas.navigateUp() }
-            )
-        },
         bottomBar = { BottomNavigationBar(navControllerMisHojas) },
-        content = { innerPadding -> AppNavBar(innerPadding, navControllerMisHojas, navController) }
+        content = { innerPadding ->
+            AppNavBar(
+                innerPadding,
+                navControllerMisHojas,
+                navController)
+        }
     )
 }

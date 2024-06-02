@@ -19,7 +19,6 @@ fun NavGraphBuilder.inicioScreen(
 ){
     composable(route = INICIO_ROUTE) {
         Inicio(
-            { navHostController.navigateUp() },
             onNavSplash = { navHostController.NavigateToSplash() },
             onNavNuevaHoja = { navHostController.NavigateToNuevaHoja() },
             onNavNavBar = { navHostController.NavigateToNavBar() },

@@ -73,12 +73,9 @@ import com.app.miscuentas.util.Desing.Companion.MiAviso
 @Composable
 fun NuevoGasto(
     idHojaPrincipal: Long?,
-   // canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     viewModel: NuevoGastoViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
     val nuevoGastoState by viewModel.nuevoGastoState.collectAsState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
@@ -116,17 +113,6 @@ fun NuevoGasto(
 
     Scaffold(
         scaffoldState = scaffoldState,
-        topBar = {
-            MiTopBar(
-                context,
-                null,
-                "NUEVO GASTO",
-                scope = scope,
-                scaffoldState = scaffoldState,
-                canNavigateBack = true, //canNavigateBack,
-                navigateUp = { navigateUp() }
-            )
-        },
         floatingActionButton = {
             Button(
                 onClick = { onBotonGuardarClick() },

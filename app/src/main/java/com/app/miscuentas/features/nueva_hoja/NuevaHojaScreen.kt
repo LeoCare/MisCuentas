@@ -120,18 +120,6 @@ fun NuevaHoja(
 
     Scaffold(
         scaffoldState = scaffoldState,
-        topBar = {
-            MiTopBar(
-                context,
-                null,
-                "NUEVA HOJA",
-                scope = scope,
-                scaffoldState = scaffoldState,
-                canNavigateBack = true, //canNavigateBack,
-                navigateUp = { navigateUp() }
-            )
-        },
-
         content = { innerPadding -> NuevaHojaScreen(
             innerPadding,
             eventoState,

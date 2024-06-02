@@ -36,6 +36,7 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -43,7 +44,9 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -96,9 +99,9 @@ import kotlinx.coroutines.launch
 //}
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Inicio(
-    navigateUp: () -> Unit,
     onNavSplash: () -> Unit,
     onNavNavBar: () -> Unit,
     onNavNuevaHoja: () -> Unit,
@@ -111,6 +114,8 @@ fun Inicio(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val inicioState by viewModel.inicioState.collectAsState()
+    val scrollBehavior =
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect(Unit) {
         viewModel.getIdHojaPrincipalPreference()
@@ -128,17 +133,17 @@ fun Inicio(
             )
         }
     ) {
-        Scaffold( //La funcion Scaffold tiene la estructura para crear una view con barra de navegacion
+        Scaffold(
             scaffoldState = scaffoldState,
+            modifier = Modifier.fillMaxSize(),
             topBar = {
                 MiTopBar(
-                    context,
-                    drawerState,
-                    "INICIO",
+                    drawerState = drawerState,
+                    currentScreen = "INICIO",
                     scope = scope,
-                    scaffoldState = scaffoldState,
                     canNavigateBack = false,
-                    navigateUp = { navigateUp() }
+                    navigateUp = {},
+                    scrollBehavior = scrollBehavior
                 )
             },
             content = { innerPadding ->

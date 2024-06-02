@@ -11,13 +11,9 @@ fun NavHostController.NavigateToNavBar(){
 }
 
 fun NavGraphBuilder.navBarScreen(
-    navHostController: NavHostController,
-    canNavigateBack: Boolean,
+    navHostController: NavHostController
 ){
     composable(route = NAV_BAR_ROUTE) {
-        NavBar(
-            canNavigateBack,
-            navHostController
-        )
+        NavBar(navHostController)
     }
 }
