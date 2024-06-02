@@ -34,7 +34,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -42,13 +41,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,18 +65,15 @@ import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.domain.model.IconoGasto
-import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
-import com.app.miscuentas.features.navegacion.MisCuentasScreen
+import com.app.miscuentas.features.splash.SPLASH_ROUTE
 import com.app.miscuentas.util.Desing.Companion.MiAviso
-import kotlinx.coroutines.Dispatchers
 
 
 @Composable
 fun NuevoGasto(
     idHojaPrincipal: Long?,
-    currentScreen: String,
-    canNavigateBack: Boolean,
+   // canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     viewModel: NuevoGastoViewModel = hiltViewModel()
 ) {
@@ -129,7 +123,7 @@ fun NuevoGasto(
                 "NUEVO GASTO",
                 scope = scope,
                 scaffoldState = scaffoldState,
-                canNavigateBack = canNavigateBack,
+                canNavigateBack = true, //canNavigateBack,
                 navigateUp = { navigateUp() }
             )
         },
@@ -430,9 +424,9 @@ fun CustomRadioButton(
 fun Preview(){
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.route
+    val currentScreen = backStackEntry?.destination?.route ?: SPLASH_ROUTE
 
     val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
     val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
-    NuevoGasto(null, currentScreen, canNavigateBack,  {navController.navigateUp()})
+    NuevoGasto(null,  {navController.navigateUp()})
 }

@@ -1,4 +1,4 @@
-package com.app.miscuentas.features.mis_hojas.nav_bar_screen
+package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
@@ -42,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,13 +48,9 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.text.style.TextAlign
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.util.Desing
 import kotlin.random.Random
 
@@ -72,15 +65,15 @@ import kotlin.random.Random
 
 /** Contenedor del resto de elementos para la pestaña Hojas **/
 @Composable
-fun HojasScreen(
+fun MisHojasScreen(
     innerPadding: PaddingValues?,
     onNavGastos: (Long) -> Unit,
-    viewModel: HojasViewModel = hiltViewModel()
+    viewModel: MisHojasViewModel = hiltViewModel()
 ) {
     val itemsTipo = listOf("Activas", "Finalizadas", "Anuladas", "Todas")
     val itemsOrden = listOf("Fecha creacion", "Fecha cierre")
 
-    val hojaState by viewModel.hojasState.collectAsState()
+    val hojaState by viewModel.misHojasState.collectAsState()
 
 
     LaunchedEffect(Unit) {

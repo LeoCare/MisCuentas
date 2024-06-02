@@ -1,4 +1,4 @@
-package com.app.miscuentas.features.mis_hojas
+package com.app.miscuentas.features.nav_bar_screens
 
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
@@ -32,10 +32,8 @@ import com.app.miscuentas.features.navegacion.MiTopBar
 
 /** Composable principal de la Screen **/
 @Composable
-fun MisHojas(
-    currentScreen: String,
+fun NavBar(
     canNavigateBack: Boolean,
-    navigateUp: () -> Unit,
     navController: NavHostController
 ) {
     val context = LocalContext.current
@@ -53,7 +51,7 @@ fun MisHojas(
                 scope = scope,
                 scaffoldState = scaffoldState,
                 canNavigateBack = canNavigateBack,
-                navigateUp = { navigateUp() }
+                navigateUp = { navControllerMisHojas.navigateUp() }
             )
         },
         bottomBar = { BottomNavigationBar(navControllerMisHojas) },

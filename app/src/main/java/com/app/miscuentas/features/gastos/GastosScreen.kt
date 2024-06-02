@@ -1,4 +1,4 @@
-package com.app.miscuentas.features.mis_hojas.nav_bar_screen
+package com.app.miscuentas.features.gastos
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -47,10 +47,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
-import com.app.miscuentas.domain.model.Gasto
-import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.IconoGasto
-import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 
@@ -89,17 +86,13 @@ fun GastosScreen(
         texto = "Tratar un aviso si los gastos no han sido guardados en BBDD, antes de salir atras."
     )
     { showDialog = false }
-    Scaffold(
-        scaffoldState = scaffoldState,
-        content = {
-            GastosContent(
-                innerPadding,
-                gastosState.hojaAMostrar,
-                listaIconosGastos,
-                { onNavNuevoGasto(it) },
-                { viewModel.onBorrarGastoChanged(it) }
-            )
-        }
+
+    GastosContent(
+        innerPadding,
+        gastosState.hojaAMostrar,
+        listaIconosGastos,
+        { onNavNuevoGasto(it) },
+        { viewModel.onBorrarGastoChanged(it) }
     )
 }
 

@@ -11,6 +11,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Difference
 import androidx.compose.material.icons.filled.Info
@@ -18,17 +19,18 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.twotone.ArrowBack
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -36,24 +38,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.app.miscuentas.R
-import com.app.miscuentas.features.inicio.Inicio
-import com.app.miscuentas.features.login.Login
-import com.app.miscuentas.features.mis_hojas.MisHojas
-import com.app.miscuentas.features.mis_hojas.nav_bar_screen.GastosScreen
-import com.app.miscuentas.features.mis_hojas.nav_bar_screen.HojasScreen
-import com.app.miscuentas.features.mis_hojas.nav_bar_screen.ParticipantesScreen
-import com.app.miscuentas.features.nueva_hoja.NuevaHoja
-import com.app.miscuentas.features.nuevo_gasto.NuevoGasto
-import com.app.miscuentas.features.splash.SplashScreen
+import com.app.miscuentas.features.gastos.GASTOS_ROUTE
+import com.app.miscuentas.features.inicio.inicioScreen
+import com.app.miscuentas.features.login.loginScreen
+import com.app.miscuentas.features.nav_bar_screens.navBarScreen
+import com.app.miscuentas.features.gastos.GastosScreen
+import com.app.miscuentas.features.gastos.gastosScreen
+import com.app.miscuentas.features.nav_bar_screens.mis_hojas.MIS_HOJAS_ROUTE
+import com.app.miscuentas.features.nav_bar_screens.mis_hojas.MisHojasScreen
+import com.app.miscuentas.features.nav_bar_screens.mis_hojas.misHojasScreen
+import com.app.miscuentas.features.nav_bar_screens.participantes.PARTICIPANTES_ROUTE
+import com.app.miscuentas.features.nav_bar_screens.participantes.ParticipantesScreen
+import com.app.miscuentas.features.nav_bar_screens.participantes.participantesScreen
+import com.app.miscuentas.features.nueva_hoja.nuevaHojaScreen
+import com.app.miscuentas.features.nuevo_gasto.NavigateToNuevoGasto
+import com.app.miscuentas.features.nuevo_gasto.nuevoGastoScreen
+import com.app.miscuentas.features.splash.SPLASH_ROUTE
+import com.app.miscuentas.features.splash.splashScreen
 import com.app.miscuentas.util.Captura
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -62,88 +70,31 @@ import kotlinx.coroutines.launch
 /** ************************INICIO************************** **/
 /** NAVEGACION DEL MAIN ENTRE LAS DISTINTAS SCREEN DE LA APP **/
 /** ******************************************************** **/
-sealed class MisCuentasScreen (val route: String) {
-
-    object Splash : MisCuentasScreen("splash")
-    object Login : MisCuentasScreen("login",)
-    object Inicio : MisCuentasScreen("inicio")
-    object NuevaHoja : MisCuentasScreen("nueva_hoja")
-    object MisHojas : MisCuentasScreen("mis_hojas")
-    object NuevoGasto : MisCuentasScreen("nuevo_gasto")
-
-}
-
 @Composable
 fun AppNavHost(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
+    scrollBehavior: TopAppBarScrollBehavior,
     navController: NavHostController
 ) {
     val activity = LocalContext.current as FragmentActivity
 
     //pila de Screen y valor actual
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = backStackEntry?.destination?.route ?: MisCuentasScreen.Splash.route
-
+    val currentScreen = backStackEntry?.destination?.route ?: SPLASH_ROUTE
     val canNavigateBack = backStackEntry != null // Determinar si se puede navegar hacia atrás
 
 
     NavHost(
         navController = navController,
-        startDestination = MisCuentasScreen.Splash.route
+        startDestination = SPLASH_ROUTE
     ) {
 
-        composable(MisCuentasScreen.Splash.route) {
-            SplashScreen(
-                onLoginNavigate = { navController.navigate(MisCuentasScreen.Login.route) },
-                onInicioNavigate = { navController.navigate(MisCuentasScreen.Inicio.route) }
-            )
-        }
-        composable(MisCuentasScreen.Login.route) {
-            Login(
-                { navController.navigate(MisCuentasScreen.Inicio.route) }
-            )
-        }
-        composable(MisCuentasScreen.Inicio.route) {
-            Inicio(
-                {navController.navigateUp()},
-                onNavSplash = { navController.navigate(MisCuentasScreen.Splash.route) },
-                onNavNuevaHoja = { navController.navigate(MisCuentasScreen.NuevaHoja.route) },
-                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.route) },
-                onNavNuevoGasto = { idHoja ->
-                    navController.navigate(MisCuentasScreen.NuevoGasto.route + "/$idHoja")
-                }
-            )
-        }
-        composable(MisCuentasScreen.NuevaHoja.route) {
-            NuevaHoja(
-                currentScreen,
-                canNavigateBack,
-                {navController.navigateUp()},
-                onNavMisHojas = { navController.navigate(MisCuentasScreen.MisHojas.route) }
-            )
-        }
-        composable(MisCuentasScreen.MisHojas.route) {
-            MisHojas(
-                currentScreen,
-                canNavigateBack,
-                {navController.navigateUp()},
-                navController
-            )
-        }
-        composable(//composable de navegacion el cual recibe un argumentod e tipo Int
-            route = MisCuentasScreen.NuevoGasto.route + "/{idHojaPrincipal}",
-            arguments = listOf(navArgument(name = "idHojaPrincipal"){
-                type = NavType.LongType
-            })
-        ) {
-            // idHojaPrincipal es la clave utilizada para pasar los datos
-            NuevoGasto(
-                it.arguments?.getLong("idHojaPrincipal"),
-                currentScreen,
-                canNavigateBack,
-                {navController.navigateUp()}
-            )
-        }
+        splashScreen(navController)
+        loginScreen(navController)
+        inicioScreen(navController)
+        navBarScreen(navController, canNavigateBack)
+        nuevaHojaScreen(navController)
+        nuevoGastoScreen(navController)
     }
 }
 /** *************************FIN**************************** **/
@@ -155,9 +106,9 @@ fun AppNavHost(
 /** NAVEGACION DE LA BARRA INFERIOR EN MIS_HOJAS **/
 /** ******************************************** **/
 sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title: String) {
-    object MisHojas : MisHojasScreen("hojas", Icons.Default.Difference, "Mis Hojas")
-    object MisGastos : MisHojasScreen("gastos", Icons.Default.ShoppingCart, "Mis Gastos")
-    object Participantes : MisHojasScreen("participantes", Icons.Default.Person, "Participantes")
+    object MisHojas : MisHojasScreen(MIS_HOJAS_ROUTE, Icons.Default.Difference, "Mis Hojas")
+    object MisGastos : MisHojasScreen("mis_gastos_route", Icons.Default.ShoppingCart, "Mis Gastos")
+    object Participantes : MisHojasScreen(PARTICIPANTES_ROUTE, Icons.Default.Person, "Participantes")
 
 }
 
@@ -166,37 +117,16 @@ sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title
 fun AppNavBar(
     innerPadding: PaddingValues,
     navControllerMisHojas: NavHostController,
-    navController: NavHostController
+    navHostController: NavHostController
 ) {
     NavHost(
         navController = navControllerMisHojas,
-        startDestination = MisHojasScreen.MisHojas.route
+        startDestination = MIS_HOJAS_ROUTE
     ) {
-        composable( MisHojasScreen.MisHojas.route ) {
-            HojasScreen(
-                innerPadding,
-                onNavGastos = { idHoja -> //lambda que nos permite pasarle un parametro a la navegacion
-                    navControllerMisHojas.navigate("${MisHojasScreen.MisGastos.route}/$idHoja")
-                }
-            )
-        }
-        composable(
-            route = MisHojasScreen.MisGastos.route + "/{idHojaAMostrar}",
-            arguments = listOf(navArgument("idHojaAMostrar") { type = NavType.LongType })
-        ) {backStackEntry ->
-
-            val idHojaAMostrar = backStackEntry.arguments?.getLong("idHojaAMostrar")
-            GastosScreen(
-                innerPadding,
-                idHojaAMostrar,
-                onNavNuevoGasto = { idHoja ->
-                    navController.navigate(MisCuentasScreen.NuevoGasto.route + "/$idHoja")
-                }
-            )
-        }
-        composable(MisHojasScreen.Participantes.route) {
-            ParticipantesScreen()
-        }
+        misHojasScreen(innerPadding, navControllerMisHojas, navHostController)
+        gastosScreen(innerPadding, navControllerMisHojas, navHostController)
+        //falta crear misGastosScreen(navControllerMisHojas, innerPadding)
+        participantesScreen(innerPadding, navControllerMisHojas, navHostController)
     }
 }
 
@@ -269,12 +199,14 @@ fun MiTopBar(
     navigateUp: () -> Unit
 ) {
     val activity = LocalContext.current as FragmentActivity
+    val scrollBehavior =
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     TopAppBar(
         title = {
             Text(
-                currentScreen,
-                fontSize = 25.sp
+            currentScreen,
+            fontSize = 25.sp
             )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -284,7 +216,7 @@ fun MiTopBar(
             if (canNavigateBack) { //muestra la flecha para volver atras
                 IconButton(onClick = navigateUp) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back_button)
                     )
                 }
@@ -309,7 +241,8 @@ fun MiTopBar(
             ) {
                 Icon(Icons.Filled.Info, contentDescription = "Informacion")
             }
-        }
+        },
+        scrollBehavior = scrollBehavior
     )
 }
 

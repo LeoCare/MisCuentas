@@ -2,22 +2,40 @@ package com.app.miscuentas.features.inicio
 
 import android.app.Activity
 import android.content.Context
-import android.widget.ImageButton
 import android.widget.Toast
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
-import androidx.compose.material.icons.*
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Output
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -43,16 +61,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.R
 import com.app.miscuentas.features.navegacion.MiTopBar
-import com.app.miscuentas.features.navegacion.MisCuentasScreen
 import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import kotlinx.coroutines.CoroutineScope
@@ -86,9 +100,9 @@ import kotlinx.coroutines.launch
 fun Inicio(
     navigateUp: () -> Unit,
     onNavSplash: () -> Unit,
-    onNavMisHojas: () -> Unit,
+    onNavNavBar: () -> Unit,
     onNavNuevaHoja: () -> Unit,
-    onNavNuevoGasto: (Int) -> Unit,
+    onNavNuevoGasto: (Long) -> Unit,
     viewModel: InicioViewModel = hiltViewModel()
 ){
 
@@ -130,7 +144,7 @@ fun Inicio(
             content = { innerPadding ->
                 InicioContent(
                     innerPadding,
-                    onNavMisHojas,
+                    onNavNavBar,
                     onNavNuevaHoja,
                     onNavNuevoGasto,
                     inicioState.idHojaPrincipal
@@ -147,7 +161,7 @@ fun InicioContent(
     innerPadding: PaddingValues,
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
-    onNavNuevoGasto: (Int) -> Unit,
+    onNavNuevoGasto: (Long) -> Unit,
     idHojaPrincipal: Long
 ) {
 
