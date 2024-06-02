@@ -131,7 +131,7 @@ fun GastosContent(
             ) {
                 Text(
                     text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = Color.Black
                 )
             }
@@ -268,7 +268,7 @@ fun GastoDesing(
                     ) {
                         Image(
                             painter = painterResource(
-                                id = listaIconosGastos[gasto.idGasto.toInt() - 1].imagen
+                                id = listaIconosGastos[gasto.tipo.toInt() - 1].imagen
                             ), //IMAGEN DEL GASTO
                             contentDescription = "Logo Hoja",
                             modifier = Modifier

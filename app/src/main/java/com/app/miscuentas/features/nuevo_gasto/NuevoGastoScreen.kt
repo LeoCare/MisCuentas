@@ -179,7 +179,7 @@ fun NuevoGastoContent(
             ) {
                 Text(
                     text = nuevoGastoState.hojaActual?.hoja?.titulo ?: "Buscando...",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.titleLarge,
                 )
             }
             /** IMPORTE **/
