@@ -24,7 +24,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.app.miscuentas.features.inicio.InicioViewModel
 import com.app.miscuentas.features.navegacion.AppNavHost
+import com.app.miscuentas.features.navegacion.BottomNavigationBar
 import com.app.miscuentas.features.navegacion.MiTopBar
+import com.app.miscuentas.features.navegacion.MisHojasScreen
 import com.app.miscuentas.features.splash.SPLASH_ROUTE
 import com.app.miscuentas.features.theme.MisCuentasTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +48,13 @@ class MainActivity : FragmentActivity() {
                 val currentScreen = backStackEntry?.destination?.route ?: SPLASH_ROUTE
                 val canNavigateBack = backStackEntry != null
 
-                if(currentScreen != "inicio"){
+                val items = listOf(
+                    MisHojasScreen.MisHojas,
+                    MisHojasScreen.MisGastos,
+                    MisHojasScreen.Participantes
+                )
+
+                if(currentScreen != "INICIO"){
                     Scaffold(
                         scaffoldState = scaffoldState,
                         modifier = Modifier
@@ -62,6 +70,14 @@ class MainActivity : FragmentActivity() {
                                 scrollBehavior = scrollBehavior
                             )
 
+                        },
+                        bottomBar = {
+                            items.forEach { screen ->
+                                val screenStr = screen.route
+                                if(currentScreen == screenStr){
+                                    BottomNavigationBar(navController)
+                                }
+                            }
                         },
                         content = { innerPadding ->
                             AppNavHost(

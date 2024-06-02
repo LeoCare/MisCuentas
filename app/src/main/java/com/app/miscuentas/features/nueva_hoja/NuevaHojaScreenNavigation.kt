@@ -3,9 +3,11 @@ package com.app.miscuentas.features.nueva_hoja
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.app.miscuentas.features.nav_bar_screens.NavigateToNavBar
+import com.app.miscuentas.features.nav_bar_screens.mis_hojas.NavigateToMisHojas
 
-const val NUEVO_HOJA_ROUTE = "nueva_hoja"
+//import com.app.miscuentas.features.nav_bar_screens.NavigateToNavBar
+
+const val NUEVO_HOJA_ROUTE = "NUEVA HOJA"
 
 fun NavHostController.NavigateToNuevaHoja(){
     this.navigate(NUEVO_HOJA_ROUTE)
@@ -18,7 +20,7 @@ fun NavGraphBuilder.nuevaHojaScreen(
         NuevaHoja(
            // canNavigateBack,
             {navHostController.navigateUp()},
-            onNavMisHojas = { navHostController.NavigateToNavBar() }
+            onNavMisHojas = { navHostController.NavigateToMisHojas() }
         )
     }
 }

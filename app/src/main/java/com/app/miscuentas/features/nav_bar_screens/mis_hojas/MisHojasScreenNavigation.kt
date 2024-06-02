@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.app.miscuentas.features.gastos.NavigateToGastos
 
-const val MIS_HOJAS_ROUTE = "mis_hojas"
+const val MIS_HOJAS_ROUTE = "MIS HOJAS"
 
 fun NavHostController.NavigateToMisHojas(){
     this.navigate(MIS_HOJAS_ROUTE)
@@ -14,14 +14,13 @@ fun NavHostController.NavigateToMisHojas(){
 
 fun NavGraphBuilder.misHojasScreen(
     innerPadding: PaddingValues?,
-    navControllerMisHojas: NavHostController,
     navHostController: NavHostController
 ){
     composable( route = MIS_HOJAS_ROUTE ) {
         MisHojasScreen(
             innerPadding,
             onNavGastos = { idHoja -> //lambda que nos permite pasarle un parametro a la navegacion
-                navControllerMisHojas.NavigateToGastos(idHoja)
+                navHostController.NavigateToGastos(idHoja)
             }
         )
     }

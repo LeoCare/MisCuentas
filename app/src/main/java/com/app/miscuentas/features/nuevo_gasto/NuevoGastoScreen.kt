@@ -129,7 +129,7 @@ fun NuevoGasto(
                     color = Color.White
                 )
             }
-            Spacer(modifier = Modifier.fillMaxHeight(0.13F))
+            Spacer(modifier = Modifier.fillMaxHeight(0.10F))
         },
         floatingActionButtonPosition = FabPosition.Center,
         content = { innerPadding -> NuevoGastoContent(
@@ -169,17 +169,23 @@ fun NuevoGastoContent(
             },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         item {
             /**  TITULO **/
-            Text(
-                text = nuevoGastoState.hojaActual?.hoja?.titulo ?: "aun nada",
-                style = MaterialTheme.typography.headlineLarge
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = nuevoGastoState.hojaActual?.hoja?.titulo ?: "Buscando...",
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+            }
             /** IMPORTE **/
             Card(
                 modifier = Modifier
-                    .padding(start = 15.dp, end = 15.dp, top = 5.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                     .fillMaxWidth()
                     .clip(MaterialTheme.shapes.large),
 
@@ -220,7 +226,7 @@ fun NuevoGastoContent(
             /** ELECCION PAGADOR **/
             Card(
                 modifier = Modifier
-                    .padding(start = 15.dp, end = 15.dp, top = 5.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                     .fillMaxWidth()
                     .clip(MaterialTheme.shapes.large),
 
@@ -264,7 +270,7 @@ fun NuevoGastoContent(
                 /** CONCEPTO/IMAGEN **/
                 Card(
                     modifier = Modifier
-                        .padding(start = 15.dp, end = 15.dp, top = 5.dp)
+                        .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.large),
 

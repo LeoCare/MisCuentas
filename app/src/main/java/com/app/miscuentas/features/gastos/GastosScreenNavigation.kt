@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.miscuentas.features.nuevo_gasto.NavigateToNuevoGasto
 
-const val GASTOS_ROUTE = "gastos"
+const val GASTOS_ROUTE = "GASTOS"
 const val GASTOS_ID_HOJA_A_MOSTRAR = "idHojaAMostrar"
 
 fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
@@ -17,7 +17,6 @@ fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
 
 fun NavGraphBuilder.gastosScreen(
     innerPadding: PaddingValues?,
-    navControllerMisHojas: NavHostController,
     navHostController: NavHostController
 ){
     composable(

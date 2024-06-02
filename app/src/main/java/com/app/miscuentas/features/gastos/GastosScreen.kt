@@ -125,8 +125,8 @@ fun GastosContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
+                    .padding(horizontal = 30.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -139,8 +139,8 @@ fun GastosContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.SpaceAround
+                    .padding(horizontal = 30.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row {
                     Text(

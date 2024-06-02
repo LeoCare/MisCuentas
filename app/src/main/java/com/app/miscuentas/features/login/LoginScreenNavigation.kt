@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.app.miscuentas.features.inicio.NavigateToInicio
 
-const val LOGIN_ROUTE = "login"
+const val LOGIN_ROUTE = "LOGIN"
 
 fun NavHostController.NavigateToLogin() {
     this.navigate(LOGIN_ROUTE)

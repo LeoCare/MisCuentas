@@ -103,7 +103,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun Inicio(
     onNavSplash: () -> Unit,
-    onNavNavBar: () -> Unit,
+    onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
     onNavNuevoGasto: (Long) -> Unit,
     viewModel: InicioViewModel = hiltViewModel()
@@ -149,7 +149,7 @@ fun Inicio(
             content = { innerPadding ->
                 InicioContent(
                     innerPadding,
-                    onNavNavBar,
+                    onNavMisHojas,
                     onNavNuevaHoja,
                     onNavNuevoGasto,
                     inicioState.idHojaPrincipal

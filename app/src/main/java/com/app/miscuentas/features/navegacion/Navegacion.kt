@@ -37,7 +37,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.miscuentas.R
 import com.app.miscuentas.features.inicio.inicioScreen
 import com.app.miscuentas.features.login.loginScreen
-import com.app.miscuentas.features.nav_bar_screens.navBarScreen
 import com.app.miscuentas.features.gastos.gastosScreen
 import com.app.miscuentas.features.nav_bar_screens.mis_hojas.MIS_HOJAS_ROUTE
 import com.app.miscuentas.features.nav_bar_screens.mis_hojas.misHojasScreen
@@ -68,9 +67,13 @@ fun AppNavHost(
         splashScreen(navController)
         loginScreen(navController)
         inicioScreen(navController)
-        navBarScreen(navController)
+//        navBarScreen(navController)
         nuevaHojaScreen(navController)
         nuevoGastoScreen(navController)
+        misHojasScreen(innerPadding, navController)
+        gastosScreen(innerPadding, navController)
+        //falta crear misGastosScreen(navControllerMisHojas, innerPadding)
+        participantesScreen(innerPadding, navController)
     }
 }
 /** *************************FIN**************************** **/
@@ -87,25 +90,6 @@ sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title
     object Participantes : MisHojasScreen(PARTICIPANTES_ROUTE, Icons.Default.Person, "Participantes")
 
 }
-
-//Composable de navegacion para la barra inferior en Mis_Hojas
-@Composable
-fun AppNavBar(
-    innerPadding: PaddingValues,
-    navControllerMisHojas: NavHostController,
-    navHostController: NavHostController
-) {
-    NavHost(
-        navController = navControllerMisHojas,
-        startDestination = MIS_HOJAS_ROUTE
-    ) {
-        misHojasScreen(innerPadding, navControllerMisHojas, navHostController)
-        gastosScreen(innerPadding, navControllerMisHojas, navHostController)
-        //falta crear misGastosScreen(navControllerMisHojas, innerPadding)
-        participantesScreen(innerPadding, navControllerMisHojas, navHostController)
-    }
-}
-
 
 //Composable de los botones a mostrar
 @Composable
@@ -175,11 +159,15 @@ fun MiTopBar(
 ) {
     val activity = LocalContext.current as FragmentActivity
 
-    if (currentScreen != "splash"){
+    if (currentScreen != "SPLASH"){
         TopAppBar(
             title = {
                 Text(
-                    currentScreen,
+                    text = when { //para que no pinte el nombre de la screen mas el del parametro.
+                        currentScreen.startsWith("GASTOS") -> "GASTOS"
+                        currentScreen.startsWith("NUEVO") -> "NUEVO GASTO"
+                        else -> {currentScreen}
+                    },
                     fontSize = 25.sp
                 )
             },

@@ -13,9 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 
 /** Contenedor del resto de elementos para la pestaña Participantes **/
 @Composable
-fun ParticipantesScreen(
-
-) {
+fun ParticipantesScreen(navHostController: () -> Boolean) {
     Box{
         LazyColumn {
             item {

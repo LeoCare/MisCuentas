@@ -6,7 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 
-const val NUEVO_GASTO_ROUTE = "nuevo_gasto"
+const val NUEVO_GASTO_ROUTE = "NUEVO GASTO"
 const val NUEVO_GASTO_ID_HOJA_PRINCIPAL = "idHojaPrincipal"
 
 fun NavHostController.NavigateToNuevoGasto(idHojaPrincipal: Long){
@@ -28,7 +28,6 @@ fun NavGraphBuilder.nuevoGastoScreen(
         it.arguments?.getLong(NUEVO_GASTO_ID_HOJA_PRINCIPAL)?.let { idHoja ->
             NuevoGasto(
                 idHoja,
-                //canNavigateBack,
                 {navHostController.navigateUp()}
             )
         }

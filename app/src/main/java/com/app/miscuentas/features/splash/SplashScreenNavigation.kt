@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import com.app.miscuentas.features.inicio.NavigateToInicio
 import com.app.miscuentas.features.login.NavigateToLogin
 
-const val SPLASH_ROUTE = "splash"
+const val SPLASH_ROUTE = "SPLASH"
 
 fun NavHostController.NavigateToSplash() {
     this.navigate(SPLASH_ROUTE)
