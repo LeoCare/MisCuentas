@@ -5,11 +5,14 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.app.miscuentas.features.gastos.NavigateToGastos
+import com.app.miscuentas.features.nueva_hoja.NUEVA_HOJA_ROUTE
 
 const val MIS_HOJAS_ROUTE = "MIS HOJAS"
 
 fun NavHostController.NavigateToMisHojas(){
-    this.navigate(MIS_HOJAS_ROUTE)
+    this.navigate(MIS_HOJAS_ROUTE){
+        popUpTo(route = NUEVA_HOJA_ROUTE) { inclusive = true } //De esta manera quito la hoja anterior de la pila de navegacion
+    }
 }
 
 fun NavGraphBuilder.misHojasScreen(

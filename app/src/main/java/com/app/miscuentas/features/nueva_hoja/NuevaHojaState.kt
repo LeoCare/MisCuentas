@@ -11,6 +11,7 @@ data class NuevaHojaState(
     val fechaCierre: String = "",
     val status: String = "C",
     val listDbParticipantes: String = "", //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
+    val idRegistro: Long = 0,
 
     //Valores de la BBDD Room
     val insertOk: Boolean = false,

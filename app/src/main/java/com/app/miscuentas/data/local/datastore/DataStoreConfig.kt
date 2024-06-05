@@ -37,10 +37,34 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo que retorna el valor guardado en las preference
+    //Metodo que retorna el nombre del usuario registrado
     suspend fun getRegistroPreference(): String? {
         return try {
             val preferencesKey = stringPreferencesKey(name = "Registrado")
+            val preferences = context.dataStore.data.first()
+
+            preferences[preferencesKey]
+
+        }catch (e: Exception){
+            null
+        }
+    }
+
+    //Metodo para guardar el Id de la hoja principal
+    suspend fun putIdRegistroPreference(idRegistro: Long?){
+        val preferenceIdRegistro = longPreferencesKey(name = "IdRegistro")
+
+        if (idRegistro != null) {
+            context.dataStore.edit { preferences ->
+                preferences[preferenceIdRegistro] = idRegistro
+            }
+        }
+    }
+
+    //Metodo que retorna el id del usuario registrado
+    suspend fun getIdRegistroPreference(): Long? {
+        return try {
+            val preferencesKey = longPreferencesKey(name = "IdRegistro")
             val preferences = context.dataStore.data.first()
 
             preferences[preferencesKey]
@@ -71,7 +95,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo para guardar TRUE en caso de que se hayan registrado
+    //Metodo para guardar el Id de la hoja principal
     suspend fun putIdHojaPrincipalPreference(idHoja: Long?){
         val preferenceIdHoja = longPreferencesKey(name = "IdHojaPrincipal")
 
@@ -82,7 +106,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo que retorna el valor guardado en las preference
+    //Metodo que retorna el Id de la hoja principal
     suspend fun getIdHojaPrincipalPreference(): Long? {
         return try {
             val preferenceIdHoja = longPreferencesKey(name = "IdHojaPrincipal")

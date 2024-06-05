@@ -7,16 +7,16 @@ import com.app.miscuentas.features.nav_bar_screens.mis_hojas.NavigateToMisHojas
 
 //import com.app.miscuentas.features.nav_bar_screens.NavigateToNavBar
 
-const val NUEVO_HOJA_ROUTE = "NUEVA HOJA"
+const val NUEVA_HOJA_ROUTE = "NUEVA HOJA"
 
 fun NavHostController.NavigateToNuevaHoja(){
-    this.navigate(NUEVO_HOJA_ROUTE)
+    this.navigate(NUEVA_HOJA_ROUTE)
 }
 
 fun NavGraphBuilder.nuevaHojaScreen(
     navHostController: NavHostController
 ){
-    composable(route = NUEVO_HOJA_ROUTE) {
+    composable(route = NUEVA_HOJA_ROUTE) {
         NuevaHoja(
            // canNavigateBack,
             {navHostController.navigateUp()},

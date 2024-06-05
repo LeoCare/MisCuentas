@@ -91,9 +91,7 @@ class NuevaHojaViewModel @Inject constructor(
     fun instanceNuevaHoja(): DbHojaCalculoEntity {
         val fechaCreacion: String? = Validaciones.fechaToStringFormat(LocalDate.now())
         val fechaCierre: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
-        val hojaPrincipal = (_nuevaHojaState.value.maxIdHolaCalculo.toInt() == 0)
-
-        if (hojaPrincipal) putIdHojaPrincipalPreference(1) //por defecto, la primera en la principal
+        val idRegistro = _nuevaHojaState.value.idRegistro
 
         return  DbHojaCalculoEntity(
             titulo = _nuevaHojaState.value.titulo,
@@ -101,9 +99,8 @@ class NuevaHojaViewModel @Inject constructor(
             fechaCierre = fechaCierre,
             limite = _nuevaHojaState.value.limiteGasto,
             status = _nuevaHojaState.value.status,
-            principal = hojaPrincipal
+            idRegistroHoja = idRegistro
         )
-
     }
 
     /** INSTANCIA PARTICIPANTES CON IDHOJA **/
@@ -245,6 +242,15 @@ class NuevaHojaViewModel @Inject constructor(
        }
    }
 
+    fun getIdRegistroPreference(){
+        viewModelScope.launch {
+            val idRegistro = dataStoreConfig.getIdRegistroPreference()
+            if (idRegistro != null) {
+                _nuevaHojaState.value = _nuevaHojaState.value.copy(idRegistro = idRegistro)
+            }
+        }
+    }
+
    suspend fun getMaxIdHojasCalculos(){
        repositoryHojaCalculo.getMaxIdHojasCalculos().collect { maxId ->
            _nuevaHojaState.value = _nuevaHojaState.value.copy(maxIdHolaCalculo = maxId)
@@ -262,17 +268,8 @@ class NuevaHojaViewModel @Inject constructor(
 
    init {
        viewModelScope.launch {
-           //recojo el id de hoja maximo
+           //recojo el id de hoja maximo y el id del registrado
            getMaxIdHojasCalculos()
-
-           /*
-           //recojo la linea maxima de la ultima hoja
-           val id = _nuevaHojaState.value.maxIdHolaCalculo
-           repositoryHojaCalculo.getMaxLineaHojasCalculos(id).collect { maxLinea ->
-               _nuevaHojaState.value = _nuevaHojaState.value.copy(maxLineaHolaCalculo = maxLinea)
-           }
-
-            */
        }
    }
 }

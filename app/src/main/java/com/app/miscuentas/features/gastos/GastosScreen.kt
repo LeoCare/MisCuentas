@@ -61,15 +61,11 @@ fun GastosScreen(
     viewModel: GastosViewModel = hiltViewModel()
 ) {
     val gastosState by viewModel.gastosState.collectAsState()
-    val scaffoldState = rememberScaffoldState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
 
-    //Hoja a mostrar pasada por el Screen Hojas (si es 0 es por defecto pasada por el NavBar)
+    //Hoja a mostrar pasada por el Screen Hojas
     LaunchedEffect(Unit) {
-        if (idHojaAMostrar?.toInt() != 0)
             viewModel.onHojaAMostrar(idHojaAMostrar)
-        else
-            viewModel.getHojaCalculoPrincipal()
     }
 
     //Borrar un gasto
@@ -104,6 +100,7 @@ fun GastosContent(
     onNavNuevoGasto: (Long) -> Unit,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit
 ){
+    val isEnabled = hojaDeGastos?.hoja?.status == "C"
 
     Box(
         modifier = Modifier
@@ -178,7 +175,6 @@ fun GastosContent(
                     itemsIndexed(hojaDeGastos.participantes) { index, participante ->
                         for (gasto in participante.gastos) {
                             GastoDesing(
-                                idHoja = hojaDeGastos.hoja.idHoja,
                                 gasto = gasto,
                                 participante = participante,
                                 listaIconosGastos,
@@ -199,14 +195,14 @@ fun GastosContent(
         }
         CustomFloatButton(
             onNavNuevoGasto = { onNavNuevoGasto(hojaDeGastos?.hoja?.idHoja!!) },
-            modifier = Modifier.align(Alignment.BottomEnd) // Alinear el botón en la esquina inferior derecha
-        )
+            modifier = Modifier.align(Alignment.BottomEnd), // Alinear el botón en la esquina inferior derecha
+            isEnabled = isEnabled
+            )
     }
 }
 
 @Composable
 fun GastoDesing(
-    idHoja: Long,
     gasto: DbGastosEntity?,
     participante: ParticipanteConGastos,
     listaIconosGastos: List<IconoGasto>,
@@ -214,7 +210,6 @@ fun GastoDesing(
 ) {
     //Aviso de la opcion elegida:
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    val gastoABorrar = arrayOf(idHoja, participante.participante.idParticipante, gasto!!.idGasto)
 
     if (showDialog) MiDialogo(
         show = true,
@@ -242,81 +237,83 @@ fun GastoDesing(
         )
 
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 4.dp, start = 6.dp, top = 1.dp, end = 1.dp)
-                .clickable { },
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.outline,
-                contentColor = Color.Black
-            )
-        ) {
-            Column(
+        if (gasto != null){
+            Card(
                 modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .fillMaxSize()
+                    .padding(bottom = 4.dp, start = 6.dp, top = 1.dp, end = 1.dp)
+                    .clickable { },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.outline,
+                    contentColor = Color.Black
+                )
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-
+                Column(
+                    modifier = Modifier
+                        .padding(vertical = 10.dp, horizontal = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(start = 5.dp, end = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+
                     ) {
-                        Image(
-                            painter = painterResource(
-                                id = listaIconosGastos[gasto.tipo.toInt() - 1].imagen
-                            ), //IMAGEN DEL GASTO
-                            contentDescription = "Logo Hoja",
+                        Column(
                             modifier = Modifier
-                                .width(60.dp)
-                                .height(60.dp)
-                        )
-                    }
-                    Column {
-                        //Text(text = hoja.type)
-                        Row(
-                            modifier = Modifier
-                                .padding(bottom = 10.dp)
-                                .fillMaxSize(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        )
-                        {
-                            Text(
-                                text = participante.participante.nombre,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Text(
-                                text = gasto.importe + "€",
-                                style = MaterialTheme.typography.titleLarge
+                                .padding(start = 5.dp, end = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(
+                                    id = listaIconosGastos[gasto.tipo.toInt() - 1].imagen
+                                ), //IMAGEN DEL GASTO
+                                contentDescription = "Logo Hoja",
+                                modifier = Modifier
+                                    .width(60.dp)
+                                    .height(60.dp)
                             )
                         }
-                        Text(
-                            modifier = Modifier
-                                .padding(bottom = 10.dp),
-                            text = gasto.concepto,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                        Row(
-                            modifier =  Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Pagado el " + gasto.fechaGasto.toString(),
-                                style = MaterialTheme.typography.labelLarge
+                        Column {
+                            //Text(text = hoja.type)
+                            Row(
+                                modifier = Modifier
+                                    .padding(bottom = 10.dp)
+                                    .fillMaxSize(),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             )
-                            IconButton(onClick = { showDialog = true }) {
-                                Icon(
-                                    Icons.Default.DeleteForever,
-                                    contentDescription = "Borrar gasto",
-                                    tint = Color.Red
+                            {
+                                Text(
+                                    text = participante.participante.nombre,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                Text(
+                                    text = gasto.importe + "€",
+                                    style = MaterialTheme.typography.titleLarge
                                 )
                             }
-                        }
+                            Text(
+                                modifier = Modifier
+                                    .padding(bottom = 10.dp),
+                                text = gasto.concepto,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            Row(
+                                modifier =  Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Pagado el " + gasto.fechaGasto.toString(),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                IconButton(onClick = { showDialog = true }) {
+                                    Icon(
+                                        Icons.Default.DeleteForever,
+                                        contentDescription = "Borrar gasto",
+                                        tint = Color.Red
+                                    )
+                                }
+                            }
 
+                        }
                     }
                 }
             }
@@ -328,10 +325,23 @@ fun GastoDesing(
 @Composable
 fun CustomFloatButton(
     onNavNuevoGasto: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEnabled: Boolean
 ) {
-    FloatingActionButton(
-        onClick = { onNavNuevoGasto() },
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+
+
+    if (showDialog) MiAviso(
+        show = true,
+        texto = "La hoja no esta activa, no puede agregar mas gastos!",
+        cerrar = { showDialog = false }
+    )
+
+    androidx.compose.material3.FloatingActionButton(
+        onClick = {
+            if (isEnabled) onNavNuevoGasto()
+            else showDialog = true
+        },
         modifier = modifier
             .height(80.dp)
             .width(80.dp)

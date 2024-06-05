@@ -14,6 +14,8 @@ class RegistroRepository @Inject constructor(
 
     suspend fun insertAll(registro: Registro) = registroDao.insertAll(registro.toEntity())
 
+    suspend fun insert(registro: Registro) = registroDao.insert(registro.toEntity())
+
     suspend fun update(registro: Registro) = registroDao.update(registro.toEntity())
 
     suspend fun delete(registro: Registro) = registroDao.delete(registro.toEntity())

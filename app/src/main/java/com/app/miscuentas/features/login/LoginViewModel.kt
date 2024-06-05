@@ -44,7 +44,9 @@ class LoginViewModel @Inject constructor(
     }
     fun onLoginOkChanged(loginOk: Boolean) {
         _loginState.value = _loginState.value.copy(loginOk = loginOk)
-
+    }
+    fun onIdRegistroChanged(idRegistro: Long) {
+        _loginState.value = _loginState.value.copy(idRegistro = idRegistro)
     }
 
     //Metodos que comprueban la sintaxis del correo y la contraseña
@@ -79,17 +81,17 @@ class LoginViewModel @Inject constructor(
              withContext(Dispatchers.IO) {
                 registro = registroRepository.getRegistro(nombre, contrasenna).firstOrNull()
                  if  (registro != null){
-                     onRegistroDataStoreChanged(_loginState.value.usuario) //si existe, actualiza el dataStore con el nombre
+                     onRegistroDataStoreChanged(registro!!.idRegistro, nombre) //si existe, actualiza el dataStore con el nombre
                  }
                  else _loginState.value = _loginState.value.copy(mensaje = "Usuario o Contraseña incorrectos!")
             }
         }
     }
 
-    suspend fun onRegistroDataStoreChanged(usuario: String){
-            dataStoreConfig.putRegistroPreference(usuario)
-            onLoginOkChanged(true)
-
+    suspend fun onRegistroDataStoreChanged(idRegistro: Long, usuario: String){
+        dataStoreConfig.putRegistroPreference(usuario)
+        dataStoreConfig.putIdRegistroPreference(idRegistro)
+        onLoginOkChanged(true)
     }
 
 
@@ -99,7 +101,7 @@ class LoginViewModel @Inject constructor(
             withContext(Dispatchers.IO){
                 val insertOk = insertRegistro()
 
-                if (insertOk) onRegistroDataStoreChanged(_loginState.value.usuario)
+                if (insertOk) onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
                 else _loginState.value = _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
             }
         }
@@ -116,7 +118,8 @@ class LoginViewModel @Inject constructor(
         return try {
             val existeRegistro = registroRepository.getRegistroExist(correo).firstOrNull()
             if (existeRegistro == null) {
-                registroRepository.insertAll(registro)
+                val idRegistro = registroRepository.insert(registro)
+                onIdRegistroChanged(idRegistro) //guardado el id del insert del resitro
                 true // insert OK
             }
             else false

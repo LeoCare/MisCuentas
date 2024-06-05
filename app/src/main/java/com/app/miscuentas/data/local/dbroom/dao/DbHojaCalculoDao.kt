@@ -18,9 +18,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DbHojaCalculoDao {
 
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllHojaCalculo( hojaCalculo: DbHojaCalculoEntity): Long
 
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertParticipante(participante: DbParticipantesEntity): Long
 
@@ -43,9 +45,10 @@ interface DbHojaCalculoDao {
     @Query("SELECT * FROM t_hojas_cab ORDER BY idHoja DESC")
     fun getAllHojaConParticipantes(): Flow<List<HojaConParticipantes>>
 
-    //Obtener la hoja principal
-    @Query("SELECT * FROM t_hojas_cab WHERE principal = 'S'")
-    fun getHojaCalculoPrincipal(): Flow<DbHojaCalculoEntity?>
+    @Transaction
+    @Query("SELECT * FROM t_hojas_cab WHERE idRegistroHoja = :idRegistro ORDER BY idHoja DESC")
+    fun getAllHojaConParticipantes(idRegistro: Long): Flow<List<HojaConParticipantes>>
+
 
     //Obtener el ID de la ultima hoja creada para la insercion en t_hojas_cab_lin
     @Query("SELECT MAX(idHoja) FROM t_hojas_cab")
@@ -62,8 +65,17 @@ interface DbHojaCalculoDao {
     }
 
     @Transaction
+    suspend fun deleteHojaConParticipantes(hojaCalculo: DbHojaCalculoEntity) {
+        delete(hojaCalculo)
+    }
+
+    @Transaction
     @Query("SELECT * FROM t_hojas_cab WHERE idHoja = :id")
     fun getHojaConParticipantes(id: Long): Flow<HojaConParticipantes?>
+
+    @Transaction
+    @Query("SELECT COUNT(idHoja) FROM t_hojas_cab")
+    fun getTotalHojasCreadas(): Flow<Int>
 
 //    @Transaction
 //    @Query("SELECT * FROM t_hojas_cab")

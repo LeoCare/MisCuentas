@@ -86,7 +86,7 @@ fun NuevoGasto(
         viewModel.onIdHojaPrincipalChanged(idHojaPrincipal)
     }
 
-    LaunchedEffect(nuevoGastoState) {
+    LaunchedEffect(nuevoGastoState.insertOk) {
         when {
             (nuevoGastoState.insertOk) -> navigateUp()
         }

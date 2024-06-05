@@ -11,6 +11,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 @Dao
 interface DbGastoDao {
 
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllGastos( gasto: DbGastosEntity): Long
 

@@ -49,9 +49,11 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.util.Desing
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.random.Random
 
 
@@ -75,16 +77,21 @@ fun MisHojasScreen(
 
     val hojaState by viewModel.misHojasState.collectAsState()
 
-
+    //obtiene id del registrado para obtener sus hojas (ver siguiente Launched)
     LaunchedEffect(Unit) {
+        viewModel.getIdRegistroPreference()
+    }
+
+    //obtiene las hojas del resitrado
+    LaunchedEffect(hojaState.idRegistro){
         viewModel.getAllHojaConParticipantes()
     }
 
     LaunchedEffect(hojaState.opcionSelected){
         when(hojaState.opcionSelected) {
-            //  "Resumen" ->  { viewModel.update(gastosState.hojaAMostrar!!) }
             "Finalizar" -> { viewModel.update() }
             "Anular" -> { viewModel.update() }
+            "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
         }
     }
 
@@ -146,9 +153,8 @@ fun MisHojasScreen(
                     itemsIndexed(hojaState.listaHojasAMostrar!!){index, hojaConParticipantes ->
                         HojaDesing(
                             onNavGastos = {onNavGastos(it)},
-                            index = index,
                             hojaConParticipantes = hojaConParticipantes,
-                            onOpcionSelectedChanged = {viewModel.onOpcionSelectedChanged(it)},
+                            onOpcionSelectedChanged = { viewModel.onOpcionSelectedChanged(it) },
                             onStatusChanged = {viewModel.onStatusChanged(hojaConParticipantes.hoja.toDomain(), it)}
                         )
                     }
@@ -228,26 +234,33 @@ fun SpinnerCustoms(
 fun HojaDesing(
  /** API **/ //  hoja: Hoja
  onNavGastos: (Long) -> Unit,
- index: Int,
  hojaConParticipantes: HojaConParticipantes,
  onOpcionSelectedChanged: (String) -> Unit,
  onStatusChanged: (String) -> Unit
 ) {
-    var isChecked by rememberSaveable { mutableStateOf(false) }
-    //Aviso de la opcion elegida:
+    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
+
+    /** Eleccion y cambio de estado:  **/
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
     var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+
+    //actualiza el state que se usara en el composable principal de esta screen
+    if(opcionAceptada) {
+        onOpcionSelectedChanged(opcionSeleccionada)
+        opcionAceptada = false
+    }
 
     if (showDialog) Desing.MiDialogo(
         show = true,
         texto = mensaje,
         cerrar = { showDialog = false },
         aceptar = {
-            onOpcionSelectedChanged(opcionSeleccionada)
+            opcionAceptada = true
             showDialog = false
         }
     )
+    /*****************************************/
 
     Card(
         modifier = Modifier
@@ -263,37 +276,63 @@ fun HojaDesing(
                 .padding(horizontal = 20.dp, vertical =10.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Text(
+                    text = hojaConParticipantes.hoja.titulo,
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                //Spacer(modifier = Modifier.weight(1f))
+                /** API **/ //   Text(text = hoja.type)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = hojaConParticipantes.hoja.titulo,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                /** API **/ //   Text(text = hoja.type)
-                when (hojaConParticipantes.hoja.status) { //pinta segun valor status de la BBDD
-                    "C" ->
-                        Text(
-                            text = "Activa",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+
+
+                    when (hojaConParticipantes.hoja.status) { //pinta segun valor status de la BBDD
+                        "C" ->
+                            Text(
+                                text = "Activa",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        "A" ->
+                            Text(
+                                text = "Anulada",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        else -> Text(
+                            text = "Finalizada",
+                            style = MaterialTheme.typography.titleMedium
                         )
-                    "A" ->
-                        Text(
-                            text = "Anulada",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    else -> Text(
-                        text = "Finalizada",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    }
+                    OpcionesHoja { opcion ->
+                        when(opcion) {
+                            "Resumen" ->  mensaje = "Este es el resumen"
+
+                            "Finalizar" ->  {
+                                onStatusChanged("F")
+                                mensaje = "Finalizar la hoja"
+                            }
+
+                            "Anular" ->  {
+                                onStatusChanged("A")
+                                mensaje = "Esta hoja se marcara como anulada."
+                            }
+                            "Eliminar" ->  {
+                                onStatusChanged("E")
+                                mensaje = "¿Seguro que desea ELIMINAR esta hoja?"
+                            }
+                        }
+                        opcionSeleccionada = opcion
+                        showDialog = true
+                    }
                 }
             }
             Row(
@@ -360,28 +399,6 @@ fun HojaDesing(
 
                 }
             }
-            Row(
-                verticalAlignment = Alignment.Top,
-                //horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                OpcionesHoja { opcion ->
-                    when(opcion) {
-                        "Resumen" ->  mensaje = "Este es el resumen"
-
-                        "Finalizar" ->  {
-                            onStatusChanged("F")
-                            mensaje = "Finalizar la hoja"
-                        }
-
-                        "Anular" ->  {
-                            onStatusChanged("A")
-                            mensaje = "Anular la hoja"
-                        }
-                    }
-                    opcionSeleccionada = opcion
-                    showDialog = true
-                }
-            }
         }
     }
 }
@@ -394,9 +411,7 @@ fun OpcionesHoja(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    Box(
-        //modifier = Modifier.wrapContentSize(Alignment.TopStart)
-    ) {
+    Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
                 Icons.Default.MoreHoriz,
@@ -425,6 +440,12 @@ fun OpcionesHoja(
                 onOptionSelected("Anular")
             }) {
                 Text("Anular")
+            }
+            DropdownMenuItem(onClick = {
+                expanded = false
+                onOptionSelected("Eliminar")
+            }) {
+                Text("Eliminar")
             }
         }
     }

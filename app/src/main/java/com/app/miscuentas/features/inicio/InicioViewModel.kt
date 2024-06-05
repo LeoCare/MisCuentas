@@ -35,15 +35,39 @@ class InicioViewModel @Inject constructor(
         }
     }
 
-    //Compruebo que haya 1 hoja creada, como minimo...
-    suspend fun getIdHojaPrincipalPreference(){
+    //Compruebo si hay alguna hoja creada
+    fun getAllHojasCalculos(){
         viewModelScope.launch {
-            val idHoja = dataStoreConfig.getIdHojaPrincipalPreference()
-            if (idHoja != null) _inicioState.value =
-                _inicioState.value.copy(idHojaPrincipal = idHoja)
+            hojaCalculoRepository.getTotalHojasCreadas().collect{
+                _inicioState.value = _inicioState.value.copy(totalHojas = it)
+            }
         }
     }
 
+    //Compruebo si hay hoja para el acceso rapido
+    suspend fun getIdHojaPrincipalPreference(){
+        viewModelScope.launch {
+            val idHoja = dataStoreConfig.getIdHojaPrincipalPreference()
+            if (idHoja != null){
+                if(idHoja.toInt() == 0){ //si es 0 no hay preferida
+                    _inicioState.value = _inicioState.value.copy(hojaPrincipal = null)
+                    _inicioState.value = _inicioState.value.copy(idHojaPrincipal = 0)
+                } else {
+                    _inicioState.value = _inicioState.value.copy(idHojaPrincipal = idHoja)
+                    getHojaPrincipalPreference(idHoja)
+                }
+            }
+        }
+    }
+
+    //Obtengo la instancia de esa hoja
+     fun getHojaPrincipalPreference(idHoja: Long){
+        viewModelScope.launch {
+            hojaCalculoRepository.getHojaConParticipantes(idHoja).collect{ hoja ->
+                _inicioState.value = _inicioState.value.copy(hojaPrincipal = hoja)
+            }
+        }
+    }
 
     /** COMPROBACION PARA EL DRAWER (USUARIO Y CHECK DE HUELLA) **/
     init {

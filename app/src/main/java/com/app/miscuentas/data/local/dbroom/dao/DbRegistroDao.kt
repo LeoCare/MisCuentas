@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 import kotlinx.coroutines.flow.Flow
@@ -12,8 +13,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DbRegistroDao {
 
+    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(vararg registro: DbRegistrosEntity)
+
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(registro: DbRegistrosEntity): Long
 
     @Update
     suspend fun update(registro: DbRegistrosEntity)

@@ -38,7 +38,7 @@ class HojaCalculoRepository @Inject constructor(
     suspend fun update(hojaCalculo: HojaCalculo) = hojaCalculoDao.update(hojaCalculo.toEntity())
 
     @Delete
-    suspend fun delete(hojaCalculo: HojaCalculo) = hojaCalculoDao.delete(hojaCalculo.toEntity())
+    suspend fun deleteHojaConParticipantes(hojaCalculo: DbHojaCalculoEntity) = hojaCalculoDao.delete(hojaCalculo)
 
 
     fun getHojaCalculo(id: Long): Flow<HojaCalculo> =
@@ -50,24 +50,16 @@ class HojaCalculoRepository @Inject constructor(
     fun getAllHojaConParticipantes(): Flow<List<HojaConParticipantes>> =
         hojaCalculoDao.getAllHojaConParticipantes().map { list -> list.map { it } }
 
+    fun getAllHojaConParticipantes(idRegistro: Long): Flow<List<HojaConParticipantes>> =
+        hojaCalculoDao.getAllHojaConParticipantes(idRegistro).map { list -> list.map { it } }
+
     fun getMaxIdHojasCalculos(): Flow<Long> =
         hojaCalculoDao.getMaxIdHojasCalculos()
 
-    fun getHojaCalculoPrincipal(): Flow<HojaCalculo?> =
-        hojaCalculoDao.getHojaCalculoPrincipal().map { it?.toDomain() }
-
     fun getHojaConParticipantes(id: Long): Flow<HojaConParticipantes?> =
         hojaCalculoDao.getHojaConParticipantes(id)
-    /*
-    fun getMaxLineaHojasCalculos(id: Int): Flow<Int> =
-        hojaCalculoDao.getMaxLineaHojasCalculos(id)
 
-    fun getLineaPartiHojasCalculosLin(id: Int, pagador: Int): Flow<Int> =
-        hojaCalculoDao.getLineaPartiHojasCalculosLin(id, pagador)
-
-    fun getMaxLineaDetHojasCalculos(id: Int, linea: Int): Flow<Int?> =
-        hojaCalculoDao.getMaxLineaDetHojasCalculos(id, linea)
-
-    */
+    fun getTotalHojasCreadas() : Flow<Int> =
+        hojaCalculoDao.getTotalHojasCreadas()
 
 }

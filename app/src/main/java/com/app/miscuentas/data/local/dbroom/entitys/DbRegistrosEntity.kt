@@ -12,14 +12,14 @@ import com.app.miscuentas.domain.model.Registro
 )
 data class DbRegistrosEntity (
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id") val id: Int = 0,
+    @ColumnInfo(name = "idRegistro") val idRegistro: Long = 0,
     @ColumnInfo(name = "nombre") val nombre: String = "",
     @ColumnInfo(name = "correo") val correo: String = "",
     @ColumnInfo(name = "contrasenna") val contrasenna: String = ""
 )
 
 fun DbRegistrosEntity.toDomain() = Registro(
-    id = id,
+    idRegistro = idRegistro,
     nombre = nombre,
     correo = correo,
     contrasenna = contrasenna

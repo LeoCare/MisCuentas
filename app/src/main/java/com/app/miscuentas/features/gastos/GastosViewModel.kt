@@ -37,7 +37,10 @@ class GastosViewModel @Inject constructor(
                 if (idHoja != null) {
                     hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
-                        dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo!!.hoja.idHoja) //Actualizo DataStore con idhoja
+                        //Actualizo DataStore con idhoja si esta Activa
+                        if (hojaCalculo?.hoja?.status == "C") {
+                            dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.hoja.idHoja)
+                        }
                     }
                 }
             }
@@ -50,8 +53,6 @@ class GastosViewModel @Inject constructor(
                 hojaCalculoRepository.getHojaConParticipantes(_gastosState.value.idHojaPrincipal!!).collect {
                     _gastosState.value = _gastosState.value.copy(hojaAMostrar = it) //Actualizo state con idhoja
                     dataStoreConfig.putIdHojaPrincipalPreference(it?.hoja?.idHoja) //Actualizo DataStore con idhoja
-
-                   // getListParticipantesToIdHoja(it.idHoja)
                 }
             }
         }

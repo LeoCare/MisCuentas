@@ -4,12 +4,22 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.ForeignKey
 import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.Participante
+
 //De esta manera personalizo el nombre de la tabla, si no, seria el de la clase
 @Entity(
     tableName = "t_participantes",
-    indices = [Index(value = ["nombre","idHojaParti"], unique = true)] //el nombre no puede repetirse en la BBDD
+    indices = [Index(value = ["nombre","idHojaParti"], unique = true)], //el nombre no puede repetirse en la BBDD
+    foreignKeys = [
+        ForeignKey(
+            entity = DbHojaCalculoEntity::class,
+            parentColumns = ["idHoja"],
+            childColumns = ["idHojaParti"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 data class DbParticipantesEntity (
     @PrimaryKey(autoGenerate = true)

@@ -4,12 +4,21 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.ForeignKey
 import com.app.miscuentas.domain.model.Gasto
 
 
 @Entity(
     tableName = "t_gastos",
-    indices = [Index(value =  ["idGasto"])]
+    indices = [Index(value =  ["idGasto"])],
+    foreignKeys = [
+        ForeignKey(
+            entity = DbParticipantesEntity::class,
+            parentColumns = ["idParticipante"],
+            childColumns = ["idParticipanteGasto"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 data class DbGastosEntity (
     @PrimaryKey(autoGenerate = true)

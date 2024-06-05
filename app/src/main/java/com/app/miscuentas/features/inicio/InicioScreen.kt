@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.Desing.Companion.MiAviso
@@ -119,6 +120,7 @@ fun Inicio(
 
     LaunchedEffect(Unit) {
         viewModel.getIdHojaPrincipalPreference()
+        viewModel.getAllHojasCalculos()
     }
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -152,7 +154,9 @@ fun Inicio(
                     onNavMisHojas,
                     onNavNuevaHoja,
                     onNavNuevoGasto,
-                    inicioState.idHojaPrincipal
+                    inicioState.hojaPrincipal,
+                    inicioState.idHojaPrincipal,
+                    inicioState.totalHojas
                 )
             }
         )
@@ -167,19 +171,34 @@ fun InicioContent(
     onNavMisHojas: () -> Unit,
     onNavNuevaHoja: () -> Unit,
     onNavNuevoGasto: (Long) -> Unit,
-    idHojaPrincipal: Long
+    hojaPrincipal: HojaConParticipantes?,
+    idHojaPrincipal: Long,
+    totalHojas: Int
 ) {
 
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
-
+    var mensaje by remember { mutableStateOf("")}
     //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
-    if (showDialog) MiAviso(true, "Aun no has creado ninguna hoja.", {showDialog = false})
+    if (showDialog) MiAviso(true, mensaje, {showDialog = false})
 
     val existeHoja = {
         when {
-            idHojaPrincipal.toInt() != 0 ->  onNavMisHojas()
-            else -> { showDialog = true}
+            totalHojas >  0 ->  onNavMisHojas()
+            else -> {
+                mensaje = "Aun no has creado ninguna hoja."
+                showDialog = true
+            }
+        }
+    }
+
+    val accesoRapido = {
+        when {
+            idHojaPrincipal.toInt() != 0 ->  onNavNuevoGasto(hojaPrincipal!!.hoja.idHoja)
+            else -> {
+                mensaje = "Selecciona una hoja activa y se guardará en el acceso rapido."
+                showDialog = true
+            }
         }
     }
 
@@ -258,41 +277,31 @@ fun InicioContent(
                     }
                 }
                 CustomSpacer(60.dp)
-                Row(
-                    modifier = Modifier.padding(vertical = 20.dp, horizontal = 20.dp)
-                        .fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
+
+                Text(
+                    text = "Acceso rapido",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = "Hoja: " + (hojaPrincipal?.hoja?.titulo ?: "selecciona una"),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.large)
                 ) {
-                    Box(
+                    Image(
+                        painter = painterResource(id = R.drawable.nuevo_gasto),
+                        contentDescription = "Boton de nuevo gasto",
                         modifier = Modifier
-                            .clip(MaterialTheme.shapes.extraLarge)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.btn_config),
-                            contentDescription = "Boton de configuracion",
-                            modifier = Modifier
-                                .width(70.dp)
-                                .height(70.dp)
-                                .clickable { }
-                                .fillMaxSize()
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.large)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.nuevo_gasto),
-                            contentDescription = "Boton de nuevo gasto",
-                            modifier = Modifier
-                                .width(67.dp)
-                                .height(67.dp)
-                                .clickable { onNavNuevoGasto(1) }
-                                .fillMaxSize()
-                        )
-                    }
+                            .width(67.dp)
+                            .height(67.dp)
+                            .clickable { accesoRapido() }
+                            .fillMaxSize()
+                    )
                 }
+
             }
         }
     }

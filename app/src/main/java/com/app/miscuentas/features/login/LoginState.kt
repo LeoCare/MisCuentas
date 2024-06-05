@@ -2,6 +2,7 @@ package com.app.miscuentas.features.login
 
 data class LoginState(
     val usuario: String = "",
+    val idRegistro: Long = 0,
     val contrasenna: String = "",
     val email: String = "",
     val mensaje: String = "",

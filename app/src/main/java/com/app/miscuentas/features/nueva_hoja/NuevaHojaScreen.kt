@@ -111,6 +111,10 @@ fun NuevaHoja(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit){
+        viewModel.getIdRegistroPreference()
+    }
+
     LaunchedEffect(eventoState.insertOk){
         if (eventoState.insertOk) {
             onNavMisHojas()

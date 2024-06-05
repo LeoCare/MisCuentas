@@ -3,10 +3,12 @@ package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.Validaciones
 import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.domain.model.toEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -32,6 +34,7 @@ class MisHojasViewModel @Inject constructor(
         _misHojasState.value = _misHojasState.value.copy(circularIndicator = circular)
     }
 
+
     /** ORDEN DE LAS HOJAS **/
     //Metodo que define el orden elegido
     fun onTipoOrdenChanged(tipoOrden: String){
@@ -43,6 +46,7 @@ class MisHojasViewModel @Inject constructor(
         _misHojasState.value = _misHojasState.value.copy(ordenDesc = ordenDesc)
         ordenHoja()
     }
+
     //Metodo que ordena dependiendo de los estados elegidos en los dos metodos anteriores
     fun ordenHoja(){
         if(misHojasState.value.tipoOrden == "Fecha creacion"){
@@ -82,8 +86,6 @@ class MisHojasViewModel @Inject constructor(
     /************************/
 
 
-
-
     /** MOSTRAR POR: **/
     //Metodo que define el tipo a mostrar
     fun onMostrarTipoChanged(mostrarTipo: String){
@@ -91,27 +93,6 @@ class MisHojasViewModel @Inject constructor(
         mostrarSolo()
     }
 
-    //Metodo que muestra solo las del tipo elegido en el metodo anterior
-//     fun mostrarSolo(){
-//        when(hojasState.value.mostrarTipo){
-//            "A" -> _hojasState.value = _hojasState.value.copy(
-//                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "A" }
-//            )
-//
-//            "F" -> _hojasState.value = _hojasState.value.copy(
-//                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "F" }
-//            )
-//
-//            "C" -> _hojasState.value = _hojasState.value.copy(
-//                listaHojasAMostrar = hojasState.value.listaHojas?.filter { it.status == "C" }
-//            )
-//
-//            else -> _hojasState.value = _hojasState.value.copy(
-//                listaHojasAMostrar = hojasState.value.listaHojas
-//            )
-//
-//        }
-//    }
 
     //Metodo que muestra solo las del tipo elegido en el metodo anterior
     fun mostrarSolo(){
@@ -149,60 +130,46 @@ class MisHojasViewModel @Inject constructor(
         _misHojasState.value = _misHojasState.value.copy(nuevoStatusHoja = status)
     }
 
-    //Borrar
+    //Actualizar
     suspend fun update(){
         _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 repositoryHojaCalculo.update(misHojasState.value.hojaAModificar!!)
+                updatePreferenceIdHojaPrincipal()
             }
         }
+
+    }
+
+    //Eliminar
+    suspend fun deleteHojaConParticipantes(){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repositoryHojaCalculo.deleteHojaConParticipantes(_misHojasState.value.hojaAModificar!!.toEntity())
+                updatePreferenceIdHojaPrincipal()
+            }
+        }
+
     }
     /************************/
 
-    //Guarda la hojaPrincipal en el dataStore al presionar el CheckBox
-    fun onHojaPrincipalChanged(){
+    //Metodo que actualiza el preference del idHoja a 0 si no esta Activa.
+    fun updatePreferenceIdHojaPrincipal(){
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.getHojaCalculoPrincipal().collect {
-                    _misHojasState.value = _misHojasState.value.copy(hojaPrincipal = it) //Actualizo state con idhoja
-
-                    val idHoja = _misHojasState.value.hojaPrincipal?.idHoja
-                    dataStoreConfig.putIdHojaPrincipalPreference(idHoja) //Actualizo DataStore con idhoja
-                }
+            withContext(Dispatchers.IO){
+                if(misHojasState.value.hojaAModificar!!.status != "C") dataStoreConfig.putIdHojaPrincipalPreference(0)
+                onOpcionSelectedChanged("")
             }
         }
+
     }
 
-
-    /** METODO QUE SE EJECUTA EN UNA CORRUTINA LLAMANDO A UN METODO QUE RECOLECTA DATOS
-     * QUE A SU VEZ LLAMA A UNA FUNCION SUSPEND DE MANERA ASINCRONA PARA CADA DATO RECOLECTADO.
-     * ESTO HACE QUE SE EJECUTEN LAS SUSPEND TODAS A LA VEZ EN HILOS SEPARADOS.
-     */
-//    fun getAllHojasCalculos() {
-//        viewModelScope.launch {
-//            repositoryHojaCalculo.getAllHojasCalculos().collect { listHojasCalculo ->
-//                //guardo la liste hojas
-//                _hojasState.value = _hojasState.value.copy(listaHojas = listHojasCalculo)
-//
-//                //obtego la lista de participantes de cada una de ellas
-//                listHojasCalculo.forEachIndexed { index, hoja ->
-//                    launch {
-//                        //getListParticipantesToIdHoja(index, hoja.idHoja)
-//                    }
-//                }
-//                mostrarSolo()
-//                delay(3000)
-//                _hojasState.value = _hojasState.value.copy(circularIndicator = false)
-//            }
-//        }
-//
-//    }
-
+    //Metodo que obtiene la lista de hojas, ordena por defecto y para el circularIndicator
     fun getAllHojaConParticipantes() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.getAllHojaConParticipantes().collect { listaHojasConParticipantes ->
+                repositoryHojaCalculo.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
                     //guardo la lista de hojas
                     _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
 
@@ -212,20 +179,18 @@ class MisHojasViewModel @Inject constructor(
                 }
             }
         }
-
     }
 
-    /*
-    //Actualizo participantes de las hojas
-    suspend fun getListParticipantesToIdHoja(index: Int, idHoja: Int) {
-        //Obtener participantes de la hoja y agregarlas al state
-        repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
-            _hojasState.value.listaHojas?.get(index)?.participantesHoja = participantes
+    //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
+    fun getIdRegistroPreference(){
+        viewModelScope.launch {
+            val idRegistro = dataStoreConfig.getIdRegistroPreference()
+            if (idRegistro != null) {
+                _misHojasState.value = _misHojasState.value.copy(idRegistro = idRegistro)
+            }
         }
-
     }
 
-     */
 
     /** API **/
     //rellena la lista de hojas del state
