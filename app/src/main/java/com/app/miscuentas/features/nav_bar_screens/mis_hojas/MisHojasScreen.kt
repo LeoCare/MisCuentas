@@ -312,7 +312,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
-                    OpcionesHoja { opcion ->
+                    OpcionesHoja(hojaConParticipantes) { opcion ->
                         when(opcion) {
                             "Resumen" ->  mensaje = "Este es el resumen"
 
@@ -407,9 +407,11 @@ fun HojaDesing(
 /** Composable para las opciones de la hoja **/
 @Composable
 fun OpcionesHoja(
+    hoja: HojaConParticipantes,
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val statusHoja = hoja.hoja.status
 
     Box {
         IconButton(onClick = { expanded = true }) {
@@ -423,28 +425,38 @@ fun OpcionesHoja(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Resumen")
-            }) {
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Resumen")
+                }
+            ) {
                 Text("Resumen")
             }
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Finalizar")
-            }) {
-                Text("Finalizar")
+            if(statusHoja == "C"){
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onOptionSelected("Finalizar")
+                    }
+                ) {
+                    Text("Finalizar")
+                }
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onOptionSelected("Anular")
+                    }
+                ) {
+                    Text("Anular")
+                }
             }
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Anular")
-            }) {
-                Text("Anular")
-            }
-            DropdownMenuItem(onClick = {
-                expanded = false
-                onOptionSelected("Eliminar")
-            }) {
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Eliminar")
+                }
+            ) {
                 Text("Eliminar")
             }
         }

@@ -40,7 +40,7 @@ class MainActivity : FragmentActivity() {
         setContent {
             MisCuentasTheme{
                 val scrollBehavior =
-                    TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+                    TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState()) //eleva el topbar al hacer scroll (se lo pasa al TopBar)
                 val navController = rememberNavController()
                 val scaffoldState = rememberScaffoldState()
                 //pila de Screen y valor actual
@@ -66,8 +66,7 @@ class MainActivity : FragmentActivity() {
                                 currentScreen,
                                 null,   //solo inicio tiene menu lateral
                                 canNavigateBack = canNavigateBack,
-                                navigateUp = { navController.popBackStack() },
-                                scrollBehavior = scrollBehavior
+                                navigateUp = { navController.popBackStack() }
                             )
 
                         },

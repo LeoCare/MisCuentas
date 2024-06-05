@@ -145,7 +145,7 @@ fun Inicio(
                     scope = scope,
                     canNavigateBack = false,
                     navigateUp = {},
-                    scrollBehavior = scrollBehavior
+                    //scrollBehavior = scrollBehavior
                 )
             },
             content = { innerPadding ->

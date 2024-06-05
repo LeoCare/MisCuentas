@@ -111,19 +111,33 @@ class Desing {
         @Composable
         fun MiDialogo(show:Boolean, texto: String, cerrar: () -> Unit, aceptar: () -> Unit) {
             if (show) {
-                AlertDialog(onDismissRequest = { cerrar() },
+                AlertDialog(
+                    shape = MaterialTheme.shapes.small,
+                    onDismissRequest = { cerrar() },
                     confirmButton = {
                         TextButton(onClick = { aceptar() }) {
-                            Text(text = "Aceptar")
+                            Text(
+                                text = "Aceptar",
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { cerrar() }) {
-                            Text(text = "Cerrar")
+                            Text(
+                                text = "Cerrar",
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     },
-                    title = { Text(text = "Mi Diaologo") },
-                    text = { Text(text = texto) }
+                    title = { Text(
+                        text = "ATENCION:",
+                        style = MaterialTheme.typography.titleLarge
+                    ) },
+                    text = { Text(
+                        text = texto,
+                        style = MaterialTheme.typography.titleSmall
+                    ) }
                 )
             }
         }
@@ -144,7 +158,7 @@ class Desing {
                     },
                     title = {
                         Text(
-                            text = "AVISO",
+                            text = "INFO:",
                             style = MaterialTheme.typography.titleLarge
                         )
                     },

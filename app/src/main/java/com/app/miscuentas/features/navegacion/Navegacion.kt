@@ -38,6 +38,8 @@ import com.app.miscuentas.R
 import com.app.miscuentas.features.inicio.inicioScreen
 import com.app.miscuentas.features.login.loginScreen
 import com.app.miscuentas.features.gastos.gastosScreen
+import com.app.miscuentas.features.nav_bar_screens.mis_gastos.MIS_GASTOS_ROUTE
+import com.app.miscuentas.features.nav_bar_screens.mis_gastos.misGastosScreen
 import com.app.miscuentas.features.nav_bar_screens.mis_hojas.MIS_HOJAS_ROUTE
 import com.app.miscuentas.features.nav_bar_screens.mis_hojas.misHojasScreen
 import com.app.miscuentas.features.nav_bar_screens.participantes.PARTICIPANTES_ROUTE
@@ -67,12 +69,11 @@ fun AppNavHost(
         splashScreen(navController)
         loginScreen(navController)
         inicioScreen(navController)
-//        navBarScreen(navController)
         nuevaHojaScreen(navController)
         nuevoGastoScreen(navController)
         misHojasScreen(innerPadding, navController)
         gastosScreen(innerPadding, navController)
-        //falta crear misGastosScreen(navControllerMisHojas, innerPadding)
+        misGastosScreen(innerPadding, navController)
         participantesScreen(innerPadding, navController)
     }
 }
@@ -86,7 +87,7 @@ fun AppNavHost(
 /** ******************************************** **/
 sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title: String) {
     object MisHojas : MisHojasScreen(MIS_HOJAS_ROUTE, Icons.Default.Difference, "Mis Hojas")
-    object MisGastos : MisHojasScreen("mis_gastos_route", Icons.Default.ShoppingCart, "Mis Gastos")
+    object MisGastos : MisHojasScreen(MIS_GASTOS_ROUTE, Icons.Default.ShoppingCart, "Mis Gastos")
     object Participantes : MisHojasScreen(PARTICIPANTES_ROUTE, Icons.Default.Person, "Participantes")
 
 }
@@ -123,19 +124,19 @@ fun BottomNavigationBar(navControllerMisHojas: NavController) {
                 label = { Text(screen.title, color = colorSeleccionado) },
                 selected = isSelected,
                 onClick = {
-                    if (screen == MisHojasScreen.MisGastos) {
-                        // idHoja 0 para que no lo tenga en cuenta
-                        val idHojaPredeterminado = 0
-                        navControllerMisHojas.navigate("${screen.route}/$idHojaPredeterminado") {
-                            // Evitar recrear la pantalla si ya está en la pila
-                            popUpTo(navControllerMisHojas.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                    } else {
+//                    if (screen == MisHojasScreen.MisGastos) {
+//                        // idHoja 0 para que no lo tenga en cuenta
+//                        val idHojaPredeterminado = 0
+//                        navControllerMisHojas.navigate("${screen.route}/$idHojaPredeterminado") {
+//                            // Evitar recrear la pantalla si ya está en la pila
+//                            popUpTo(navControllerMisHojas.graph.startDestinationId)
+//                            launchSingleTop = true
+//                        }
+//                    } else {
                         navControllerMisHojas.navigate(screen.route) {
                             popUpTo(navControllerMisHojas.graph.startDestinationId)
                             launchSingleTop = true
-                        }
+//                        }
                     }
                 },
                 selectedContentColor = MaterialTheme.colorScheme.onSecondary
@@ -154,8 +155,7 @@ fun MiTopBar(
     currentScreen: String,
     scope: CoroutineScope?,
     canNavigateBack: Boolean,
-    navigateUp: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior,
+    navigateUp: () -> Unit
 ) {
     val activity = LocalContext.current as FragmentActivity
 
@@ -203,8 +203,7 @@ fun MiTopBar(
                 ) {
                     Icon(Icons.Filled.Info, contentDescription = "Informacion")
                 }
-            },
-            scrollBehavior = scrollBehavior
+            }
         )
     }
 }
