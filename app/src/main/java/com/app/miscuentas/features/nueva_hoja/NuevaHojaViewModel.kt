@@ -81,16 +81,11 @@ class NuevaHojaViewModel @Inject constructor(
             )
     }
 
-
     fun deleteUltimoParticipante() {
-        if (_nuevaHojaState.value.listaParticipantes.isNotEmpty()) {
-            val updatedList = _nuevaHojaState.value.listaParticipantes.dropLast(1)
-            _nuevaHojaState.value = _nuevaHojaState.value.copy(listaParticipantes = updatedList)
+        if (_nuevaHojaState.value.listaParticipantesEntitys.isNotEmpty()) {
+            val updatedList = _nuevaHojaState.value.listaParticipantesEntitys.dropLast(1)
+            _nuevaHojaState.value = _nuevaHojaState.value.copy(listaParticipantesEntitys = updatedList)
         }
-    }
-
-    fun getTotalParticipantes(): Int {
-        return _nuevaHojaState.value.listaParticipantes.size
     }
 
 
@@ -101,7 +96,7 @@ class NuevaHojaViewModel @Inject constructor(
                 val hoja = instanceNuevaHoja() //obtiene hojaEntity
                 instaciaParticipantesConHojas(hoja.idHoja) //instancia lista de participantesEntitys
 
-                nuevaHojaState.value.listaParticipantesEntitys?.let {
+                nuevaHojaState.value.listaParticipantesEntitys.let {
                     insertrHojaConParticipantes(hoja, it)
                 }
             }
@@ -126,7 +121,7 @@ class NuevaHojaViewModel @Inject constructor(
 
     /** INSTANCIA PARTICIPANTES CON IDHOJA **/
     fun instaciaParticipantesConHojas(hojaCalculoId: Long) {
-        nuevaHojaState.value.listaParticipantesEntitys?.forEach { participante ->
+        nuevaHojaState.value.listaParticipantesEntitys.forEach { participante ->
             participante.idHojaParti = hojaCalculoId
         }
     }

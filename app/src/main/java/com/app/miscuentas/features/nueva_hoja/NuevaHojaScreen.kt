@@ -135,7 +135,6 @@ fun NuevaHoja(
             { viewModel.onFechaCierreFieldChanged(it) },
             { viewModel.addParticipate(it) },
             { viewModel.insertHoja() },
-            { viewModel.getTotalParticipantes() },
             { viewModel.deleteUltimoParticipante() }
         )}
     )
@@ -152,7 +151,6 @@ fun NuevaHojaScreen(
     onFechaCierreFieldChanged: (String) -> Unit,
     addParticipate: (Participante) -> Unit,
     insertHoja: () -> Unit,
-    getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
 ) {
 
@@ -233,7 +231,6 @@ fun NuevaHojaScreen(
                         eventoState.participante,
                         { onParticipanteFieldChanged(it) },
                         { addParticipate(it) },
-                        { getTotalParticipantes() },
                         { deleteUltimoParticipante() }
                     )
 
@@ -326,7 +323,6 @@ fun Participantes(
     statusParticipante: String,
     onParticipanteFieldChange: (String) -> Unit,
     addParticipate: (Participante) -> Unit,
-    getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
 ) {
 
@@ -346,7 +342,7 @@ fun Participantes(
         )
         Spacer(Modifier.weight(1f))
         Text(
-            text = getTotalParticipantes().toString(),
+            text = listParticipantes.size.toString(),
             style = MaterialTheme.typography.titleLarge,
             color = Color.Black,
             modifier = Modifier

@@ -11,6 +11,7 @@ import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.model.Gasto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,21 +37,30 @@ class MisGastosViewModel @Inject constructor(
        getIdRegistroPreference()
     }
 
+    fun onParticipanteConGastosChanged(participante: ParticipanteConGastos?){
+        _misGastosState.value = _misGastosState.value.copy(participanteConGastos = participante)
+    }
+
     //Obtengo el id del registado
     fun getIdRegistroPreference() = viewModelScope.launch {
         withContext(Dispatchers.IO){
             val idRegistrado = dataStoreConfig.getIdRegistroPreference()
             _misGastosState.value = _misGastosState.value.copy(idRegistro = idRegistrado)
-            getParticipanteConGastos()
+            getAllHojaConParticipantes()
         }
     }
 
-    fun getParticipanteConGastos() = viewModelScope.launch {
-        withContext(Dispatchers.IO){
-            participanteRepository.getParticipanteConGastos(misGastosState.value.idRegistro!!).collect{
-                _misGastosState.value = _misGastosState.value.copy(participanteConGastos = it)
-            }
 
+    fun getAllHojaConParticipantes() = viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            val idRegistro = misGastosState.value.idRegistro ?: return@withContext
+            hojaCalculoRepository.getAllHojaConParticipantes(idRegistro).collect { listaHojasConParticipantes ->
+                val participanteConGastos = listaHojasConParticipantes
+                    .flatMap { hojaConParticipantes ->
+                        hojaConParticipantes.participantes
+                    }.firstOrNull { it.participante.idRegistroParti == idRegistro }
+                onParticipanteConGastosChanged(participanteConGastos)
+            }
         }
     }
 

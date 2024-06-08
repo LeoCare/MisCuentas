@@ -23,7 +23,7 @@ class ParticipanteRepository @Inject constructor(
         participantesDao.delete(participante.toEntityWithHoja(idHojaCalculo))
 
     fun getParticipanteConGastos(idRegistro: Long): Flow<ParticipanteConGastos> =
-        participantesDao.getParticipanteConGastos(idRegistro).map { it }
+        participantesDao.getParticipanteConGastos(idRegistro)
 
     fun getParticipante(id: Int): Flow<Participante> =
         participantesDao.getParticipante(id).map { it.toDomain() }

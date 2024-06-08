@@ -53,6 +53,7 @@ class HojaCalculoRepository @Inject constructor(
     fun getAllHojaConParticipantes(idRegistro: Long): Flow<List<HojaConParticipantes>> =
         hojaCalculoDao.getAllHojaConParticipantes(idRegistro).map { list -> list.map { it } }
 
+
     fun getMaxIdHojasCalculos(): Flow<Long> =
         hojaCalculoDao.getMaxIdHojasCalculos()
 
