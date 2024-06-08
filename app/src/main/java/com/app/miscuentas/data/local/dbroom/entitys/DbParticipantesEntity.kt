@@ -11,13 +11,19 @@ import com.app.miscuentas.domain.model.Participante
 //De esta manera personalizo el nombre de la tabla, si no, seria el de la clase
 @Entity(
     tableName = "t_participantes",
-    indices = [Index(value = ["nombre","idHojaParti"], unique = true)], //el nombre no puede repetirse en la BBDD
+    indices = [Index(value = ["nombre","idHojaParti"], unique = true), Index(value = ["idRegistroParti"])], //el nombre no puede repetirse en la BBDD
     foreignKeys = [
         ForeignKey(
             entity = DbHojaCalculoEntity::class,
             parentColumns = ["idHoja"],
             childColumns = ["idHojaParti"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = DbRegistrosEntity::class,
+            parentColumns = ["idRegistro"],
+            childColumns = ["idRegistroParti"],
+            onDelete = ForeignKey.SET_NULL
         )
     ]
 )
@@ -26,7 +32,8 @@ data class DbParticipantesEntity (
     @ColumnInfo(name = "idParticipante") val idParticipante: Long = 0,
     @ColumnInfo(name = "nombre") val nombre: String,
     @ColumnInfo(name = "correo") var correo: String? = "",
-    @ColumnInfo(name = "idHojaParti") var idHojaParti: Long = 0
+    @ColumnInfo(name = "idRegistroParti") var idRegistroParti: Long? = null,
+    @ColumnInfo(name = "idHojaParti") var idHojaParti: Long? = null
 )
 
 fun DbParticipantesEntity.toDomain(gastos: List<Gasto> = listOf()) = Participante(

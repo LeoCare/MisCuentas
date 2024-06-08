@@ -1,16 +1,18 @@
 package com.app.miscuentas.features.nueva_hoja
 
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.Participante
 
 data class NuevaHojaState(
     val titulo: String = "",
     val participante: String = "",
+    val participanteRegistrado: DbParticipantesEntity? = null,
     val listaParticipantes: List<Participante> = listOf(),
+    val listaParticipantesEntitys: List<DbParticipantesEntity> = listOf(),
     val limiteGasto: String = "",
     val fechaCierre: String = "",
     val status: String = "C",
-    val listDbParticipantes: String = "", //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
     val idRegistro: Long = 0,
 
     //Valores de la BBDD Room

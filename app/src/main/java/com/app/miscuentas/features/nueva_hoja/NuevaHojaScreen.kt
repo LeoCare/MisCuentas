@@ -6,9 +6,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -71,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.domain.Validaciones.Companion.isValid
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.features.navegacion.MiTopBar
@@ -109,7 +112,6 @@ fun NuevaHoja(
     val eventoState by viewModel.nuevaHojaState.collectAsState()
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit){
         viewModel.getIdRegistroPreference()
@@ -131,7 +133,7 @@ fun NuevaHoja(
             { viewModel.onParticipanteFieldChanged(it) },
             { viewModel.onLimiteGastoFieldChanged(it) },
             { viewModel.onFechaCierreFieldChanged(it) },
-            { viewModel.addParticipante(it) },
+            { viewModel.addParticipate(it) },
             { viewModel.insertHoja() },
             { viewModel.getTotalParticipantes() },
             { viewModel.deleteUltimoParticipante() }
@@ -148,7 +150,7 @@ fun NuevaHojaScreen(
     onParticipanteFieldChanged: (String) -> Unit,
     onLimiteGastoFieldChanged: (String) -> Unit,
     onFechaCierreFieldChanged: (String) -> Unit,
-    addParticipante: (Participante) -> Unit,
+    addParticipate: (Participante) -> Unit,
     insertHoja: () -> Unit,
     getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
@@ -166,34 +168,34 @@ fun NuevaHojaScreen(
     LazyColumn(
         contentPadding = innerPadding,
         modifier = Modifier
+            .background(Color(color = 0xFFF5EFEF))
             .fillMaxSize()
-            .padding(18.dp)
+            .padding(horizontal = 9.dp)
             .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
                 detectTapGestures(onPress = {
                     controlTeclado?.hide()
                     awaitRelease()
                 })
-            }
+            },
+//        verticalArrangement = Arrangement.SpaceAround
     ) {
-
+        /** TITULO **/
         item {
-            CustomSpacer(size = 10.dp)
-
             Card(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(vertical = 9.dp)
                     .fillMaxWidth()
                     .clip(MaterialTheme.shapes.large)
-                    .fillMaxHeight(0.25f),
+                    .fillMaxHeight(0.15f),
 
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = Color.Black
                 )
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(vertical = 25.dp, horizontal = 5.dp)
 
                 ) {
                     Titulo(
@@ -201,10 +203,13 @@ fun NuevaHojaScreen(
                     ) { onTituloFieldChanged(it) }
                 }
             }
+        }
 
+        /** PARTICIPANTES **/
+        item {
             Card(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(bottom = 9.dp)
                     .fillMaxWidth()
                     .fillMaxHeight(0.5f)
                     .clip(MaterialTheme.shapes.large)
@@ -215,19 +220,19 @@ fun NuevaHojaScreen(
                         )
                     ),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(vertical = 25.dp, horizontal = 5.dp)
                 ) {
                     Participantes(
-                        eventoState.listaParticipantes,
+                        eventoState.listaParticipantesEntitys,
                         eventoState.participante,
                         { onParticipanteFieldChanged(it) },
-                        { addParticipante(it) },
+                        { addParticipate(it) },
                         { getTotalParticipantes() },
                         { deleteUltimoParticipante() }
                     )
@@ -236,21 +241,21 @@ fun NuevaHojaScreen(
             }
         }
 
+        /** LIMITES FECHA/GASTOS **/
         item{
             Card(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(bottom = 9.dp)
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.large)
-                    .fillMaxHeight(0.35f),
+                    .clip(MaterialTheme.shapes.large),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(10.dp)
+                        .padding(vertical = 25.dp, horizontal = 5.dp)
                 ) {
                     LimiteGasto(
                         robotoMedItalic,
@@ -264,14 +269,16 @@ fun NuevaHojaScreen(
 
                 }
             }
+        }
+        item {
 
-            CustomSpacer(20.dp)
-
+            CustomSpacer(10.dp)
             BotonCrear(
                 eventoState.titulo,
-                eventoState.listaParticipantes,
+                eventoState.listaParticipantesEntitys,
                 { insertHoja() }
             )
+            CustomSpacer(70.dp)
         }
     }
 }
@@ -315,15 +322,13 @@ fun Titulo(
 /** Composable para el recuadro de Paraticipantes **/
 @Composable
 fun Participantes(
-    listParticipantes: List<Participante>,
+    listParticipantes: List<DbParticipantesEntity>,
     statusParticipante: String,
     onParticipanteFieldChange: (String) -> Unit,
-    addParticipante: (Participante) -> Unit,
+    addParticipate: (Participante) -> Unit,
     getTotalParticipantes: () -> Int,
     deleteUltimoParticipante: () -> Unit
 ) {
-    var isFocused by remember { mutableStateOf(false) }
-    var mostrarParticipantes by remember { mutableStateOf(true) }
 
     Row(
         modifier = Modifier
@@ -370,8 +375,6 @@ fun Participantes(
                 .height(IntrinsicSize.Min),
             textStyle = MaterialTheme.typography.titleLarge,
             colors = TextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.primary,
-                unfocusedTextColor = MaterialTheme.colorScheme.primary,
                 focusedContainerColor = Color(0xFFD5E8F7),
                 unfocusedContainerColor =  Color(0xFFF4F6F8)
             ),
@@ -379,6 +382,7 @@ fun Participantes(
             maxLines = 1
         )
         Spacer(Modifier.weight(1f))
+        //AGREGAR:
         Image(
             painter = painterResource(id = R.drawable.icon_add),
             contentDescription = "Icono de agregar Participantes",
@@ -386,12 +390,18 @@ fun Participantes(
                 .align(CenterVertically)
                 .clickable {
                     if (statusParticipante.isNotBlank()) {
-                        addParticipante(Participante(idParticipante = 0, nombre = statusParticipante))
+                        addParticipate(
+                            Participante(
+                                idParticipante = 0,
+                                nombre = statusParticipante
+                            )
+                        )
                         onParticipanteFieldChange("")
                     }
                 }
         )
         Spacer(Modifier.weight(1f))
+        //ELIMINAR:
         Image(
             painter = painterResource(id = R.drawable.icon_rest),
             contentDescription = "Icono de quitar Participantes",
@@ -404,36 +414,31 @@ fun Participantes(
                 }
         )
     }
-    Column {
-        IconoVerParticipantes(
-            mostrarParticipantes) { mostrarParticipantes = !mostrarParticipantes }
+    ListaParticipantes(listParticipantes)
 
-        ListaParticipantes(
-            mostrarParticipantes,
-            listParticipantes)
-    }
+
+
 }
 
 /** Composable que genera y mantiene la lista de participantes **/
 @Composable
 fun ListaParticipantes(
-    mostrarParticipantes: Boolean,
-    listParticipantes: List<Participante>){
-
-    if (mostrarParticipantes) {
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            //mostrar lista de participantes
-            items(listParticipantes) { participante ->
-                Text(
-                    text = participante.nombre,
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
+    listParticipantes: List<DbParticipantesEntity>
+){
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+    ) {
+        //mostrar lista de participantes
+        items(listParticipantes) { participante ->
+            Text(
+                text = participante.nombre,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .padding(start = 10.dp, end = 10.dp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
 }
@@ -446,8 +451,6 @@ fun LimiteGasto(
     statusLimiteGasto: String,
     onLimiteGastoFieldChange: (String) -> Unit) {
 
-    var isFocused by remember{ mutableStateOf(false) }
-
     Text(
         text = "Limite de gastos",
         fontSize = 20.sp,
@@ -457,7 +460,8 @@ fun LimiteGasto(
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = CenterVertically
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
         TextField(
             value = statusLimiteGasto,
@@ -478,8 +482,6 @@ fun LimiteGasto(
                 .height(IntrinsicSize.Min),
             textStyle = MaterialTheme.typography.titleLarge,
             colors = TextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.primary,
-                unfocusedTextColor = MaterialTheme.colorScheme.primary,
                 focusedContainerColor = Color(0xFFD5E8F7),
                 unfocusedContainerColor =  Color(0xFFF4F6F8)
             ),
@@ -611,7 +613,7 @@ fun IconoVerParticipantes(
 @Composable
 fun BotonCrear(
     titulo: String,
-    listaParticipantes: List<Participante>,
+    listaParticipantes: List<DbParticipantesEntity>?,
     insertHoja: () -> Unit
 ) {
 
@@ -635,7 +637,7 @@ fun BotonCrear(
     ) {
         Button(
             onClick = {
-                if (titulo.isEmpty() || listaParticipantes.isEmpty()) showDialog = true
+                if (titulo.isEmpty() || listaParticipantes.isNullOrEmpty()) showDialog = true
                 else { insertHoja() }
             },
             modifier = Modifier

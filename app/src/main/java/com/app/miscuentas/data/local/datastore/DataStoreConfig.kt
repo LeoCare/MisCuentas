@@ -16,6 +16,13 @@ import javax.inject.Inject
 private const val DATASTORE_NAME = "datastore_mis_cuentas"
 private val Context.dataStore by preferencesDataStore(name = DATASTORE_NAME)
 
+enum class DataStoreKey(val value: String){
+    REGISTRADO("REGISTRADO"),
+    INICIOHUELLA("INICIOHUELLA"),
+    IDREGISTRADO("IDREGISTRADO"),
+    IDHOJAPRINCIPAL("IDHOJAPRINCIPAL")
+}
+
 class DataStoreConfig @Inject constructor(
     private val context: Context
 ) {

@@ -5,8 +5,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -28,6 +30,10 @@ interface DbParticipantesDao {
 
     //Room mantiene el Flow actualizado, por lo que solo se necesita obtener los datos una vez.
     //Luego Room se encarga de notificarnos con cada cambio en los datos
+    @Transaction
+    @Query("SELECT * FROM t_participantes WHERE idParticipante = :idRegistro")
+    fun getParticipanteConGastos(idRegistro: Long): Flow<ParticipanteConGastos>
+
     @Query("SELECT * FROM t_participantes WHERE idParticipante = :id")
     fun getParticipante(id: Int): Flow<DbParticipantesEntity>
 

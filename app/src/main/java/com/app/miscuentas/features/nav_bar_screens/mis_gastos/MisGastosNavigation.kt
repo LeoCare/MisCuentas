@@ -16,6 +16,6 @@ fun NavGraphBuilder.misGastosScreen(
     navHostController: NavHostController
 ){
     composable(route = MIS_GASTOS_ROUTE){
-        MisGastosScreen()
+        MisGastosScreen(innerPadding)
     }
 }

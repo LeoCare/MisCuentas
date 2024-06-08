@@ -2,11 +2,22 @@ package com.app.miscuentas.data.local.dbroom.entitys
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.Participante
 
-@Entity( tableName = "t_hojas_cab" )
+@Entity(
+    tableName = "t_hojas_cab",
+    foreignKeys = [
+        ForeignKey(
+            entity = DbRegistrosEntity::class,
+            parentColumns = ["idRegistro"],
+            childColumns = ["idRegistroHoja"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class DbHojaCalculoEntity (
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "idHoja") var idHoja: Long = 0,

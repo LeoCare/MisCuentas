@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.nueva_hoja
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
@@ -8,10 +9,13 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
+import com.app.miscuentas.data.local.repository.RegistroRepository
 import com.app.miscuentas.domain.Validaciones
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.domain.model.toEntityWithHoja
+import com.app.miscuentas.domain.model.toEntityWithRegistro
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,8 +28,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
-    private val repositoryParticipante: ParticipanteRepository,
-    private val repositoryHojaCalculo: HojaCalculoRepository,
+    private val participanteRepository: ParticipanteRepository,
+    private val hojaCalculoRepository: HojaCalculoRepository,
+    private val registroRepository: RegistroRepository,
     private val dataStoreConfig: DataStoreConfig
 ) : ViewModel() {
 
@@ -53,15 +58,29 @@ class NuevaHojaViewModel @Inject constructor(
         vaciarTextFields() //Vacio estados
     }
 
-    /** METODOS PARA EL STATE DE PARTICIPANTES **/
-    fun addParticipante(participante: Participante) {
-        val updatedList = _nuevaHojaState.value.listaParticipantes + participante
-        _nuevaHojaState.value = _nuevaHojaState.value.copy(
-            listaParticipantes = updatedList,
-            participante = ""
-        )
-
+    fun onIdRegistroChanged(idRegistro: Long) {
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(idRegistro = idRegistro)
     }
+
+    /** METODOS PARA EL STATE DE PARTICIPANTES **/
+    fun addParticipate(participante: Participante) {
+        val parti = participante.toEntity()
+        val updatedList =_nuevaHojaState.value.listaParticipantesEntitys + parti
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(
+            participante = "",
+            listaParticipantesEntitys = updatedList
+        )
+    }
+
+    fun addParticipanteRegistrado(idRegistrado: Long, participante: Participante) {
+        val partiRegistrado = participante.toEntityWithRegistro(idRegistrado)
+        val updatedList =_nuevaHojaState.value.listaParticipantesEntitys + partiRegistrado
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(
+            participanteRegistrado = partiRegistrado,
+            listaParticipantesEntitys = updatedList
+            )
+    }
+
 
     fun deleteUltimoParticipante() {
         if (_nuevaHojaState.value.listaParticipantes.isNotEmpty()) {
@@ -80,9 +99,11 @@ class NuevaHojaViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val hoja = instanceNuevaHoja() //obtiene hojaEntity
-                val participantesHoja = instaciaParticipantes(hoja.idHoja) //obtiene participantesEntitys
+                instaciaParticipantesConHojas(hoja.idHoja) //instancia lista de participantesEntitys
 
-                insertrHojaConParticipantes(hoja, participantesHoja)
+                nuevaHojaState.value.listaParticipantesEntitys?.let {
+                    insertrHojaConParticipantes(hoja, it)
+                }
             }
         }
     }
@@ -104,18 +125,15 @@ class NuevaHojaViewModel @Inject constructor(
     }
 
     /** INSTANCIA PARTICIPANTES CON IDHOJA **/
-    fun instaciaParticipantes(hojaCalculoId: Long): List<DbParticipantesEntity> {
-        val participantesHoja = mutableListOf<DbParticipantesEntity>()
-        nuevaHojaState.value.listaParticipantes.forEach { participante ->
-                //val siguienteId = repositoryParticipante.getMaxIdParticipantes() + 1
-                participantesHoja.add(participante.toEntity(hojaCalculoId))
-            }
-        return participantesHoja
+    fun instaciaParticipantesConHojas(hojaCalculoId: Long) {
+        nuevaHojaState.value.listaParticipantesEntitys?.forEach { participante ->
+            participante.idHojaParti = hojaCalculoId
+        }
     }
 
     /** METODO PARA INSERTAR LA HOJA Y LOS PARTICIPANTES RELACIONADOS **/
     suspend fun insertrHojaConParticipantes(hoja: DbHojaCalculoEntity, participantes: List<DbParticipantesEntity>) {
-        repositoryHojaCalculo.insertHojaConParticipantes(hoja, participantes)
+        hojaCalculoRepository.insertHojaConParticipantes(hoja, participantes)
         _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
     }
 
@@ -138,28 +156,11 @@ class NuevaHojaViewModel @Inject constructor(
     fun getHojaConParticipantes(id: Long) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.getHojaConParticipantes(id).collect { hojaConParticipantes ->
+                hojaCalculoRepository.getHojaConParticipantes(id).collect { hojaConParticipantes ->
                     _nuevaHojaState.value = _nuevaHojaState.value.copy(hojaConParticipantes = hojaConParticipantes)
                 }
             }
         }
-    }
-
-    //Pinta una lista con los participantes almacenados en la BBDD
-    fun getAllParticipantesToString(): String {//Borrar si no es necesario!!
-
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                // Se recolecta el Flow de forma asíncrona
-                repositoryParticipante.getAllParticipantes().collect { participantes ->
-                    _nuevaHojaState.value = _nuevaHojaState.value.copy(
-                        listDbParticipantes = participantes.joinToString(
-                            ", "
-                        ) { it.nombre })
-                }
-            }
-        }
-        return _nuevaHojaState.value.listDbParticipantes
     }
 
     //Pinta una lista con los participantes del state
@@ -244,19 +245,18 @@ class NuevaHojaViewModel @Inject constructor(
 
     fun getIdRegistroPreference(){
         viewModelScope.launch {
-            val idRegistro = dataStoreConfig.getIdRegistroPreference()
-            if (idRegistro != null) {
-                _nuevaHojaState.value = _nuevaHojaState.value.copy(idRegistro = idRegistro)
+            val idRegistrado = dataStoreConfig.getIdRegistroPreference()
+            if (idRegistrado != null) {
+                onIdRegistroChanged(idRegistrado)
+                //Agrego el primer participante que es el registrado
+                registroRepository.getRegistroWhereId(idRegistrado).collect{
+                    it?.let { it1 ->
+                        addParticipanteRegistrado(idRegistrado, Participante(0, it1.nombre, it.correo))
+                    }
+                }
             }
         }
     }
-
-   suspend fun getMaxIdHojasCalculos(){
-       repositoryHojaCalculo.getMaxIdHojasCalculos().collect { maxId ->
-           _nuevaHojaState.value = _nuevaHojaState.value.copy(maxIdHolaCalculo = maxId)
-       }
-       putIdHojaPrincipalPreference(_nuevaHojaState.value.maxIdHolaCalculo)
-   }
 
 
    private fun vaciarTextFields(){
@@ -268,8 +268,7 @@ class NuevaHojaViewModel @Inject constructor(
 
    init {
        viewModelScope.launch {
-           //recojo el id de hoja maximo y el id del registrado
-           getMaxIdHojasCalculos()
+
        }
    }
 }

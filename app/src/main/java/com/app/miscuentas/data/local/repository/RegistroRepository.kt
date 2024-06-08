@@ -1,9 +1,14 @@
 package com.app.miscuentas.data.local.repository
 
+import androidx.room.Insert
+import androidx.room.Transaction
 import com.app.miscuentas.data.local.dbroom.dao.DbRegistroDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.Registro
 import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.domain.model.toEntityWithRegistro
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -20,9 +25,26 @@ class RegistroRepository @Inject constructor(
 
     suspend fun delete(registro: Registro) = registroDao.delete(registro.toEntity())
 
-    fun getRegistro(nombre: String, contrasenna: String): Flow<Registro?> =
-        registroDao.getRegistro(nombre, contrasenna).map { it?.toDomain() }
+    fun getRegistroWhereLogin(nombre: String, contrasenna: String): Flow<Registro?> =
+        registroDao.getRegistroWhereLogin(nombre, contrasenna).map { it?.toDomain() }
 
-    fun getRegistroExist(correo: String): Flow<Registro?> =
-        registroDao.getRegistroExist(correo).map { it?.toDomain() }
+    fun getRegistroWhereCorreo(correo: String): Flow<Registro?> =
+        registroDao.getRegistroWhereCorreo(correo).map { it?.toDomain() }
+
+    fun getRegistroWhereId(idRegistro: Long): Flow<Registro?> =
+        registroDao.getRegistroWhereId(idRegistro).map { it?.toDomain() }
+
+    @Transaction
+    suspend fun insertRegistroConParticipante(
+        registro: Registro,
+        participante: Participante
+    ): Long {
+        val dbRegistro = registro.toEntity()
+        val dbParticipante = participante.toEntityWithRegistro(0) // Inicialmente sin idRegistro
+        return registroDao.insertRegistroConParticipante(dbRegistro, dbParticipante)
+
+    }
+
+
+
 }

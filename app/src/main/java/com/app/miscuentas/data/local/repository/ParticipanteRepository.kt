@@ -2,8 +2,10 @@ package com.app.miscuentas.data.local.repository
 
 import com.app.miscuentas.data.local.dbroom.dao.DbParticipantesDao
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.domain.model.toEntityWithHoja
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -12,13 +14,16 @@ class ParticipanteRepository @Inject constructor(
     private val participantesDao: DbParticipantesDao
 ) {
     suspend fun insertAll(idHojaCalculo: Long, participante: Participante) =
-        participantesDao.insertAll( participante.toEntity(idHojaCalculo))
+        participantesDao.insertAll( participante.toEntityWithHoja(idHojaCalculo))
 
     suspend fun update(idHojaCalculo: Long, participante: Participante) =
-        participantesDao.update(participante.toEntity(idHojaCalculo))
+        participantesDao.update(participante.toEntityWithHoja(idHojaCalculo))
 
     suspend fun delete(idHojaCalculo: Long, participante: Participante) =
-        participantesDao.delete(participante.toEntity(idHojaCalculo))
+        participantesDao.delete(participante.toEntityWithHoja(idHojaCalculo))
+
+    fun getParticipanteConGastos(idRegistro: Long): Flow<ParticipanteConGastos> =
+        participantesDao.getParticipanteConGastos(idRegistro).map { it }
 
     fun getParticipante(id: Int): Flow<Participante> =
         participantesDao.getParticipante(id).map { it.toDomain() }

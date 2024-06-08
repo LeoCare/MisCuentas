@@ -1,10 +1,13 @@
 package com.app.miscuentas.features.login
 
+import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.data.local.repository.RegistroRepository
+import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.Registro
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -79,7 +82,7 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
              withContext(Dispatchers.IO) {
-                registro = registroRepository.getRegistro(nombre, contrasenna).firstOrNull()
+                registro = registroRepository.getRegistroWhereLogin(nombre, contrasenna).firstOrNull()
                  if  (registro != null){
                      onRegistroDataStoreChanged(registro!!.idRegistro, nombre) //si existe, actualiza el dataStore con el nombre
                  }
@@ -94,21 +97,34 @@ class LoginViewModel @Inject constructor(
         onLoginOkChanged(true)
     }
 
+    //0_COMPRUEBO EXISTENCIA DEL CORREO
+    fun inicioInsertRegistro(){
+        val correo = _loginState.value.email
 
-    //1_LLAMADA A INSERTAR REGISTRO
-    fun insertRegistroCall(){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                val insertOk = insertRegistro()
-
-                if (insertOk) onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
-                else _loginState.value = _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
+                val existeCorreoRegistro = registroRepository.getRegistroWhereCorreo(correo).firstOrNull()
+                if (existeCorreoRegistro == null) {
+                    insertRegistroCall()
+                }
             }
         }
     }
 
-    //2_INSERTAR REGISTRO
-    private suspend fun insertRegistro(): Boolean {
+    //1_LLAMADA A INSERTAR REGISTRO
+    suspend fun insertRegistroCall(){
+                val insertOk = insertRegistro()
+
+                if (insertOk) {
+                    onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
+                }
+                else _loginState.value = _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
+
+
+    }
+
+    //2_INSERTAR REGISTRO Y PARTICIPANTE PRINCIPAL
+    suspend fun insertRegistro(): Boolean {
         val nombre = _loginState.value.usuario
         val correo = _loginState.value.email
         val contrasenna = _loginState.value.contrasenna
@@ -116,17 +132,20 @@ class LoginViewModel @Inject constructor(
         val registro = Registro(0, nombre, correo, contrasenna)
 
         return try {
-            val existeRegistro = registroRepository.getRegistroExist(correo).firstOrNull()
-            if (existeRegistro == null) {
-                val idRegistro = registroRepository.insert(registro)
+                val participante = instanciaParticipante()
+                val idRegistro = registroRepository.insertRegistroConParticipante(registro, participante )
                 onIdRegistroChanged(idRegistro) //guardado el id del insert del resitro
                 true // insert OK
-            }
-            else false
-
         } catch (e: Exception) {
            false // inserción NOK
         }
+    }
+
+    private fun instanciaParticipante(): Participante{
+        return  Participante(
+            0,
+            loginState.value.usuario,
+            loginState.value.email)
     }
 
 

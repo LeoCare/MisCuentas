@@ -9,9 +9,22 @@ data class Participante(
     var listaGastos: List<Gasto?> = listOf()
 )
 
-fun Participante.toEntity(idHojaCalculo: Long) = DbParticipantesEntity(
+fun Participante.toEntity() = DbParticipantesEntity(
+    idParticipante = idParticipante,
+    nombre = nombre,
+    correo = correo
+)
+
+fun Participante.toEntityWithHoja(idHojaCalculo: Long) = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
     idHojaParti = idHojaCalculo
+)
+
+fun Participante.toEntityWithRegistro(idRegistroParti: Long) = DbParticipantesEntity(
+    idParticipante = idParticipante,
+    nombre = nombre,
+    correo = correo,
+    idRegistroParti = idRegistroParti
 )

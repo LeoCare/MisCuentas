@@ -58,8 +58,8 @@ class MainActivity : FragmentActivity() {
                     Scaffold(
                         scaffoldState = scaffoldState,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            .fillMaxSize(),
+                           // .nestedScroll(scrollBehavior.nestedScrollConnection),
                         topBar = {
                             MiTopBar(
                                 null, //solo inicio tiene menu lateral

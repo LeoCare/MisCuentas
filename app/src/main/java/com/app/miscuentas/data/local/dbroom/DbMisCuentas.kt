@@ -11,7 +11,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.dao.DbRegistroDao
 import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 
-const val DATABASE_VERSION = 1
+const val DATABASE_VERSION = 2
 //Instancia de la BBDD
 //Proporciona instancia de los DAO
 @Database(

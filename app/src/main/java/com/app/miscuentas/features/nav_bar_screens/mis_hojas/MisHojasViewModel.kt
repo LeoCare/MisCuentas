@@ -34,54 +34,30 @@ class MisHojasViewModel @Inject constructor(
         _misHojasState.value = _misHojasState.value.copy(circularIndicator = circular)
     }
 
-
     /** ORDEN DE LAS HOJAS **/
     //Metodo que define el orden elegido
     fun onTipoOrdenChanged(tipoOrden: String){
         _misHojasState.value = _misHojasState.value.copy(tipoOrden = tipoOrden)
         ordenHoja()
     }
+
     //Metodo que indica la direccion asc. o desc.
     fun onOrdenDescChanged(ordenDesc: Boolean){
         _misHojasState.value = _misHojasState.value.copy(ordenDesc = ordenDesc)
         ordenHoja()
     }
 
-    //Metodo que ordena dependiendo de los estados elegidos en los dos metodos anteriores
-    fun ordenHoja(){
-        if(misHojasState.value.tipoOrden == "Fecha creacion"){
-            if(misHojasState.value.ordenDesc){
-                _misHojasState.value = _misHojasState.value.copy(
-                    listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.sortedByDescending {
-                        Validaciones.fechaToDateFormat(it.hoja.fechaCreacion)
-                    }
-                )
-            }
-            else {
-                _misHojasState.value = _misHojasState.value.copy(
-                    listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.sortedBy {
-                        Validaciones.fechaToDateFormat(it.hoja.fechaCreacion)
-                    }
-                )
-            }
-        }
-        else if (misHojasState.value.tipoOrden == "Fecha cierre"){
-            if(misHojasState.value.ordenDesc){
-                _misHojasState.value = _misHojasState.value.copy(
-                    listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.sortedByDescending {
-                        Validaciones.fechaToDateFormat(it.hoja.fechaCierre)
-                    }
-                )
-            }
-            else {
-                _misHojasState.value = _misHojasState.value.copy(
-                    listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.sortedBy {
-                        Validaciones.fechaToDateFormat(it.hoja.fechaCierre)
-                    }
-                )
-            }
-        }
 
+    private fun ordenHoja() {
+        val ordenado = _misHojasState.value.listaHojasConParticipantes?.let { lista ->
+            val comparator = when (_misHojasState.value.tipoOrden) {
+                "Fecha creacion" -> compareBy<HojaConParticipantes> { Validaciones.fechaToDateFormat(it.hoja.fechaCreacion) }
+                "Fecha cierre" -> compareBy { Validaciones.fechaToDateFormat(it.hoja.fechaCierre) }
+                else -> null
+            }
+            comparator?.let { if (_misHojasState.value.ordenDesc) lista.sortedWith(it.reversed()) else lista.sortedWith(it) }
+        }
+        _misHojasState.value = _misHojasState.value.copy(listaHojasAMostrar = ordenado)
     }
     /************************/
 
@@ -94,26 +70,16 @@ class MisHojasViewModel @Inject constructor(
     }
 
 
-    //Metodo que muestra solo las del tipo elegido en el metodo anterior
-    fun mostrarSolo(){
-        when(misHojasState.value.mostrarTipo){
-            "A" -> _misHojasState.value = _misHojasState.value.copy(
-                listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.filter { it.hoja.status == "A" }
-            )
-
-            "F" -> _misHojasState.value = _misHojasState.value.copy(
-                listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.filter { it.hoja.status == "F" }
-            )
-
-            "C" -> _misHojasState.value = _misHojasState.value.copy(
-                listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes?.filter { it.hoja.status == "C" }
-            )
-
-            else -> _misHojasState.value = _misHojasState.value.copy(
-                listaHojasAMostrar = misHojasState.value.listaHojasConParticipantes
-            )
-
+    private fun mostrarSolo() {
+        val filtrado = _misHojasState.value.listaHojasConParticipantes?.filter {
+            when (_misHojasState.value.mostrarTipo) {
+                "A" -> it.hoja.status == "A"
+                "F" -> it.hoja.status == "F"
+                "C" -> it.hoja.status == "C"
+                else -> true
+            }
         }
+        _misHojasState.value = _misHojasState.value.copy(listaHojasAMostrar = filtrado)
     }
     /************************/
 
@@ -126,72 +92,60 @@ class MisHojasViewModel @Inject constructor(
 
     //Cambio de status
     fun onStatusChanged(hojaCalculo: HojaCalculo, status: String){
-        _misHojasState.value = _misHojasState.value.copy(hojaAModificar = hojaCalculo)
-        _misHojasState.value = _misHojasState.value.copy(nuevoStatusHoja = status)
+        _misHojasState.value = _misHojasState.value.copy(hojaAModificar = hojaCalculo, nuevoStatusHoja = status)
     }
 
     //Actualizar
-    suspend fun update(){
+    suspend fun update() = viewModelScope.launch{
         _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.update(misHojasState.value.hojaAModificar!!)
-                updatePreferenceIdHojaPrincipal()
-            }
+        withContext(Dispatchers.IO) {
+            repositoryHojaCalculo.update(misHojasState.value.hojaAModificar!!)
+            updatePreferenceIdHojaPrincipal()
         }
 
     }
 
     //Eliminar
-    suspend fun deleteHojaConParticipantes(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.deleteHojaConParticipantes(_misHojasState.value.hojaAModificar!!.toEntity())
-                updatePreferenceIdHojaPrincipal()
-            }
+    suspend fun deleteHojaConParticipantes() = viewModelScope.launch{
+        withContext(Dispatchers.IO) {
+            repositoryHojaCalculo.deleteHojaConParticipantes(_misHojasState.value.hojaAModificar!!.toEntity())
+            updatePreferenceIdHojaPrincipal()
         }
-
     }
     /************************/
 
     //Metodo que actualiza el preference del idHoja a 0 si no esta Activa.
-    fun updatePreferenceIdHojaPrincipal(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                if(misHojasState.value.hojaAModificar!!.status != "C") dataStoreConfig.putIdHojaPrincipalPreference(0)
-                onOpcionSelectedChanged("")
-            }
+    fun updatePreferenceIdHojaPrincipal() = viewModelScope.launch{
+        withContext(Dispatchers.IO){
+            if(misHojasState.value.hojaAModificar!!.status != "C") dataStoreConfig.putIdHojaPrincipalPreference(0)
+            onOpcionSelectedChanged("")
         }
-
     }
 
     //Metodo que obtiene la lista de hojas, ordena por defecto y para el circularIndicator
-    fun getAllHojaConParticipantes() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                repositoryHojaCalculo.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
-                    //guardo la lista de hojas
-                    _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
+    fun getAllHojaConParticipantes() = viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            repositoryHojaCalculo.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
+                //guardo la lista de hojas
+                _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
 
-                    mostrarSolo() //lleno la listaHojasAMostrar con la lista original
-                    delay(1000)
-                    _misHojasState.value = _misHojasState.value.copy(circularIndicator = false)
-                }
+                mostrarSolo() //lleno la listaHojasAMostrar con la lista original
+                delay(1000)
+                onCircularIndicatorChanged(false)
             }
         }
     }
 
     //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
-    fun getIdRegistroPreference(){
-        viewModelScope.launch {
-            val idRegistro = dataStoreConfig.getIdRegistroPreference()
-            if (idRegistro != null) {
-                _misHojasState.value = _misHojasState.value.copy(idRegistro = idRegistro)
-            }
-        }
+    fun getIdRegistroPreference() = viewModelScope.launch {
+        val idRegistro = dataStoreConfig.getIdRegistroPreference()
+        if (idRegistro != null) {
+            _misHojasState.value = _misHojasState.value.copy(idRegistro = idRegistro)
+
     }
 
-
+    }
+}
     /** API **/
     //rellena la lista de hojas del state
 //    suspend fun getPhotos(){
@@ -214,4 +168,5 @@ class MisHojasViewModel @Inject constructor(
 //            getPhotos()
 //        }
 //    }
-}
+
+

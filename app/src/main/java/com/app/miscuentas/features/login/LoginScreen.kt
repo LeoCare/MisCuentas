@@ -103,7 +103,7 @@ fun Login(
             { viewModel.onEmailFieldChanged(it) },
             { viewModel.onRegistroCheckChanged(it)},
             { viewModel.getRegistro() },
-            { viewModel.insertRegistroCall() }
+            { viewModel.inicioInsertRegistro() }
         )
     }
 }
@@ -125,7 +125,7 @@ private fun LoginContent(
     onEmailFieldChanged: (String) -> Unit,
     onRegistroCheckChanged: (Boolean) -> Unit,
     getRegistro: () -> Unit,
-    insertRegistroCall: () -> Unit
+    inicioInsertRegistro: () -> Unit
 ) {
 
     //Inicio por huella digital
@@ -173,7 +173,7 @@ private fun LoginContent(
                 //MODO REGISTRO
                 if (loginState.registro) {
                     uiErrorMessage.value = ""
-                    insertRegistroCall() //inserta el registro
+                    inicioInsertRegistro() //inserta el registro
                 }
                 //MODO LOGIN
                 else {

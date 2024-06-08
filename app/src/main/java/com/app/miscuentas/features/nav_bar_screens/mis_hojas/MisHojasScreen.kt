@@ -52,6 +52,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
+import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.util.Desing
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.random.Random
@@ -89,8 +90,7 @@ fun MisHojasScreen(
 
     LaunchedEffect(hojaState.opcionSelected){
         when(hojaState.opcionSelected) {
-            "Finalizar" -> { viewModel.update() }
-            "Anular" -> { viewModel.update() }
+            "Finalizar","Anular" -> { viewModel.update() }
             "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
         }
     }
@@ -105,66 +105,87 @@ fun MisHojasScreen(
                 color = MaterialTheme.colorScheme.secondary
             )
         }
-    }
-    else {
+    } else {
         Column(horizontalAlignment = CenterHorizontally) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo"){ mostrar ->
-                    when(mostrar) {
-                        "Activas" -> {viewModel.onMostrarTipoChanged("C")}
-                        "Finalizadas" -> {viewModel.onMostrarTipoChanged("F")}
-                        "Anuladas" -> {viewModel.onMostrarTipoChanged("A")}
-                        "Todas" -> {viewModel.onMostrarTipoChanged("T")}
-                    }
-
-                }
-                SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion"){ Orden ->
-                     viewModel.onTipoOrdenChanged(Orden)
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Descendente",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                Checkbox(
-                    checked = hojaState.ordenDesc,
-                    onCheckedChange = {
-                        viewModel.onOrdenDescChanged(it)
-
-                    }
-                )
-            }
-
-            LazyColumn(
-                contentPadding = innerPadding!!,
-            ) {
-                if (hojaState.listaHojasAMostrar != null){
-                    itemsIndexed(hojaState.listaHojasAMostrar!!){index, hojaConParticipantes ->
-                        HojaDesing(
-                            onNavGastos = {onNavGastos(it)},
-                            hojaConParticipantes = hojaConParticipantes,
-                            onOpcionSelectedChanged = { viewModel.onOpcionSelectedChanged(it) },
-                            onStatusChanged = {viewModel.onStatusChanged(hojaConParticipantes.hoja.toDomain(), it)}
-                        )
-                    }
-                }
-            }
+            FiltersRow(
+                itemsTipo,
+                itemsOrden,
+                viewModel::onMostrarTipoChanged,
+                viewModel::onTipoOrdenChanged)
+            OrderCheckbox(
+                hojaState.ordenDesc,
+                viewModel::onOrdenDescChanged)
+            HojasList(
+                innerPadding,
+                hojaState.listaHojasAMostrar,
+                onNavGastos,
+                viewModel::onOpcionSelectedChanged,
+                viewModel::onStatusChanged )
         }
     }
 }
 
 
+@Composable
+fun FiltersRow(
+    itemsTipo: List<String>,
+    itemsOrden: List<String>,
+    onMostrarTipoChanged: (String) -> Unit,
+    onTipoOrdenChanged: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo") { mostrar ->
+            onMostrarTipoChanged(when (mostrar) {
+                "Activas" -> "C"
+                "Finalizadas" -> "F"
+                "Anuladas" -> "A"
+                else -> "T"
+            })
+        }
+        SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion") { orden ->
+            onTipoOrdenChanged(orden)
+        }
+    }
+}
+
+@Composable
+fun OrderCheckbox(ordenDesc: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 10.dp, end = 10.dp),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "Descendente", style = MaterialTheme.typography.titleSmall)
+        Checkbox(checked = ordenDesc, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+fun HojasList(
+    innerPadding: PaddingValues?,
+    listaHojasAMostrar: List<HojaConParticipantes>?,
+    onNavGastos: (Long) -> Unit,
+    onOpcionSelectedChanged: (String) -> Unit,
+    onStatusChanged: (HojaCalculo, String) -> Unit
+) {
+    LazyColumn(contentPadding = innerPadding!!) {
+        listaHojasAMostrar?.let {
+            itemsIndexed(it) { _, hojaConParticipantes ->
+                HojaDesing(
+                    onNavGastos = { onNavGastos(it) },
+                    hojaConParticipantes = hojaConParticipantes,
+                    onOpcionSelectedChanged = { onOpcionSelectedChanged(it) },
+                    onStatusChanged = { onStatusChanged(hojaConParticipantes.hoja.toDomain(), it) }
+                )
+            }
+        }
+    }
+}
 
 
 /** Composable para las opciones de filtrado **/
@@ -180,7 +201,7 @@ fun SpinnerCustoms(
 
     Column(
         modifier = Modifier
-            .padding(20.dp),
+            .padding(horizontal = 10.dp, vertical = 5.dp),
         horizontalAlignment = Alignment.Start
     ) {
 
@@ -188,7 +209,6 @@ fun SpinnerCustoms(
             text = titulo,
             style = MaterialTheme.typography.titleSmall
         )
-
         Card(
             modifier = Modifier
                 .height(IntrinsicSize.Min)
@@ -261,10 +281,9 @@ fun HojaDesing(
         }
     )
     /*****************************************/
-
     Card(
         modifier = Modifier
-            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+            .padding(start = 10.dp, end = 10.dp, bottom = 9.dp)
             .clip(MaterialTheme.shapes.extraLarge)
             .clickable { onNavGastos(hojaConParticipantes.hoja.idHoja) },
         colors = CardDefaults.cardColors(
@@ -289,11 +308,41 @@ fun HojaDesing(
 
                 //Spacer(modifier = Modifier.weight(1f))
                 /** API **/ //   Text(text = hoja.type)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                OpcionesHoja(hojaConParticipantes) { opcion ->
+                    when(opcion) {
+                        "Resumen" ->  mensaje = "Este es el resumen"
 
+                        "Finalizar" ->  {
+                            onStatusChanged("F")
+                            mensaje = "Finalizar la hoja"
+                        }
 
+                        "Anular" ->  {
+                            onStatusChanged("A")
+                            mensaje = "Esta hoja se marcara como anulada."
+                        }
+                        "Eliminar" ->  {
+                            onStatusChanged("E")
+                            mensaje = "¿Seguro que desea ELIMINAR esta hoja?"
+                        }
+                    }
+                    opcionSeleccionada = opcion
+                    showDialog = true
+                }
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Image(
+                        painter = painterResource(id = R.drawable.hoja),
+                        contentDescription = "Logo Hoja",
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(80.dp)
+                    )
+                }
+                Column{
                     when (hojaConParticipantes.hoja.status) { //pinta segun valor status de la BBDD
                         "C" ->
                             Text(
@@ -312,42 +361,6 @@ fun HojaDesing(
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
-                    OpcionesHoja(hojaConParticipantes) { opcion ->
-                        when(opcion) {
-                            "Resumen" ->  mensaje = "Este es el resumen"
-
-                            "Finalizar" ->  {
-                                onStatusChanged("F")
-                                mensaje = "Finalizar la hoja"
-                            }
-
-                            "Anular" ->  {
-                                onStatusChanged("A")
-                                mensaje = "Esta hoja se marcara como anulada."
-                            }
-                            "Eliminar" ->  {
-                                onStatusChanged("E")
-                                mensaje = "¿Seguro que desea ELIMINAR esta hoja?"
-                            }
-                        }
-                        opcionSeleccionada = opcion
-                        showDialog = true
-                    }
-                }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Image(
-                        painter = painterResource(id = R.drawable.hoja),
-                        contentDescription = "Logo Hoja",
-                        modifier = Modifier
-                            .width(80.dp)
-                            .height(80.dp)
-                    )
-                }
-                Column{
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
                         Text(
@@ -462,6 +475,9 @@ fun OpcionesHoja(
         }
     }
 }
+
+
+
 
 /** ESPACIADOR  **/
 @Composable
