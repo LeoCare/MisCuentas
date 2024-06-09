@@ -9,6 +9,7 @@ import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
+import com.app.miscuentas.domain.Validaciones
 import com.app.miscuentas.domain.model.Gasto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -25,9 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MisGastosViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,
-    private val hojaCalculoRepository: HojaCalculoRepository,
-    private val gastoRepository: GastoRepository,
-    private val participanteRepository: ParticipanteRepository
+    private val hojaCalculoRepository: HojaCalculoRepository
 ): ViewModel(){
 
     private val _misGastosState by lazy { MutableStateFlow(MisGastosState()) }
@@ -37,15 +36,36 @@ class MisGastosViewModel @Inject constructor(
     init {
        getIdRegistroPreference()
     }
-
     fun onGastosDelParticipanteChanged(gastos: List<DbGastosEntity>){
-        val listaGastos = _misGastosState.value.gastos + gastos
-        _misGastosState.value = _misGastosState.value.copy(gastos = listaGastos)
+        val listaGastos = _misGastosState.value.listaGastos + gastos
+        _misGastosState.value = _misGastosState.value.copy(listaGastos = listaGastos)
     }
-
     fun onHojaDelRegistradoChanged(hojas: List<HojaConParticipantes>){
         _misGastosState.value = _misGastosState.value.copy(hojasDelRegistrado = hojas)
     }
+    fun onFiltroElegidoChanged(filtro: String){
+        _misGastosState.value = _misGastosState.value.copy(filtroElegido = filtro)
+        if (filtro == "Todos") onListaGastosAMostrarChanged(misGastosState.value.listaGastos)
+    }
+    fun onOrdenElegidoChanged(orden: String){
+        _misGastosState.value = _misGastosState.value.copy(ordenElegido = orden)
+        ordenHoja()
+    }
+    fun onDescendingChanged(desc: Boolean){
+        _misGastosState.value = _misGastosState.value.copy(descending = desc)
+    }
+    fun onFiltroHojaElegidoChanged(hojaElegida: Long){
+        _misGastosState.value = _misGastosState.value.copy(filtroHojaElegido = hojaElegida)
+        mostrarHoja()
+    }
+    fun onFiltroTipoElegidoChanged(tipoElegido: Long){
+        _misGastosState.value = _misGastosState.value.copy(filtroTipoElegido = tipoElegido)
+        mostrarTipo()
+    }
+    fun onListaGastosAMostrarChanged(listaGastosAMostrar: List<DbGastosEntity>){
+        _misGastosState.value = _misGastosState.value.copy(listaGastosAMostrar = listaGastosAMostrar)
+    }
+
 
     //Obtengo el id del registado
     fun getIdRegistroPreference() = viewModelScope.launch {
@@ -72,11 +92,49 @@ class MisGastosViewModel @Inject constructor(
                     .filter { it.participante.idRegistroParti == idRegistro }
                     .flatMap { it.gastos }
 
-                    onGastosDelParticipanteChanged(gastosDelRegistrado)
-
+                onGastosDelParticipanteChanged(gastosDelRegistrado)
+                onListaGastosAMostrarChanged(gastosDelRegistrado)
             }
         }
     }
 
+    /** FILTRAR POR: **/
+    private fun mostrarTipo() {
+        val listaFiltrada = _misGastosState.value.listaGastos
+            .filter {
+                it.tipo == _misGastosState.value.filtroTipoElegido
+            }
+        onListaGastosAMostrarChanged(listaFiltrada)
+    }
+
+    private fun mostrarHoja() {
+        val idRegistro = misGastosState.value.idRegistro
+        val listaFiltrada = _misGastosState.value.hojasDelRegistrado
+            .filter {
+                it.hoja.idHoja == _misGastosState.value.filtroHojaElegido
+            }
+            .flatMap { it.participantes }
+            .filter { it.participante.idRegistroParti == idRegistro }
+            .flatMap{ it.gastos }
+
+        onListaGastosAMostrarChanged(listaFiltrada)
+    }
+    /************************/
+
+
+    /** ORDEN DE LAS HOJAS **/
+    private fun ordenHoja() {
+        val ordenado = misGastosState.value.listaGastosAMostrar.let { lista ->
+            val comparator = when (misGastosState.value.ordenElegido) {
+                "Tipo" -> compareBy<DbGastosEntity> { it.tipo }
+                "Importe" -> compareBy { it.importe}
+                "Fecha" ->  compareBy { Validaciones.fechaToDateFormat(it.fechaGasto) }
+                else -> null
+            }
+            comparator?.let { if (misGastosState.value.descending) lista?.sortedWith(it.reversed()) else lista?.sortedWith(it) }
+        }
+        _misGastosState.value = _misGastosState.value.copy(listaGastosAMostrar = ordenado)
+    }
+    /************************/
 
 }

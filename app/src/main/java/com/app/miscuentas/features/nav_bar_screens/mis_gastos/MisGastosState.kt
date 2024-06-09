@@ -11,6 +11,12 @@ data class MisGastosState (
     val idHojaPrincipal: Long? = null,
     val hojasDelRegistrado: List<HojaConParticipantes> = listOf(),
     val hojaAMostrar: HojaConParticipantes? = null,
-    val gastos: List<DbGastosEntity> = listOf()
-//    val participanteConGastos: ParticipanteConGastos? = null
+    val listaGastos: List<DbGastosEntity> = listOf(),
+    val listaGastosAMostrar: List<DbGastosEntity>? = listOf(),
+    val filtroElegido: String = "Todos",
+    val filtroHojaElegido: Long = 0,
+    val filtroTipoElegido: Long = 0,
+    val ordenElegido: String = "Fecha",
+    val descending: Boolean = false
+
 )

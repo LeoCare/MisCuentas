@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,18 +23,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Surface
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -55,13 +47,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.IconoGasto
-import com.app.miscuentas.domain.model.Participante
 
 @Composable
 fun MisGastosScreen(
@@ -75,34 +64,26 @@ fun MisGastosScreen(
         modifier = Modifier.fillMaxSize()
     ){
         SeleccionFiltros(
-            onFilterChanged = {},
-            onSortChanged = {},
-            onDescendingChanged = {},
-            listaIconosGastos,
-            gastosState.hojasDelRegistrado
+            filtroElegido = gastosState.filtroElegido,
+            ordenElegido = gastosState.ordenElegido,
+            descending = gastosState.descending,
+            onFiltroElegidoChanged = { viewModel.onFiltroElegidoChanged(it)},
+            onOrdenElegidoChanged = {viewModel.onOrdenElegidoChanged(it)},
+            onDescendingChanged = { viewModel.onDescendingChanged(it)},
+            onFiltroHojaElegidoChanged = {viewModel.onFiltroHojaElegidoChanged(it)},
+            onFiltroTipoElegidoChanged = { viewModel.onFiltroTipoElegidoChanged(it)},
+            listaIconosGastos = listaIconosGastos,
+            listaHojas =gastosState.hojasDelRegistrado
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(30.dp)
-                .background(Color.DarkGray),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ){
-            Text(
-                style = MaterialTheme.typography.titleMedium,
-                text = "Todos",
-                color = Color.White
-            )
-        }
         LazyColumn(
             contentPadding = innerPadding!!,
             modifier = Modifier
+                .padding(horizontal = 15.dp)
                 .fillMaxSize()
                 .background(Color.White),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            gastosState.gastos?.let {
+            gastosState.listaGastosAMostrar?.let {
                 items(it) { gasto ->
                     val icono = listaIconosGastos.firstOrNull{ it.id.toLong() == gasto.tipo }
                     GastosDesing(gasto, icono)
@@ -152,19 +133,21 @@ fun GastosDesing(
 
 @Composable
 fun SeleccionFiltros(
-    onFilterChanged: (String) -> Unit,
-    onSortChanged: (String) -> Unit,
+    filtroElegido: String,
+    ordenElegido: String,
+    descending: Boolean,
+    onFiltroElegidoChanged: (String) -> Unit,
+    onOrdenElegidoChanged: (String) -> Unit,
     onDescendingChanged: (Boolean) -> Unit,
+    onFiltroHojaElegidoChanged: (Long) -> Unit,
+    onFiltroTipoElegidoChanged: (Long) -> Unit,
     listaIconosGastos: List<IconoGasto>,
     listaHojas: List<HojaConParticipantes>
 ) {
-    var filterSelected by rememberSaveable { mutableStateOf("Todos") }
-    var sortSelected by rememberSaveable { mutableStateOf("Tipo") }
-    var isDescending by rememberSaveable { mutableStateOf(false) }
     var isFilterExpanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(20.dp)) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         /** FILTRO **/
         Row(
@@ -179,12 +162,18 @@ fun SeleccionFiltros(
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    isFilterExpanded = if (isFilterExpanded){ false } else true
-                    filterSelected = "Tipo"
-                    onFilterChanged(filterSelected)
+                    isFilterExpanded =
+                        if (isFilterExpanded){
+                            when(filtroElegido){
+                                "Tipo"-> false
+                                else -> true
+                            }
+                        }  else true
+                    onFiltroElegidoChanged("Tipo")
+//                    onFilterChanged(filtroElegido)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filterSelected == "Tipo") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (filtroElegido == "Tipo") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
@@ -193,17 +182,22 @@ fun SeleccionFiltros(
                 Text(
                     text = "Tipo",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (filterSelected == "Tipo") Color.White else Color.Black
+                    color = if (filtroElegido == "Tipo") Color.White else Color.Black
                 )
             }
             Button(
                 onClick = {
-                    isFilterExpanded = if (isFilterExpanded){ false } else true
-                    filterSelected = "Hoja"
-                    onFilterChanged(filterSelected)
+                    isFilterExpanded =
+                        if (isFilterExpanded){
+                            when(filtroElegido){
+                                "Hoja"-> false
+                                else -> true
+                            }
+                        }  else true
+                    onFiltroElegidoChanged("Hoja")
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filterSelected == "Hoja") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (filtroElegido == "Hoja") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
@@ -212,17 +206,16 @@ fun SeleccionFiltros(
                 Text(
                     text = "Hoja",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (filterSelected == "Hoja") Color.White else Color.Black
+                    color = if (filtroElegido == "Hoja") Color.White else Color.Black
                 )
             }
             Button(
                 onClick = {
                     isFilterExpanded = false
-                    filterSelected = "Todos"
-                    onFilterChanged(filterSelected)
+                    onFiltroElegidoChanged("Todos")
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filterSelected == "Todos") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (filtroElegido == "Todos") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
@@ -231,7 +224,7 @@ fun SeleccionFiltros(
                 Text(
                     text = "Todos",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (filterSelected == "Todos") Color.White else Color.Black
+                    color = if (filtroElegido == "Todos") Color.White else Color.Black
                 )
             }
 
@@ -248,12 +241,12 @@ fun SeleccionFiltros(
                     .padding(top = 8.dp)
                     .padding(16.dp)
             ) {
-                if(filterSelected == "Tipo") FiltroTipos(listaIconosGastos)
-                else if(filterSelected == "Hoja") FiltroHojas(listaHojas)
+                if(filtroElegido == "Tipo") FiltroTipos(listaIconosGastos){onFiltroTipoElegidoChanged(it)}
+                else if(filtroElegido == "Hoja") FiltroHojas(listaHojas){onFiltroHojaElegidoChanged(it)}
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         /** ORDEN **/
         Spacer(modifier = Modifier.height(20.dp))
@@ -271,11 +264,10 @@ fun SeleccionFiltros(
             Row(verticalAlignment = Alignment.CenterVertically) {
             Button(
                 onClick = {
-                    sortSelected = "Tipo"
-                    onSortChanged(sortSelected)
+                    onOrdenElegidoChanged("Tipo")
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (sortSelected == "Tipo") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (ordenElegido == "Tipo") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
@@ -284,17 +276,16 @@ fun SeleccionFiltros(
                     Text(
                         text = "Tipo",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = if (sortSelected == "Tipo") Color.White else Color.Black
+                        color = if (ordenElegido == "Tipo") Color.White else Color.Black
                     )
                 }
             )
             Button(
                 onClick = {
-                    sortSelected = "Importe"
-                    onSortChanged(sortSelected)
+                    onOrdenElegidoChanged("Importe")
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (sortSelected == "Importe") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (ordenElegido == "Importe") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
@@ -303,18 +294,17 @@ fun SeleccionFiltros(
                     Text(
                         text = "Importe",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = if (sortSelected == "Importe") Color.White else Color.Black
+                        color = if (ordenElegido == "Importe") Color.White else Color.Black
                     )
                 }
             )
 
             Button(
                 onClick = {
-                    sortSelected = "Fecha"
-                    onSortChanged(sortSelected)
+                    onOrdenElegidoChanged("Fecha")
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (sortSelected == "Fecha") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (ordenElegido == "Fecha") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
@@ -323,13 +313,13 @@ fun SeleccionFiltros(
                     Text(
                         text = "Fecha",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = if (sortSelected == "Fecha") Color.White else Color.Black
+                        color = if (ordenElegido == "Fecha") Color.White else Color.Black
                     )
                 }
             )
             }
         }
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(5.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -341,9 +331,8 @@ fun SeleccionFiltros(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
-                checked = isDescending,
+                checked = descending,
                 onCheckedChange = {
-                    isDescending = it
                     onDescendingChanged(it)
                 },
                 colors = SwitchDefaults.colors(
@@ -353,16 +342,30 @@ fun SeleccionFiltros(
             )
         }
     }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(30.dp)
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ){
+        Text(
+            style = MaterialTheme.typography.titleMedium,
+            text = "Mostrar $filtroElegido",
+            color = Color.White
+        )
+    }
 }
 
 @Composable
 fun FiltroTipos(
-    listaIconosGastos: List<IconoGasto>
+    listaIconosGastos: List<IconoGasto>,
+    onFiltroTipoElegidoChanged: (Long) -> Unit
 ){
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
 
@@ -393,8 +396,7 @@ fun FiltroTipos(
                                 .height(55.dp)
                                 .padding(bottom = 1.dp)
                                 .clickable {
-//                                onConceptoTextFieldChanged(icono.nombre)
-//                                onIdGastoFieldChanged(icono.id.toLong())
+                                    onFiltroTipoElegidoChanged(icono.id.toLong())
                                 }
                         )
                     }
@@ -409,14 +411,15 @@ fun FiltroTipos(
 
 @Composable
 fun FiltroHojas(
-    listaHojas: List<HojaConParticipantes>
+    listaHojas: List<HojaConParticipantes>,
+    onFiltroHojaElegidoChanged: (Long) -> Unit
 ){
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(14.dp)
+            .padding(4.dp)
     ) {
         //Pintamos las hojas
         LazyRow(
@@ -440,8 +443,7 @@ fun FiltroHojas(
                         color = Color.White,
                         modifier = Modifier
                             .clickable {
-//                                onConceptoTextFieldChanged(icono.nombre)
-//                                onIdGastoFieldChanged(icono.id.toLong())
+                                onFiltroHojaElegidoChanged(hoja.hoja.idHoja)
                             }
                     )
                 }
@@ -451,14 +453,14 @@ fun FiltroHojas(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun FilterSortSectionPreview() {
-    SeleccionFiltros(
-        onFilterChanged = { },
-        onSortChanged = { },
-        onDescendingChanged = { },
-        listaIconosGastos = listOf(),
-        listaHojas = listOf()
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun FilterSortSectionPreview() {
+//    SeleccionFiltros(
+//        onFilterChanged = { },
+//        onSortChanged = { },
+//        onDescendingChanged = { },
+//        listaIconosGastos = listOf(),
+//        listaHojas = listOf()
+//    )
+//}
