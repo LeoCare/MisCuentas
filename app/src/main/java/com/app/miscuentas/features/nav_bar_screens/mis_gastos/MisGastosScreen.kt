@@ -1,13 +1,20 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_gastos
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +27,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Surface
@@ -41,12 +49,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
+import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.domain.model.Participante
@@ -56,59 +68,55 @@ fun MisGastosScreen(
     innerPadding: PaddingValues?,
     viewModel: MisGastosViewModel = hiltViewModel()
 ){
-    val listParticipantes: List<Participante> = listOf()
-    var mostrarParticipantes by remember { mutableStateOf(true) }
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
     val gastosState by viewModel.misGastosState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize()
     ){
-        FilterSortSection(
+        SeleccionFiltros(
             onFilterChanged = {},
             onSortChanged = {},
-            onDescendingChanged = {}
+            onDescendingChanged = {},
+            listaIconosGastos,
+            gastosState.hojasDelRegistrado
         )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp)
+                .background(Color.DarkGray),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ){
+            Text(
+                style = MaterialTheme.typography.titleMedium,
+                text = "Todos",
+                color = Color.White
+            )
+        }
         LazyColumn(
+            contentPadding = innerPadding!!,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White),
-            contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            gastosState.participanteConGastos?.let {
-                items(it.gastos) { gasto ->
-                    val icono = listaIconosGastos[gasto.tipo.toInt()]
+            gastosState.gastos?.let {
+                items(it) { gasto ->
+                    val icono = listaIconosGastos.firstOrNull{ it.id.toLong() == gasto.tipo }
                     GastosDesing(gasto, icono)
                 }
             }
         }
-        //gastosState.participanteConGastos?.let { ListaGastos(it.gastos, listaIconosGastos) }
     }
 }
 
 
-
-@Composable
-fun ListaGastos(
-    gastos: List<DbGastosEntity>,
-    listaIconosGastos: List<IconoGasto>
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color.White),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(gastos) { gasto ->
-            val icono = listaIconosGastos[gasto.idGasto.toInt()]
-            GastosDesing(gasto, icono)
-        }
-    }
-}
 @Composable
 fun GastosDesing(
     gasto: DbGastosEntity,
-    icono: IconoGasto
+    icono: IconoGasto?
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
@@ -122,74 +130,38 @@ fun GastosDesing(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = icono.imagen),
+                painter = painterResource(id = icono!!.imagen),
                 contentDescription = "Icono del gasto",
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(55.dp)
                     .background(Color.Gray, shape = CircleShape)
-                    .padding(8.dp)
+                    .padding(1.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = gasto.concepto, style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Importe: ${gasto.importe}", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Fecha Gasto: ${gasto.fechaGasto}", style = MaterialTheme.typography.bodyLarge)
+                Text(text = gasto.concepto, style = MaterialTheme.typography.labelLarge)
+                Text(text = "Importe: ${gasto.importe}€", style = MaterialTheme.typography.labelLarge)
+                Text(text = "Fecha Gasto: ${gasto.fechaGasto}", style = MaterialTheme.typography.labelLarge)
             }
         }
     }
 }
 
 @Composable
-fun ListaIcon(
-    mostrarParticipantes: Boolean,
-    lisIcon: List<Participante>
-){
-    if (mostrarParticipantes) {
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            //mostrar lista de participantes
-            itemsIndexed(lisIcon) {_,  participante ->
-                Text(
-                    text = participante.nombre,
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-    }
-}
-@Composable
-fun IconoVerIconos(
-    expanded: Boolean,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-    ) {
-        Icon(
-            imageVector = if(expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore ,
-            contentDescription = "Ver participantes",
-            tint = MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
-@Composable
-fun FilterSortSection(
+fun SeleccionFiltros(
     onFilterChanged: (String) -> Unit,
     onSortChanged: (String) -> Unit,
-    onDescendingChanged: (Boolean) -> Unit
+    onDescendingChanged: (Boolean) -> Unit,
+    listaIconosGastos: List<IconoGasto>,
+    listaHojas: List<HojaConParticipantes>
 ) {
-    var filterSelected by rememberSaveable { mutableStateOf("Tipo") }
-    var isFilterSelecd by rememberSaveable { mutableStateOf(false)}
+    var filterSelected by rememberSaveable { mutableStateOf("Todos") }
     var sortSelected by rememberSaveable { mutableStateOf("Tipo") }
     var isDescending by rememberSaveable { mutableStateOf(false) }
+    var isFilterExpanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(20.dp)) {
         Spacer(modifier = Modifier.height(20.dp))
@@ -200,13 +172,14 @@ fun FilterSortSection(
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Filtro:",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .padding(end = 10.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
+                    isFilterExpanded = if (isFilterExpanded){ false } else true
                     filterSelected = "Tipo"
                     onFilterChanged(filterSelected)
                 },
@@ -225,6 +198,7 @@ fun FilterSortSection(
             }
             Button(
                 onClick = {
+                    isFilterExpanded = if (isFilterExpanded){ false } else true
                     filterSelected = "Hoja"
                     onFilterChanged(filterSelected)
                 },
@@ -241,8 +215,45 @@ fun FilterSortSection(
                     color = if (filterSelected == "Hoja") Color.White else Color.Black
                 )
             }
+            Button(
+                onClick = {
+                    isFilterExpanded = false
+                    filterSelected = "Todos"
+                    onFilterChanged(filterSelected)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (filterSelected == "Todos") MaterialTheme.colorScheme.primary else Color.White
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(35.dp)
+            ){
+                Text(
+                    text = "Todos",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (filterSelected == "Todos") Color.White else Color.Black
+                )
+            }
 
         }
+        //Expandible para los filtros
+        AnimatedVisibility(
+            visible = isFilterExpanded,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .padding(16.dp)
+            ) {
+                if(filterSelected == "Tipo") FiltroTipos(listaIconosGastos)
+                else if(filterSelected == "Hoja") FiltroHojas(listaHojas)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         /** ORDEN **/
         Spacer(modifier = Modifier.height(20.dp))
@@ -251,7 +262,7 @@ fun FilterSortSection(
         ) {
             Text(
                 text = "Orden:",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .padding(end = 10.dp)
             )
@@ -326,7 +337,7 @@ fun FilterSortSection(
         ) {
             Text(
                 text = "Descendente",
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
@@ -344,16 +355,110 @@ fun FilterSortSection(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewListaGastos() {
-//    val sampleGastos = remember {
-//        listOf(
-//            DbGastosEntity(1,1,"Supermercado", "120€", "01/12/2024", null),
-//            DbGastosEntity(1,1,"Restaurante", "45€", "02/12/2024",null),
-//            DbGastosEntity(1,1,"Transporte", "30€", "03/12/2024",null),
-//            DbGastosEntity(1,1,"Entretenimiento", "60€", "04/12/2024",null)
-//        )
-//    }
-//    ListaGastos(sampleGastos)
-//}
+@Composable
+fun FiltroTipos(
+    listaIconosGastos: List<IconoGasto>
+){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+
+    ) {
+        //Pintamos imagenes
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items(listaIconosGastos) { icono ->
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(end = 15.dp)
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.small)
+                    ) {
+                        Image(
+                            painter = painterResource(id = icono.imagen),
+                            contentDescription = "imagen gasto",
+                            modifier = Modifier
+                                .width(55.dp)
+                                .height(55.dp)
+                                .padding(bottom = 1.dp)
+                                .clickable {
+//                                onConceptoTextFieldChanged(icono.nombre)
+//                                onIdGastoFieldChanged(icono.id.toLong())
+                                }
+                        )
+                    }
+                    Text(
+                        text = icono.nombre
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FiltroHojas(
+    listaHojas: List<HojaConParticipantes>
+){
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(14.dp)
+    ) {
+        //Pintamos las hojas
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items(listaHojas) { hoja ->
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(Color.DarkGray)
+                        .padding(horizontal = 15.dp, vertical = 7.dp)
+                ) {
+                    Text(
+                        text = hoja.hoja.titulo,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                        modifier = Modifier
+                            .clickable {
+//                                onConceptoTextFieldChanged(icono.nombre)
+//                                onIdGastoFieldChanged(icono.id.toLong())
+                            }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun FilterSortSectionPreview() {
+    SeleccionFiltros(
+        onFilterChanged = { },
+        onSortChanged = { },
+        onDescendingChanged = { },
+        listaIconosGastos = listOf(),
+        listaHojas = listOf()
+    )
+}

@@ -29,7 +29,7 @@ object IconoGastoProvider {
         )
 
         val nombreImagenes = listOf(
-            "Varios", "Supermercado", "Recibo", "Regalo", "Cine", "Coche",
+            "Varios", "Super", "Recibo", "Regalo", "Cine", "Coche",
             "Ropa", "Telefono", "Vacaciones", "Viajes", "Restaurante", "Hogar",
             "Credito", "Tecnologia", "Wifi", "Mascotas"
         )

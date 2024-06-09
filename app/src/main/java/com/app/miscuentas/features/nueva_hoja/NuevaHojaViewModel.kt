@@ -255,10 +255,11 @@ class NuevaHojaViewModel @Inject constructor(
 
 
    private fun vaciarTextFields(){
-       _nuevaHojaState.value = _nuevaHojaState.value.copy(titulo = "")
-       _nuevaHojaState.value = _nuevaHojaState.value.copy(listaParticipantes = emptyList())
-       _nuevaHojaState.value = _nuevaHojaState.value.copy(limiteGasto = "")
-       _nuevaHojaState.value = _nuevaHojaState.value.copy(fechaCierre = "")
+       _nuevaHojaState.value = _nuevaHojaState.value.copy(
+           titulo = "",
+           listaParticipantes = emptyList(),
+           limiteGasto = "",
+           fechaCierre = "")
    }
 
    init {

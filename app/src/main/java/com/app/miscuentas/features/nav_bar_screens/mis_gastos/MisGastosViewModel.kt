@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
@@ -37,8 +38,13 @@ class MisGastosViewModel @Inject constructor(
        getIdRegistroPreference()
     }
 
-    fun onParticipanteConGastosChanged(participante: ParticipanteConGastos?){
-        _misGastosState.value = _misGastosState.value.copy(participanteConGastos = participante)
+    fun onGastosDelParticipanteChanged(gastos: List<DbGastosEntity>){
+        val listaGastos = _misGastosState.value.gastos + gastos
+        _misGastosState.value = _misGastosState.value.copy(gastos = listaGastos)
+    }
+
+    fun onHojaDelRegistradoChanged(hojas: List<HojaConParticipantes>){
+        _misGastosState.value = _misGastosState.value.copy(hojasDelRegistrado = hojas)
     }
 
     //Obtengo el id del registado
@@ -54,12 +60,20 @@ class MisGastosViewModel @Inject constructor(
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             val idRegistro = misGastosState.value.idRegistro ?: return@withContext
-            hojaCalculoRepository.getAllHojaConParticipantes(idRegistro).collect { listaHojasConParticipantes ->
-                val participanteConGastos = listaHojasConParticipantes
-                    .flatMap { hojaConParticipantes ->
+            val hojasDelRegistrado =  hojaCalculoRepository.getAllHojaConParticipantes(idRegistro)
+
+            hojasDelRegistrado.collect { listaHojasConParticipantes ->
+                onHojaDelRegistradoChanged(listaHojasConParticipantes)
+                val gastosDelRegistrado = listaHojasConParticipantes
+                    .flatMap {
+                        hojaConParticipantes ->
                         hojaConParticipantes.participantes
-                    }.firstOrNull { it.participante.idRegistroParti == idRegistro }
-                onParticipanteConGastosChanged(participanteConGastos)
+                    }
+                    .filter { it.participante.idRegistroParti == idRegistro }
+                    .flatMap { it.gastos }
+
+                    onGastosDelParticipanteChanged(gastosDelRegistrado)
+
             }
         }
     }
