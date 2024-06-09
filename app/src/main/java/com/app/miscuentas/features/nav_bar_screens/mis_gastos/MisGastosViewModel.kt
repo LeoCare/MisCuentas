@@ -53,6 +53,7 @@ class MisGastosViewModel @Inject constructor(
     }
     fun onDescendingChanged(desc: Boolean){
         _misGastosState.value = _misGastosState.value.copy(descending = desc)
+        ordenHoja()
     }
     fun onFiltroHojaElegidoChanged(hojaElegida: Long){
         _misGastosState.value = _misGastosState.value.copy(filtroHojaElegido = hojaElegida)
@@ -64,8 +65,14 @@ class MisGastosViewModel @Inject constructor(
     }
     fun onListaGastosAMostrarChanged(listaGastosAMostrar: List<DbGastosEntity>){
         _misGastosState.value = _misGastosState.value.copy(listaGastosAMostrar = listaGastosAMostrar)
+        totalGastos()
     }
-
+    fun onEleccionEnTituloChanged(eleccionEnTitulo: String){
+        _misGastosState.value = _misGastosState.value.copy(eleccionEnTitulo = eleccionEnTitulo)
+    }
+    fun onSumaGastosChanged(suma: Double){
+        _misGastosState.value = _misGastosState.value.copy(sumaGastos = suma)
+    }
 
     //Obtengo el id del registado
     fun getIdRegistroPreference() = viewModelScope.launch {
@@ -124,17 +131,22 @@ class MisGastosViewModel @Inject constructor(
 
     /** ORDEN DE LAS HOJAS **/
     private fun ordenHoja() {
-        val ordenado = misGastosState.value.listaGastosAMostrar.let { lista ->
+        val ordenado = misGastosState.value.listaGastosAMostrar?.let { lista ->
             val comparator = when (misGastosState.value.ordenElegido) {
-                "Tipo" -> compareBy<DbGastosEntity> { it.tipo }
-                "Importe" -> compareBy { it.importe}
+                "Tipo" -> compareBy<DbGastosEntity> { it.concepto }
+                "Importe" -> compareBy { it.importe.replace(",",".").toDouble()}
                 "Fecha" ->  compareBy { Validaciones.fechaToDateFormat(it.fechaGasto) }
                 else -> null
             }
-            comparator?.let { if (misGastosState.value.descending) lista?.sortedWith(it.reversed()) else lista?.sortedWith(it) }
+            comparator?.let { if (misGastosState.value.descending) lista.sortedWith(it.reversed()) else lista.sortedWith(it) }
         }
-        _misGastosState.value = _misGastosState.value.copy(listaGastosAMostrar = ordenado)
+        if (ordenado != null) onListaGastosAMostrarChanged(ordenado)
+
     }
     /************************/
 
+    private fun totalGastos() {
+        val suma = misGastosState.value.listaGastosAMostrar?.sumOf { it.importe.replace(",", ".").toDoubleOrNull() ?: 0.0 } ?: 0.0
+        onSumaGastosChanged(suma)
+    }
 }

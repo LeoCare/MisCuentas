@@ -16,7 +16,9 @@ data class MisGastosState (
     val filtroElegido: String = "Todos",
     val filtroHojaElegido: Long = 0,
     val filtroTipoElegido: Long = 0,
+    val eleccionEnTitulo: String = "",
     val ordenElegido: String = "Fecha",
-    val descending: Boolean = false
+    val descending: Boolean = false,
+    val sumaGastos: Double = 0.0
 
 )

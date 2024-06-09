@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -223,13 +224,13 @@ fun GastoDesing(
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 30.dp, bottom = 15.dp)
+            .padding(horizontal = 7.dp)
             .padding(4.dp)
             .graphicsLayer {
                 // Aplica una rotación en el eje Y para crear el efecto 3D
-                rotationY = 22f
+                rotationY = 12f
                 // Ajusta la perspectiva para mejorar el efecto 3D
-                cameraDistance = 13 * density
+                cameraDistance = 19 * density
             },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -241,7 +242,7 @@ fun GastoDesing(
             Card(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 4.dp, start = 6.dp, top = 1.dp, end = 1.dp)
+                    .padding(bottom = 4.dp, start = 1.dp, top = 1.dp, end = 1.dp)
                     .clickable { },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.outline,
@@ -250,8 +251,7 @@ fun GastoDesing(
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(vertical = 10.dp, horizontal = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding( horizontal = 10.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -260,7 +260,7 @@ fun GastoDesing(
                         Column(
                             modifier = Modifier
                                 .padding(start = 5.dp, end = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+//                            verticalArrangement = Arrangement.spacedBy(1.dp)
                         ) {
                             Image(
                                 painter = painterResource(
@@ -268,36 +268,33 @@ fun GastoDesing(
                                 ), //IMAGEN DEL GASTO
                                 contentDescription = "Logo Hoja",
                                 modifier = Modifier
-                                    .width(60.dp)
-                                    .height(60.dp)
+                                    .width(40.dp)
+                                    .height(40.dp)
                             )
                         }
                         Column {
-                            //Text(text = hoja.type)
                             Row(
                                 modifier = Modifier
-                                    .padding(bottom = 10.dp)
+                                    .padding(top = 10.dp)
                                     .fillMaxSize(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             )
                             {
                                 Text(
                                     text = participante.participante.nombre,
-                                    style = MaterialTheme.typography.titleLarge
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = gasto.importe + "€",
-                                    style = MaterialTheme.typography.titleLarge
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                             }
                             Text(
-                                modifier = Modifier
-                                    .padding(bottom = 10.dp),
                                 text = gasto.concepto,
                                 style = MaterialTheme.typography.labelLarge
                             )
                             Row(
-                                modifier =  Modifier.fillMaxSize(),
+                                modifier =  Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
@@ -312,7 +309,6 @@ fun GastoDesing(
                                     )
                                 }
                             }
-
                         }
                     }
                 }

@@ -103,14 +103,11 @@ import com.app.miscuentas.util.Desing.Companion.showDatePickerDialog
 
 @Composable
 fun NuevaHoja(
-   // canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     onNavMisHojas: () -> Unit,
     viewModel: NuevaHojaViewModel = hiltViewModel()
 ){
-
     val eventoState by viewModel.nuevaHojaState.collectAsState()
-    val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
 
     LaunchedEffect(Unit){

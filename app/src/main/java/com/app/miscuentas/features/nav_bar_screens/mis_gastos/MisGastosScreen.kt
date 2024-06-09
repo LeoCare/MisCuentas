@@ -36,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
@@ -67,14 +65,28 @@ fun MisGastosScreen(
             filtroElegido = gastosState.filtroElegido,
             ordenElegido = gastosState.ordenElegido,
             descending = gastosState.descending,
+            eleccionEnTitulo = gastosState.eleccionEnTitulo,
             onFiltroElegidoChanged = { viewModel.onFiltroElegidoChanged(it)},
             onOrdenElegidoChanged = {viewModel.onOrdenElegidoChanged(it)},
             onDescendingChanged = { viewModel.onDescendingChanged(it)},
             onFiltroHojaElegidoChanged = {viewModel.onFiltroHojaElegidoChanged(it)},
             onFiltroTipoElegidoChanged = { viewModel.onFiltroTipoElegidoChanged(it)},
             listaIconosGastos = listaIconosGastos,
-            listaHojas =gastosState.hojasDelRegistrado
+            listaHojas = gastosState.hojasDelRegistrado,
+            onEleccionEnTituloChanged = { viewModel.onEleccionEnTituloChanged(it)}
         )
+        Row(
+            modifier = Modifier
+                .padding( 15.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Total: ${gastosState.sumaGastos}€",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
         LazyColumn(
             contentPadding = innerPadding!!,
             modifier = Modifier
@@ -136,15 +148,17 @@ fun SeleccionFiltros(
     filtroElegido: String,
     ordenElegido: String,
     descending: Boolean,
+    eleccionEnTitulo: String,
     onFiltroElegidoChanged: (String) -> Unit,
     onOrdenElegidoChanged: (String) -> Unit,
     onDescendingChanged: (Boolean) -> Unit,
     onFiltroHojaElegidoChanged: (Long) -> Unit,
     onFiltroTipoElegidoChanged: (Long) -> Unit,
     listaIconosGastos: List<IconoGasto>,
-    listaHojas: List<HojaConParticipantes>
+    listaHojas: List<HojaConParticipantes>,
+    onEleccionEnTituloChanged: (String) -> Unit
 ) {
-    var isFilterExpanded by remember { mutableStateOf(false) }
+    var isFilterExpanded by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(20.dp)) {
         Spacer(modifier = Modifier.height(10.dp))
@@ -170,7 +184,6 @@ fun SeleccionFiltros(
                             }
                         }  else true
                     onFiltroElegidoChanged("Tipo")
-//                    onFilterChanged(filtroElegido)
                 },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = if (filtroElegido == "Tipo") MaterialTheme.colorScheme.primary else Color.White
@@ -213,6 +226,7 @@ fun SeleccionFiltros(
                 onClick = {
                     isFilterExpanded = false
                     onFiltroElegidoChanged("Todos")
+                    onEleccionEnTituloChanged("")
                 },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = if (filtroElegido == "Todos") MaterialTheme.colorScheme.primary else Color.White
@@ -241,8 +255,8 @@ fun SeleccionFiltros(
                     .padding(top = 8.dp)
                     .padding(16.dp)
             ) {
-                if(filtroElegido == "Tipo") FiltroTipos(listaIconosGastos){onFiltroTipoElegidoChanged(it)}
-                else if(filtroElegido == "Hoja") FiltroHojas(listaHojas){onFiltroHojaElegidoChanged(it)}
+                if(filtroElegido == "Tipo") FiltroTipos(listaIconosGastos, {onFiltroTipoElegidoChanged(it)}, { onEleccionEnTituloChanged(it)})
+                else if(filtroElegido == "Hoja") FiltroHojas(listaHojas, {onFiltroHojaElegidoChanged(it)}, { onEleccionEnTituloChanged(it)})
             }
         }
 
@@ -352,7 +366,7 @@ fun SeleccionFiltros(
     ){
         Text(
             style = MaterialTheme.typography.titleMedium,
-            text = "Mostrar $filtroElegido",
+            text = "Mostrar $filtroElegido ${if (eleccionEnTitulo != "") ": $eleccionEnTitulo" else ""}",
             color = Color.White
         )
     }
@@ -361,7 +375,8 @@ fun SeleccionFiltros(
 @Composable
 fun FiltroTipos(
     listaIconosGastos: List<IconoGasto>,
-    onFiltroTipoElegidoChanged: (Long) -> Unit
+    onFiltroTipoElegidoChanged: (Long) -> Unit,
+    onEleccionEnTituloChanged: (String) -> Unit
 ){
     Column(
         modifier = Modifier
@@ -396,6 +411,7 @@ fun FiltroTipos(
                                 .height(55.dp)
                                 .padding(bottom = 1.dp)
                                 .clickable {
+                                    onEleccionEnTituloChanged(icono.nombre)
                                     onFiltroTipoElegidoChanged(icono.id.toLong())
                                 }
                         )
@@ -412,7 +428,8 @@ fun FiltroTipos(
 @Composable
 fun FiltroHojas(
     listaHojas: List<HojaConParticipantes>,
-    onFiltroHojaElegidoChanged: (Long) -> Unit
+    onFiltroHojaElegidoChanged: (Long) -> Unit,
+    onEleccionEnTituloChanged: (String) -> Unit
 ){
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
@@ -443,6 +460,7 @@ fun FiltroHojas(
                         color = Color.White,
                         modifier = Modifier
                             .clickable {
+                                onEleccionEnTituloChanged(hoja.hoja.titulo)
                                 onFiltroHojaElegidoChanged(hoja.hoja.idHoja)
                             }
                     )
