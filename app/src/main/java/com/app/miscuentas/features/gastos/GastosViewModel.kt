@@ -7,6 +7,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
+import com.app.miscuentas.util.Contabilidad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,9 @@ class GastosViewModel @Inject constructor(
     fun onBorrarGastoChanged(gasto: DbGastosEntity?){
         _gastosState.value = _gastosState.value.copy(gastoElegido = gasto)
     }
+    fun onResumenGastoChanged(mapaGastos: Map<String,Double>){
+        _gastosState.value = _gastosState.value.copy(resumenGastos = mapaGastos)
+    }
 
     fun onHojaAMostrar(idHoja: Long?) {
         viewModelScope.launch {
@@ -47,45 +51,8 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-    fun getHojaCalculoPrincipal(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaConParticipantes(_gastosState.value.idHojaPrincipal!!).collect {
-                    _gastosState.value = _gastosState.value.copy(hojaAMostrar = it) //Actualizo state con idhoja
-                    dataStoreConfig.putIdHojaPrincipalPreference(it?.hoja?.idHoja) //Actualizo DataStore con idhoja
-                }
-            }
-        }
-    }
-
-    /*
-    suspend fun getListParticipantesToIdHoja(idHoja: Int) {
-        viewModelScope.launch {
-            repositoryParticipante.getListParticipantesToIdHoja(idHoja).collect { participantes ->
-                coroutineScope {
-                    val participantesConGastos = participantes.map { participante ->
-                        async {
-                            val gastos = getGastosParticipante(participante.id).first() // Recoge el primer valor del Flow
-                            participante.copy(listaGastos = gastos)
-                        }
-                    }.awaitAll()
-
-                    // Actualizo el estado aquí:
-                    _gastosState.value = _gastosState.value.copy(
-                        hojaAMostrar = _gastosState.value.hojaAMostrar?.copy(participantesHoja = participantesConGastos)
-                    )
-                }
-            }
-        }
-    }
 
 
-
-    fun getGastosParticipante(idParticipante: Int): Flow<List<Gasto?>> {
-        val idHoja = _gastosState.value.hojaAMostrar!!.id
-        return gastoRepository.getGastosParticipante(idHoja, idParticipante)
-    }
-    */
     init {
         viewModelScope.launch {
             val idUltimaHoja = dataStoreConfig.getIdHojaPrincipalPreference()
@@ -93,6 +60,15 @@ class GastosViewModel @Inject constructor(
         }
 
     }
+
+    /** RESUMEN DE GASTOS POR PARTICIPANTES **/
+    fun obtenerParticipantesYSumaGastos() {
+        val hoja = gastosState.value.hojaAMostrar
+        val mapaResumen = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>
+        onResumenGastoChanged(mapaResumen)
+    }
+    /************************/
+
 
     /** ELIMINAR GASTO **/
     //Borrar

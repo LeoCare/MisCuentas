@@ -1,6 +1,11 @@
 package com.app.miscuentas.features.gastos
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,18 +14,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Scaffold
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,10 +47,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
@@ -51,6 +60,7 @@ import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
+import kotlin.random.Random
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -89,7 +99,9 @@ fun GastosScreen(
         gastosState.hojaAMostrar,
         listaIconosGastos,
         { onNavNuevoGasto(it) },
-        { viewModel.onBorrarGastoChanged(it) }
+        { viewModel.onBorrarGastoChanged(it) },
+        gastosState.resumenGastos,
+        { viewModel.obtenerParticipantesYSumaGastos() }
     )
 }
 
@@ -99,23 +111,20 @@ fun GastosContent(
     hojaDeGastos: HojaConParticipantes?,
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Long) -> Unit,
-    onBorrarGastoChanged: (DbGastosEntity?) -> Unit
+    onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
+    resumenGastos: Map<String, Double>?,
+    obtenerParticipantesYSumaGastos: () -> Unit
 ){
     val isEnabled = hojaDeGastos?.hoja?.status == "C"
+    var showResumen by rememberSaveable { mutableStateOf(false) }
+
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding!!)
-            .background(MaterialTheme.colorScheme.background)
+            //.background(MaterialTheme.colorScheme.background)
     ) {
-        //Manejar la vuelta atras del usuario
-//        BackHandler {
-//            if (!gastosState.datosGuardados) {
-//                showDialog = true
-//                viewModel.setDatosGuardados(false)
-//            }
-//        }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -129,7 +138,7 @@ fun GastosContent(
             ) {
                 Text(
                     text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineLarge,
                     color = Color.Black
                 )
             }
@@ -140,31 +149,85 @@ fun GastosContent(
                     .padding(horizontal = 30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row {
-                    Text(
-                        text = "Fecha fin: ",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Text(
-                        text = hojaDeGastos?.hoja?.fechaCierre ?: "no tiene",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                Column{
+                    Row {
+                        Text(
+                            text = "Fecha fin: ",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = hojaDeGastos?.hoja?.fechaCierre ?: "no tiene",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "Limite: ",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "no tiene" else hojaDeGastos?.hoja?.limite.toString(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                    Row {
+                        Text(
+                            text = "Participantes: ",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = hojaDeGastos?.participantes?.size.toString(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
-                Row {
-                    Text(
-                        text = "Limite: ",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Text(
-                        text = if(hojaDeGastos?.hoja?.limite == null) "no tiene" else hojaDeGastos.hoja.limite.toString(),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Column(
+                modifier = Modifier
+                    .clickable {
+                        obtenerParticipantesYSumaGastos()
+                        showResumen = !showResumen
+                    }
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Text(
+                    style = MaterialTheme.typography.titleMedium,
+                    text = "Ver Resumen",
+                    color = Color.White
+                )
+                Icon(
+                    if(showResumen) Icons.Filled.KeyboardDoubleArrowUp else Icons.Default.KeyboardDoubleArrowDown,
+                    contentDescription = "Arrow Icon",
+                    tint = Color.Black,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
 
+            //Expandible para ver el resumen
+            AnimatedVisibility(
+                visible = showResumen,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .padding(16.dp)
+                ) {
+                    ResumenDesing(resumenGastos, {})
+               }
             }
 
             LazyColumn(
@@ -317,6 +380,56 @@ fun GastoDesing(
     }
 }
 
+@Composable
+fun ParticipanteButton(nombre: String, sumaGastos: Double, color: Color, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(8.dp)
+            .size(120.dp, 60.dp)
+            .background(color, shape = RoundedCornerShape(8.dp))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = nombre, color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
+            Text(text = "${sumaGastos}€", color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+fun ResumenDesing(participantes: Map<String, Double>?, onParticipanteClick: (String) -> Unit) {
+    val colors = listOf(Color.Red, Color.Blue, Color.Magenta, Color.Yellow, Color.Green, Color.Black)
+
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item{
+                Column{
+                    participantes?.keys?.chunked(2)?.forEach { fila ->
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            items(fila) { participante ->
+                                val colorIndex = (participantes.keys.indexOf(participante) % colors.size)
+                                val color = generateRandomColor()//colors[colorIndex]
+                                ParticipanteButton(
+                                    nombre = participante,
+                                    sumaGastos = participantes[participante] ?: 0.0,
+                                    color = generateRandomColor(),
+                                    onClick = { onParticipanteClick(participante) }
+                                )
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+}
 
 @Composable
 fun CustomFloatButton(
@@ -351,6 +464,14 @@ fun CustomFloatButton(
             contentDescription = "Logo Hoja",
         )
     }
+}
+
+fun generateRandomColor(): Color {
+    val random = Random
+    val red = random.nextInt(0, 256)
+    val green = random.nextInt(0, 256)
+    val blue = random.nextInt(0, 256)
+    return Color(red, green, blue)
 }
 
 //@Preview

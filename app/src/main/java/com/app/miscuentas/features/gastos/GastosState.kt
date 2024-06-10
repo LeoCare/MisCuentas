@@ -9,6 +9,7 @@ data class GastosState (
     val hojaAMostrar: HojaConParticipantes? = null,
     val listaGastosOk: Boolean = false,
     val idHojaPrincipal: Long? = null,
-    val gastoElegido: DbGastosEntity? = null
+    val gastoElegido: DbGastosEntity? = null,
+    val resumenGastos: Map<String, Double>? = null
 
 )

@@ -11,6 +11,7 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.domain.Validaciones
 import com.app.miscuentas.domain.model.Gasto
+import com.app.miscuentas.util.Contabilidad
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -63,7 +64,7 @@ class MisGastosViewModel @Inject constructor(
         _misGastosState.value = _misGastosState.value.copy(filtroTipoElegido = tipoElegido)
         mostrarTipo()
     }
-    fun onListaGastosAMostrarChanged(listaGastosAMostrar: List<DbGastosEntity>){
+    fun onListaGastosAMostrarChanged(listaGastosAMostrar: List<DbGastosEntity>?){
         _misGastosState.value = _misGastosState.value.copy(listaGastosAMostrar = listaGastosAMostrar)
         totalGastos()
     }
@@ -146,7 +147,8 @@ class MisGastosViewModel @Inject constructor(
     /************************/
 
     private fun totalGastos() {
-        val suma = misGastosState.value.listaGastosAMostrar?.sumOf { it.importe.replace(",", ".").toDoubleOrNull() ?: 0.0 } ?: 0.0
+        val lista = misGastosState.value.listaGastosAMostrar
+        val suma = Contabilidad.totalGastos(lista)
         onSumaGastosChanged(suma)
     }
 }
