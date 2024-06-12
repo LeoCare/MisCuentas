@@ -21,7 +21,7 @@ class Contabilidad {
                 val nombreParticipante = participanteConGastos.participante.nombre
                 val sumaGastos = participanteConGastos.gastos.sumOf {
                     it.importe.replace(",", ".").toDoubleOrNull() ?: 0.0
-                } ?: 0.0
+                }
                 resultado[nombreParticipante] = sumaGastos
             }
 

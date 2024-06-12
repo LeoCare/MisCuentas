@@ -239,7 +239,7 @@ class Desing {
                     },
                     title = {
                         Text(
-                            text = "INFO:",
+                            text = "IMPORTANTE",
                             style = MaterialTheme.typography.titleLarge
                         )
                     },

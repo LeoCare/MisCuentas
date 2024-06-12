@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -112,9 +114,10 @@ fun GastosScreen(
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     if (showDialog) MiAviso(
         show = true,
-        texto = "Tratar un aviso si los gastos no han sido guardados en BBDD, antes de salir atras."
+        texto = "Tratar un aviso si los gastos no han sido guardados en BBDD, antes de salir atras.",
+        { showDialog = false }
     )
-    { showDialog = false }
+
 
     GastosContent(
         innerPadding,
@@ -122,6 +125,7 @@ fun GastosScreen(
         listaIconosGastos,
         { onNavNuevoGasto(it) },
         { viewModel.onBorrarGastoChanged(it) },
+        gastosState.existeRegistrado,
         gastosState.resumenGastos,
         gastosState.balanceDeuda,
         { viewModel.obtenerParticipantesYSumaGastos() },
@@ -137,6 +141,7 @@ fun GastosContent(
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Long) -> Unit,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
+    existeRegistrado: Boolean,
     resumenGastos: Map<String, Double>?,
     balanceDeuda: Map<String, Double>?,
     obtenerParticipantesYSumaGastos: () -> Unit,
@@ -299,45 +304,45 @@ fun GastosContent(
                         .padding(2.dp)
                 ) {
                     Balance(
+                        exiteRegistrado = existeRegistrado,
                         participantes = balanceDeuda,
-                        onPagarClick = { deuda -> println("Pagar click: $deuda") },
-                        onMasOpcionesClick = { deuda -> println("Más opciones click: $deuda") }
+                        tomarFotoGasto = {}
                     )
                 }
             }
 
             LazyColumn(
+                contentPadding = innerPadding,
                 modifier = Modifier
-                    .padding(top = 40.dp)
-
+                    .padding(horizontal = 15.dp)
+                    .fillMaxSize()
             ) {
                 if (hojaDeGastos != null) {
                     itemsIndexed(hojaDeGastos.participantes) { index, participante ->
-                        for (gasto in participante.gastos) {
-                            GastoDesing(
-                                gasto = gasto,
-                                participante = participante,
-                                listaIconosGastos,
-                                { onBorrarGastoChanged(it) }
-                            )
+                        if (participante.gastos.isNotEmpty()){
+                            for (gasto in participante.gastos) {
+                                GastoDesing(
+                                    gasto = gasto,
+                                    participante = participante,
+                                    listaIconosGastos,
+                                    { onBorrarGastoChanged(it) }
+                                )
+                            }
                         }
+
                     }
                 }
-
-                /*Prev -> LazyColumn{
-               items(gastosState.listaGastos){gasto ->
-                   GastoDesing(gasto = gasto)
-
-               }
-           }*/
-
             }
         }
         CustomFloatButton(
             onNavNuevoGasto = { onNavNuevoGasto(hojaDeGastos?.hoja?.idHoja!!) },
             modifier = Modifier.align(Alignment.BottomEnd), // Alinear el botón en la esquina inferior derecha
-            isEnabled = isEnabled
-            )
+            isEnabled = isEnabled,
+            showBalance = {
+                showBalance = false
+                showResumen = false
+            }
+        )
     }
 }
 
@@ -361,95 +366,63 @@ fun GastoDesing(
             showDialog = false
         }
     )
-    Card(
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        elevation = 2.dp,
         modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 7.dp)
-            .padding(4.dp)
-            .graphicsLayer {
-                // Aplica una rotación en el eje Y para crear el efecto 3D
-                rotationY = 12f
-                // Ajusta la perspectiva para mejorar el efecto 3D
-                cameraDistance = 19 * density
-            },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = Color.Black
-        )
-
+            .padding(vertical = 3.dp)
+            .fillMaxWidth()
     ) {
-        if (gasto != null){
-            Card(
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = listaIconosGastos[gasto!!.tipo.toInt() - 1].imagen),
+                contentDescription = "Icono del gasto",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 4.dp, start = 1.dp, top = 1.dp, end = 1.dp)
-                    .clickable { },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.outline,
-                    contentColor = Color.Black
-                )
+                    .size(55.dp)
+                    .background(Color.Gray, shape = CircleShape)
+                    .padding(1.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
+                Row(
                     modifier = Modifier
-                        .padding( horizontal = 10.dp)
+                        .padding(top = 10.dp)
+                        .fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                )
+                {
+                    Text(
+                        text = participante.participante.nombre,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = gasto.importe + "€",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Text(text = gasto.concepto, style = MaterialTheme.typography.labelLarge)
+                Row(
+                    modifier =  Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(start = 5.dp, end = 10.dp),
-//                            verticalArrangement = Arrangement.spacedBy(1.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(
-                                    id = listaIconosGastos[gasto.tipo.toInt() - 1].imagen
-                                ), //IMAGEN DEL GASTO
-                                contentDescription = "Logo Hoja",
-                                modifier = Modifier
-                                    .width(40.dp)
-                                    .height(40.dp)
-                            )
-                        }
-                        Column {
-                            Row(
-                                modifier = Modifier
-                                    .padding(top = 10.dp)
-                                    .fillMaxSize(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            )
-                            {
-                                Text(
-                                    text = participante.participante.nombre,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = gasto.importe + "€",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                            Text(
-                                text = gasto.concepto,
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                            Row(
-                                modifier =  Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Pagado el " + gasto.fechaGasto.toString(),
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                                IconButton(onClick = { showDialog = true }) {
-                                    Icon(
-                                        Icons.Default.DeleteForever,
-                                        contentDescription = "Borrar gasto",
-                                        tint = Color.Red
-                                    )
-                                }
-                            }
-                        }
+                    Text(
+                        text = "Pagado el ${gasto.fechaGasto}",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    IconButton(onClick = { showDialog = true }) {
+                        Icon(
+                            Icons.Default.DeleteForever,
+                            contentDescription = "Borrar gasto",
+                            tint = Color.Red
+                        )
                     }
                 }
             }
@@ -516,12 +489,12 @@ fun ResumenDesing(
 /** BALANCE **/
 @Composable
 fun BalanceDesing(
+    posicion: Int,
+    exiteRegistrado: Boolean,
     participantes: Map<String, Double>?,
     participante: String,
     monto: Double,
-    onPagarClick: () -> Unit,
-    onMasOpcionesClick: () -> Unit,
-    onParticipantSelected: () -> Unit
+    tomarFotoGasto: () -> Unit
 ) {
     val context = LocalContext.current
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
@@ -537,9 +510,10 @@ fun BalanceDesing(
     }
 
     if (showDialog) participantes?.let { listaParticipantes ->
+        val listaParticipantesSinPrimero = listaParticipantes.toList().drop(1).toMap()
         MiDialogoWithOptions(
             show = true,
-            participantes = listaParticipantes,
+            participantes = listaParticipantesSinPrimero,
             titulo = titulo,
             mensaje = mensaje,
             cancelar = { showDialog = false },
@@ -577,7 +551,7 @@ fun BalanceDesing(
                 Text(
                     text = if(monto > 0) "Recibe" else if(monto < 0) "Debe" else "Saldado",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = if(monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if(monto < 0) Color.Red else Color.Black
                 )
             Spacer(modifier = Modifier.width(14.dp))
                 Text(
@@ -586,45 +560,49 @@ fun BalanceDesing(
                     fontWeight = FontWeight.Bold
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            if(monto != 0.0){
+            if(exiteRegistrado){
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(
-                        onClick = {
-                            if(monto > 0) Toast.makeText(context, "Se ha solicitado el pago a los deudores", Toast.LENGTH_SHORT).show()
-                            else {
-                                titulo = "PAGAR A.."
-                                mensaje = "Enviar mensaje de pago."
-                                showDialog = true
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            text = if(monto > 0) "SOLICITAR" else if(monto < 0) "PAGAR A.." else "LISTO",
-                            fontSize = 14.sp
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Text(
-                            text = "Comprobante del pago",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                        IconButton(onClick = onMasOpcionesClick){
-                            Icon(
-                                Icons.Default.PhotoCamera,
-                                contentDescription = "Tomar foto",
-                                tint = MaterialTheme.colorScheme.primary
+                    if(posicion == 0){
+                        Button(
+                            enabled = monto != 0.0,
+                            onClick = {
+                                if(monto > 0) Toast.makeText(context, "Se ha solicitado el pago a los deudores", Toast.LENGTH_SHORT).show()
+                                else {
+                                    titulo = "PAGAR A.."
+                                    mensaje = "Enviar mensaje de pago."
+                                    showDialog = true
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text(
+                                text = if(monto > 0) "SOLICITAR" else if(monto < 0) "PAGAR A.." else "LISTO",
+                                fontSize = 14.sp
                             )
+                        }
+                        if(monto < 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Text(
+                                    text = "Comprobante del pago",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray
+                                )
+                                IconButton(onClick = tomarFotoGasto) {
+                                    Icon(
+                                        Icons.Default.PhotoCamera,
+                                        contentDescription = "Tomar foto",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -635,24 +613,31 @@ fun BalanceDesing(
 
 @Composable
 fun Balance(
+    exiteRegistrado: Boolean,
     participantes: Map<String, Double>?,
-    onPagarClick: (String) -> Unit,
-    onMasOpcionesClick: (String) -> Unit
+    tomarFotoGasto: () -> Unit
 ) {
-    LazyColumn(modifier = Modifier.padding(8.dp)) {
-        participantes?.let {
-            items(participantes.toList()) { (nombre, monto) ->
-                BalanceDesing(
-                    participantes = participantes,
-                    participante = nombre,
-                    monto = monto,
-                    onPagarClick = { onPagarClick(nombre) },
-                    onMasOpcionesClick = { onMasOpcionesClick(nombre) },
-                    onParticipantSelected = { }
-                )
+    Column {
+        if(!exiteRegistrado) Text(
+            modifier = Modifier.padding(horizontal = 7.dp),
+            text = "Tu no estas en esta hoja de gastos. No puedes reclamar ni abonar."
+        )
+        LazyColumn(modifier = Modifier.padding(8.dp)) {
+            participantes?.let {
+                itemsIndexed(participantes.toList()) { _index, (nombre, monto) ->
+                    BalanceDesing(
+                        posicion = _index,
+                        exiteRegistrado = exiteRegistrado,
+                        participantes = participantes,
+                        participante = nombre,
+                        monto = monto,
+                        tomarFotoGasto = { }
+                    )
+                }
             }
         }
     }
+
 }
 
 /**********************************************/
@@ -661,7 +646,8 @@ fun Balance(
 fun CustomFloatButton(
     onNavNuevoGasto: () -> Unit,
     modifier: Modifier = Modifier,
-    isEnabled: Boolean
+    isEnabled: Boolean,
+    showBalance: () -> Unit
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
 
@@ -674,6 +660,7 @@ fun CustomFloatButton(
 
     androidx.compose.material3.FloatingActionButton(
         onClick = {
+            showBalance()
             if (isEnabled) onNavNuevoGasto()
             else showDialog = true
         },

@@ -6,6 +6,8 @@ import com.app.miscuentas.domain.model.HojaCalculo
 
 data class GastosState (
     val hojaPrincipal: HojaCalculo? = null,
+    val idRegistrado: Long = 0,
+    val existeRegistrado: Boolean = false,
     val hojaAMostrar: HojaConParticipantes? = null,
     val listaGastosOk: Boolean = false,
     val idHojaPrincipal: Long? = null,

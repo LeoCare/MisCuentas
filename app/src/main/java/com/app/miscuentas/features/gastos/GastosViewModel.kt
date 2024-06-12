@@ -44,6 +44,8 @@ class GastosViewModel @Inject constructor(
                 if (idHoja != null) {
                     hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
+                        _gastosState.value = _gastosState.value.copy(idRegistrado = dataStoreConfig.getIdRegistroPreference()!!)
+                        comprobarExisteRegistrado()
                         //Actualizo DataStore con idhoja si esta Activa
                         if (hojaCalculo?.hoja?.status == "C") {
                             dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.hoja.idHoja)
@@ -54,17 +56,23 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-
-
-    init {
-        viewModelScope.launch {
-            val idUltimaHoja = dataStoreConfig.getIdHojaPrincipalPreference()
-            _gastosState.value = _gastosState.value.copy(idHojaPrincipal = idUltimaHoja)
-        }
-
-    }
+//    init {
+//        viewModelScope.launch {
+//
+//        }
+//    }
 
     /** RESUMEN DE GASTOS POR PARTICIPANTES **/
+    fun comprobarExisteRegistrado(){
+        val hoja = gastosState.value.hojaAMostrar
+        hoja?.participantes?.forEach {
+            if(it.participante.idRegistroParti == gastosState.value.idRegistrado ){
+                _gastosState.value = _gastosState.value.copy(existeRegistrado = true)
+                return
+            }
+        }
+    }
+
     fun obtenerParticipantesYSumaGastos() {
         val hoja = gastosState.value.hojaAMostrar
         val mapaResumen = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>

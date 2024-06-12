@@ -262,9 +262,4 @@ class NuevaHojaViewModel @Inject constructor(
            fechaCierre = "")
    }
 
-   init {
-       viewModelScope.launch {
-
-       }
-   }
 }
