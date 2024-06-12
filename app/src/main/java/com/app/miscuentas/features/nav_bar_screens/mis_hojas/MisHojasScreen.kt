@@ -258,12 +258,13 @@ fun HojaDesing(
  onOpcionSelectedChanged: (String) -> Unit,
  onStatusChanged: (String) -> Unit
 ) {
-    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
 
     /** Eleccion y cambio de estado:  **/
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
     var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
 
     //actualiza el state que se usara en el composable principal de esta screen
     if(opcionAceptada) {
@@ -273,7 +274,8 @@ fun HojaDesing(
 
     if (showDialog) Desing.MiDialogo(
         show = true,
-        texto = mensaje,
+        titulo = titulo,
+        mensaje = mensaje,
         cerrar = { showDialog = false },
         aceptar = {
             opcionAceptada = true
@@ -310,20 +312,21 @@ fun HojaDesing(
                 /** API **/ //   Text(text = hoja.type)
                 OpcionesHoja(hojaConParticipantes) { opcion ->
                     when(opcion) {
-                        "Resumen" ->  mensaje = "Este es el resumen"
-
                         "Finalizar" ->  {
                             onStatusChanged("F")
-                            mensaje = "Finalizar la hoja"
+                            titulo = "FINALIZAR LA HOJA"
+                            mensaje = "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
                         }
 
                         "Anular" ->  {
                             onStatusChanged("A")
-                            mensaje = "Esta hoja se marcara como anulada."
+                            titulo = "ANULAR LA HOJA"
+                            mensaje = "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
                         }
                         "Eliminar" ->  {
                             onStatusChanged("E")
-                            mensaje = "¿Seguro que desea ELIMINAR esta hoja?"
+                            titulo = "ELIMINAR LA HOJA"
+                            mensaje = "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
                         }
                     }
                     opcionSeleccionada = opcion
@@ -438,14 +441,6 @@ fun OpcionesHoja(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuItem(
-                onClick = {
-                    expanded = false
-                    onOptionSelected("Resumen")
-                }
-            ) {
-                Text("Resumen")
-            }
             if(statusHoja == "C"){
                 DropdownMenuItem(
                     onClick = {

@@ -34,6 +34,9 @@ class GastosViewModel @Inject constructor(
     fun onResumenGastoChanged(mapaGastos: Map<String,Double>){
         _gastosState.value = _gastosState.value.copy(resumenGastos = mapaGastos)
     }
+    fun onBalanceDeudaChanged(mapaDeuda: Map<String,Double>){
+        _gastosState.value = _gastosState.value.copy(balanceDeuda = mapaDeuda)
+    }
 
     fun onHojaAMostrar(idHoja: Long?) {
         viewModelScope.launch {
@@ -66,6 +69,14 @@ class GastosViewModel @Inject constructor(
         val hoja = gastosState.value.hojaAMostrar
         val mapaResumen = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>
         onResumenGastoChanged(mapaResumen)
+    }
+    /************************/
+
+    /** BALANCE DE DEUDAS POR PARTICIPANTES **/
+    fun calcularDeudas() {
+        val hoja = gastosState.value.hojaAMostrar
+        val mapaDeuda = Contabilidad.calcularDeudas(hoja!!) as MutableMap<String, Double>
+        onBalanceDeudaChanged(mapaDeuda)
     }
     /************************/
 

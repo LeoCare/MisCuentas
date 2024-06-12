@@ -1,6 +1,7 @@
 package com.app.miscuentas.features.gastos
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -27,27 +28,36 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,8 +68,12 @@ import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.IconoGasto
+import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
+import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
+import kotlinx.coroutines.Delay
+import okhttp3.internal.concurrent.Task
 import kotlin.random.Random
 
 
@@ -73,6 +87,14 @@ fun GastosScreen(
 ) {
     val gastosState by viewModel.gastosState.collectAsState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
+    val colors = listOf(
+        generateRandomColor(),
+        generateRandomColor(),
+        generateRandomColor(),
+        generateRandomColor(),
+        generateRandomColor(),
+        generateRandomColor()
+    )
 
     //Hoja a mostrar pasada por el Screen Hojas
     LaunchedEffect(Unit) {
@@ -101,7 +123,10 @@ fun GastosScreen(
         { onNavNuevoGasto(it) },
         { viewModel.onBorrarGastoChanged(it) },
         gastosState.resumenGastos,
-        { viewModel.obtenerParticipantesYSumaGastos() }
+        gastosState.balanceDeuda,
+        { viewModel.obtenerParticipantesYSumaGastos() },
+        { viewModel.calcularDeudas() },
+        colors
     )
 }
 
@@ -113,10 +138,14 @@ fun GastosContent(
     onNavNuevoGasto: (Long) -> Unit,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
     resumenGastos: Map<String, Double>?,
-    obtenerParticipantesYSumaGastos: () -> Unit
+    balanceDeuda: Map<String, Double>?,
+    obtenerParticipantesYSumaGastos: () -> Unit,
+    calcularDeudas: () -> Unit,
+    colors: List<Color>
 ){
     val isEnabled = hojaDeGastos?.hoja?.status == "C"
     var showResumen by rememberSaveable { mutableStateOf(false) }
+    var showBalance by rememberSaveable { mutableStateOf(false) }
 
 
     Box(
@@ -189,32 +218,58 @@ fun GastosContent(
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
-            Column(
+            Row(
                 modifier = Modifier
-                    .clickable {
-                        obtenerParticipantesYSumaGastos()
-                        showResumen = !showResumen
-                    }
                     .fillMaxWidth()
                     .height(40.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
             ){
-                Text(
-                    style = MaterialTheme.typography.titleMedium,
-                    text = "Ver Resumen",
-                    color = Color.White
-                )
-                Icon(
-                    if(showResumen) Icons.Filled.KeyboardDoubleArrowUp else Icons.Default.KeyboardDoubleArrowDown,
-                    contentDescription = "Arrow Icon",
-                    tint = Color.Black,
-                    modifier = Modifier.size(16.dp)
-                )
+                Row(
+                    Modifier
+                        .clickable {
+                            obtenerParticipantesYSumaGastos()
+                            showResumen = !showResumen
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Icon(
+                        Icons.Default.AccountBox,
+                        contentDescription = "Arrow Icon",
+                        tint = Color.Black,
+                        modifier = Modifier.size(26.dp)
+                    )
+                    Text(
+                        style = MaterialTheme.typography.titleMedium,
+                        text = "Resumen",
+                        color = Color.White
+                    )
+                }
+
+                Row(
+                    Modifier
+                        .clickable {
+                            calcularDeudas()
+                            showBalance = !showBalance
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                    ){
+                    Icon(
+                        Icons.Default.Payments,
+                        contentDescription = "Arrow Icon",
+                        tint = Color.Black,
+                        modifier = Modifier.size(26.dp)
+                    )
+                    Text(
+                        style = MaterialTheme.typography.titleMedium,
+                        text = "Balance",
+                        color = Color.White
+                    )
+                }
             }
 
-            //Expandible para ver el resumen
+            //Expandible para ver el resumen:
             AnimatedVisibility(
                 visible = showResumen,
                 enter = fadeIn() + expandVertically(),
@@ -223,11 +278,32 @@ fun GastosContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
-                        .padding(16.dp)
+                        .padding(2.dp)
                 ) {
-                    ResumenDesing(resumenGastos, {})
+                    ResumenDesing(
+                        participantes = resumenGastos,
+                        onParticipanteClick = {},
+                        colors = colors)
                }
+            }
+
+            //Expandible para ver el balance:
+            AnimatedVisibility(
+                visible = showBalance,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(2.dp)
+                ) {
+                    Balance(
+                        participantes = balanceDeuda,
+                        onPagarClick = { deuda -> println("Pagar click: $deuda") },
+                        onMasOpcionesClick = { deuda -> println("Más opciones click: $deuda") }
+                    )
+                }
             }
 
             LazyColumn(
@@ -277,7 +353,8 @@ fun GastoDesing(
 
     if (showDialog) MiDialogo(
         show = true,
-        texto = "¿Borrar este gasto?",
+        titulo = "ELIMINAR GASTO",
+        mensaje = "Si acepta, se eliminara y no se podrá recuperar.",
         cerrar = { showDialog = false },
         aceptar = {
             onBorrarGastoChanged(gasto)
@@ -380,12 +457,13 @@ fun GastoDesing(
     }
 }
 
+/** RESUMEN **/
 @Composable
 fun ParticipanteButton(nombre: String, sumaGastos: Double, color: Color, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .padding(8.dp)
-            .size(120.dp, 60.dp)
+            .padding(2.dp)
+            .size(100.dp, 60.dp)
             .background(color, shape = RoundedCornerShape(8.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -397,39 +475,187 @@ fun ParticipanteButton(nombre: String, sumaGastos: Double, color: Color, onClick
     }
 }
 
-@Composable
-fun ResumenDesing(participantes: Map<String, Double>?, onParticipanteClick: (String) -> Unit) {
-    val colors = listOf(Color.Red, Color.Blue, Color.Magenta, Color.Yellow, Color.Green, Color.Black)
 
+@Composable
+fun ResumenDesing(
+    participantes: Map<String, Double>?,
+    onParticipanteClick: (String) -> Unit,
+    colors: List<Color>
+) {
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(1.dp),
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
         item{
-                Column{
-                    participantes?.keys?.chunked(2)?.forEach { fila ->
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            items(fila) { participante ->
-                                val colorIndex = (participantes.keys.indexOf(participante) % colors.size)
-                                val color = generateRandomColor()//colors[colorIndex]
-                                ParticipanteButton(
-                                    nombre = participante,
-                                    sumaGastos = participantes[participante] ?: 0.0,
-                                    color = generateRandomColor(),
-                                    onClick = { onParticipanteClick(participante) }
-                                )
-                            }
+            Column{
+                participantes?.keys?.chunked(3)?.forEach { fila ->
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        items(fila) { participante ->
+                            val colorIndex = (participantes.keys.indexOf(participante) % colors.size)
+                            val color = colors[colorIndex]
+                            ParticipanteButton(
+                                nombre = participante,
+                                sumaGastos = participantes[participante] ?: 0.0,
+                                color = color,
+                                onClick = { onParticipanteClick(participante) }
+                            )
                         }
                     }
                 }
+            }
         }
     }
-
 }
+/*****************************************/
+
+
+/** BALANCE **/
+@Composable
+fun BalanceDesing(
+    participantes: Map<String, Double>?,
+    participante: String,
+    monto: Double,
+    onPagarClick: () -> Unit,
+    onMasOpcionesClick: () -> Unit,
+    onParticipantSelected: () -> Unit
+) {
+    val context = LocalContext.current
+    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
+    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
+
+    //actualiza el state que se usara en el composable principal de esta screen
+    if(opcionAceptada) {
+        Toast.makeText(context, "Enviado mensaje de pago a $opcionSeleccionada", Toast.LENGTH_SHORT).show()
+        opcionAceptada = false
+    }
+
+    if (showDialog) participantes?.let { listaParticipantes ->
+        MiDialogoWithOptions(
+            show = true,
+            participantes = listaParticipantes,
+            titulo = titulo,
+            mensaje = mensaje,
+            cancelar = { showDialog = false },
+            aceptar = {
+                //onBorrarGastoChanged(gasto)
+                opcionAceptada = true
+                showDialog = false
+            },
+            onParticipantSelected = { opcionSeleccionada = it }
+        )
+    }
+
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.outline,
+            contentColor = Color.Black
+        ),
+        elevation = CardDefaults.cardElevation(4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ){
+                Text(
+                    text = participante,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp
+                )
+            Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = if(monto > 0) "Recibe" else if(monto < 0) "Debe" else "Saldado",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            Spacer(modifier = Modifier.width(14.dp))
+                Text(
+                    text = String.format("%.2f €", monto),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            if(monto != 0.0){
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            if(monto > 0) Toast.makeText(context, "Se ha solicitado el pago a los deudores", Toast.LENGTH_SHORT).show()
+                            else {
+                                titulo = "PAGAR A.."
+                                mensaje = "Enviar mensaje de pago."
+                                showDialog = true
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = if(monto > 0) "SOLICITAR" else if(monto < 0) "PAGAR A.." else "LISTO",
+                            fontSize = 14.sp
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = "Comprobante del pago",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        IconButton(onClick = onMasOpcionesClick){
+                            Icon(
+                                Icons.Default.PhotoCamera,
+                                contentDescription = "Tomar foto",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Balance(
+    participantes: Map<String, Double>?,
+    onPagarClick: (String) -> Unit,
+    onMasOpcionesClick: (String) -> Unit
+) {
+    LazyColumn(modifier = Modifier.padding(8.dp)) {
+        participantes?.let {
+            items(participantes.toList()) { (nombre, monto) ->
+                BalanceDesing(
+                    participantes = participantes,
+                    participante = nombre,
+                    monto = monto,
+                    onPagarClick = { onPagarClick(nombre) },
+                    onMasOpcionesClick = { onMasOpcionesClick(nombre) },
+                    onParticipantSelected = { }
+                )
+            }
+        }
+    }
+}
+
+/**********************************************/
 
 @Composable
 fun CustomFloatButton(

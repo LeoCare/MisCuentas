@@ -7,16 +7,22 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import com.app.miscuentas.R
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.util.Calendar
 
 
@@ -109,7 +115,13 @@ class Desing {
         //Al recibir valores lambda, se entiende que el resultado de esas funciones lambda tienen sentido desde donde se llame a MiDialogo().
         //Es decir, dependiendo lo que pase en AlertDialog() ejecutara una lambda u otra (cerrar() o aceptar() )
         @Composable
-        fun MiDialogo(show:Boolean, texto: String, cerrar: () -> Unit, aceptar: () -> Unit) {
+        fun MiDialogo(
+            show:Boolean,
+            titulo: String,
+            mensaje: String,
+            cerrar: () -> Unit,
+            aceptar: () -> Unit
+        ) {
             if (show) {
                 AlertDialog(
                     shape = MaterialTheme.shapes.small,
@@ -131,13 +143,82 @@ class Desing {
                         }
                     },
                     title = { Text(
-                        text = "ATENCION:",
+                        text = titulo,
                         style = MaterialTheme.typography.titleLarge
                     ) },
                     text = { Text(
-                        text = texto,
+                        text = mensaje,
                         style = MaterialTheme.typography.titleSmall
                     ) }
+                )
+            }
+        }
+
+
+        @Composable
+        fun MiDialogoWithOptions(
+            show:Boolean,
+            participantes: Map<String, Double>,
+            titulo: String,
+            mensaje: String,
+            cancelar: () -> Unit,
+            aceptar: () -> Unit,
+            onParticipantSelected: (String) -> Unit
+        ) {
+            if (show) {
+                AlertDialog(
+                    shape = MaterialTheme.shapes.small,
+                    onDismissRequest = { cancelar() },
+                    confirmButton = {
+                        TextButton(onClick = { cancelar() }) {
+                            Text(
+                                text = "Cancelar",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    },
+//                    dismissButton = {
+//                        TextButton(onClick = { cerrar() }) {
+//                            Text(
+//                                text = "Cancelar",
+//                                style = MaterialTheme.typography.titleMedium
+//                            )
+//                        }
+//                    },
+                    title = { Text(
+                        text = titulo,
+                        style = MaterialTheme.typography.titleLarge
+                    ) },
+                    text = {
+                        Column{
+                            Text(
+                                modifier = Modifier.padding(bottom = 10.dp),
+                                text = mensaje,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            LazyColumn {
+                                items(participantes.filter { it.value < 0 }.toList()) { (nombre, deuda) ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onParticipantSelected(nombre)
+                                                aceptar()
+                                            }
+                                            .padding(vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = nombre, fontSize = 16.sp)
+                                        Text(
+                                            text = String.format("%.2f €", deuda),
+                                            fontSize = 16.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 )
             }
         }

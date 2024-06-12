@@ -10,6 +10,7 @@ data class GastosState (
     val listaGastosOk: Boolean = false,
     val idHojaPrincipal: Long? = null,
     val gastoElegido: DbGastosEntity? = null,
-    val resumenGastos: Map<String, Double>? = null
+    val resumenGastos: Map<String, Double>? = null, //suma de gastos por participante
+    val balanceDeuda: Map<String, Double>? = null //importe que debe/recibe cada participante
 
 )
