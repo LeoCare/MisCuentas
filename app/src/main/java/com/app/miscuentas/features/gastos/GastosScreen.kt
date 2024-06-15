@@ -28,35 +28,32 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Surface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,12 +67,9 @@ import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.IconoGasto
-import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
-import kotlinx.coroutines.Delay
-import okhttp3.internal.concurrent.Task
 import kotlin.random.Random
 
 
@@ -103,21 +97,15 @@ fun GastosScreen(
             viewModel.onHojaAMostrar(idHojaAMostrar)
     }
 
-    //Borrar un gasto
-    LaunchedEffect(gastosState.gastoElegido){
+    //Borrar un gasto o cerrar al hoja
+    LaunchedEffect(gastosState){
         if(gastosState.gastoElegido != null){
             viewModel.deleteGasto()
         }
+        if(gastosState.cierreAceptado){
+            viewModel.update()
+        }
     }
-
-    //Este aviso se lanzara cuando se deniega el permiso...
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    if (showDialog) MiAviso(
-        show = true,
-        texto = "Tratar un aviso si los gastos no han sido guardados en BBDD, antes de salir atras.",
-        { showDialog = false }
-    )
-
 
     GastosContent(
         innerPadding,
@@ -130,6 +118,8 @@ fun GastosScreen(
         gastosState.balanceDeuda,
         { viewModel.obtenerParticipantesYSumaGastos() },
         { viewModel.calcularDeudas() },
+        { viewModel.onCierreAceptado(it) },
+        { viewModel.pagarDeuda(it)},
         colors
     )
 }
@@ -146,12 +136,13 @@ fun GastosContent(
     balanceDeuda: Map<String, Double>?,
     obtenerParticipantesYSumaGastos: () -> Unit,
     calcularDeudas: () -> Unit,
+    onCierreAceptado: (Boolean) -> Unit,
+    pagarDeuda: (Pair<String, Double>?) -> Unit,
     colors: List<Color>
 ){
     val isEnabled = hojaDeGastos?.hoja?.status == "C"
     var showResumen by rememberSaveable { mutableStateOf(false) }
     var showBalance by rememberSaveable { mutableStateOf(false) }
-
 
     Box(
         modifier = Modifier
@@ -161,72 +152,47 @@ fun GastosContent(
     ) {
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = Color.Black
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                modifier = Modifier.fillMaxWidth()
+            ){
                 Column{
-                    Row {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(180.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
                         Text(
-                            text = "Fecha fin: ",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = hojaDeGastos?.hoja?.fechaCierre ?: "no tiene",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                    Row {
-                        Text(
-                            text = "Limite: ",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "no tiene" else hojaDeGastos?.hoja?.limite.toString(),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge
+                            text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color.Black
                         )
                     }
-                    Row {
-                        Text(
-                            text = "Participantes: ",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = hojaDeGastos?.participantes?.size.toString(),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column{
+                            DatosHoja(hojaDeGastos)
+                        }
+                        Column{
+                            ImagenCierre(hojaDeGastos, {onCierreAceptado(it)})
+                        }
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .height(35.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -241,7 +207,7 @@ fun GastosContent(
                 ){
                     Icon(
                         Icons.Default.AccountBox,
-                        contentDescription = "Arrow Icon",
+                        contentDescription = "Icono de participantes",
                         tint = Color.Black,
                         modifier = Modifier.size(26.dp)
                     )
@@ -259,10 +225,10 @@ fun GastosContent(
                             showBalance = !showBalance
                         },
                     verticalAlignment = Alignment.CenterVertically
-                    ){
+                ){
                     Icon(
                         Icons.Default.Payments,
-                        contentDescription = "Arrow Icon",
+                        contentDescription = "Iconos de pagos",
                         tint = Color.Black,
                         modifier = Modifier.size(26.dp)
                     )
@@ -289,7 +255,7 @@ fun GastosContent(
                         participantes = resumenGastos,
                         onParticipanteClick = {},
                         colors = colors)
-               }
+                }
             }
 
             //Expandible para ver el balance:
@@ -303,14 +269,18 @@ fun GastosContent(
                         .fillMaxWidth()
                         .padding(2.dp)
                 ) {
-                    Balance(
-                        exiteRegistrado = existeRegistrado,
-                        participantes = balanceDeuda,
-                        tomarFotoGasto = {}
-                    )
+                    hojaDeGastos?.hoja?.status?.let {statusHoja ->
+                        Balance(
+                            exiteRegistrado = existeRegistrado,
+                            participantes = balanceDeuda,
+                            tomarFotoGasto = {},
+                            pagarDeuda = pagarDeuda,
+                            statusHoja = statusHoja
+                        )
+                    }
                 }
             }
-
+            Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
                 contentPadding = innerPadding,
                 modifier = Modifier
@@ -343,8 +313,123 @@ fun GastosContent(
                 showResumen = false
             }
         )
+        Spacer(modifier = Modifier.height(36.dp))
     }
 }
+
+@Composable
+fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
+    Row {
+        Text(
+            text = "Fecha fin: ",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = hojaDeGastos?.hoja?.fechaCierre ?: "no tiene",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+    Row {
+        Text(
+            text = "Limite: ",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "no tiene" else hojaDeGastos?.hoja?.limite.toString(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+    Row {
+        Text(
+            text = "Participantes: ",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = hojaDeGastos?.participantes?.size.toString(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+}
+
+@Composable
+fun ImagenCierre(
+    hojaDeGastos: HojaConParticipantes?,
+    onCierreAceptado: (Boolean) -> Unit
+){
+
+    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
+    if(opcionAceptada) {
+        onCierreAceptado(true)
+        opcionAceptada = false
+    }
+
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    if (showDialog) MiDialogo(
+        show = true,
+        titulo = "ATENCION!",
+        mensaje = "Estas a punto de CERRAR la hoja. Si aceptas, ya no se podrá introcudir mas gastos y podras realizar el Balance.",
+        cerrar = { showDialog = false },
+        aceptar = {
+            opcionAceptada = true
+            showDialog = false
+        }
+    )
+
+    Button(
+        enabled = (hojaDeGastos?.hoja?.status == "C"),
+        onClick = { showDialog = true },
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            disabledBackgroundColor = Color.Transparent,
+            disabledContentColor = Color.Transparent
+        ),
+        elevation = ButtonDefaults.elevation(0.dp),
+        shape = MaterialTheme.shapes.small)
+    {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            when (hojaDeGastos?.hoja?.status) { //pinta segun valor status de la BBDD
+                "C" ->
+                    Text(
+                        text = "Activa",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                "A" ->
+                    Text(
+                        text = "Anulada",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                "B" ->
+                    Text(
+                        text = "Balanceada",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                else -> Text(
+                    text = "Finalizada",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            Image(
+                modifier = Modifier
+                    .height(80.dp)
+                    .width(80.dp),
+                painter = painterResource(id = R.drawable.cerrar),
+                contentDescription = "Cierre de la Hoja")
+        }
+    }
+}
+
 
 @Composable
 fun GastoDesing(
@@ -432,7 +517,11 @@ fun GastoDesing(
 
 /** RESUMEN **/
 @Composable
-fun ParticipanteButton(nombre: String, sumaGastos: Double, color: Color, onClick: () -> Unit) {
+fun ParticipanteButton(
+    nombre: String,
+    sumaGastos: Double,
+    color: Color,
+    onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(2.dp)
@@ -443,7 +532,7 @@ fun ParticipanteButton(nombre: String, sumaGastos: Double, color: Color, onClick
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = nombre, color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
-            Text(text = "${sumaGastos}€", color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
+            Text(text = String.format("%.2f €",sumaGastos), color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
         }
     }
 }
@@ -494,18 +583,21 @@ fun BalanceDesing(
     participantes: Map<String, Double>?,
     participante: String,
     monto: Double,
-    tomarFotoGasto: () -> Unit
+    tomarFotoGasto: () -> Unit,
+    pagarDeuda: (Pair<String, Double>?) -> Unit,
+    statusHoja: String
 ) {
     val context = LocalContext.current
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
-    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+    var opcionSeleccionada by rememberSaveable { mutableStateOf<Pair<String, Double>?>(null) }
     var opcionAceptada by rememberSaveable { mutableStateOf(false) }
 
     //actualiza el state que se usara en el composable principal de esta screen
     if(opcionAceptada) {
-        Toast.makeText(context, "Enviado mensaje de pago a $opcionSeleccionada", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Enviado mensaje de pago a ${opcionSeleccionada?.first}", Toast.LENGTH_SHORT).show()
+        pagarDeuda(opcionSeleccionada)
         opcionAceptada = false
     }
 
@@ -517,12 +609,11 @@ fun BalanceDesing(
             titulo = titulo,
             mensaje = mensaje,
             cancelar = { showDialog = false },
-            aceptar = {
-                //onBorrarGastoChanged(gasto)
+            onParticipantSelected = {
+                opcionSeleccionada = it
                 opcionAceptada = true
                 showDialog = false
-            },
-            onParticipantSelected = { opcionSeleccionada = it }
+            }
         )
     }
 
@@ -567,7 +658,7 @@ fun BalanceDesing(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if(posicion == 0){
+                    if(posicion == 0 && statusHoja == "F"){
                         Button(
                             enabled = monto != 0.0,
                             onClick = {
@@ -591,7 +682,7 @@ fun BalanceDesing(
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 Text(
-                                    text = "Comprobante del pago",
+                                    text = "Comprobante de pago",
                                     fontSize = 14.sp,
                                     color = Color.Gray
                                 )
@@ -615,7 +706,9 @@ fun BalanceDesing(
 fun Balance(
     exiteRegistrado: Boolean,
     participantes: Map<String, Double>?,
-    tomarFotoGasto: () -> Unit
+    tomarFotoGasto: () -> Unit,
+    pagarDeuda: (Pair<String, Double>?) -> Unit,
+    statusHoja: String
 ) {
     Column {
         if(!exiteRegistrado) Text(
@@ -631,7 +724,9 @@ fun Balance(
                         participantes = participantes,
                         participante = nombre,
                         monto = monto,
-                        tomarFotoGasto = { }
+                        tomarFotoGasto = { },
+                        pagarDeuda = pagarDeuda,
+                        statusHoja = statusHoja
                     )
                 }
             }
@@ -658,12 +753,13 @@ fun CustomFloatButton(
         cerrar = { showDialog = false }
     )
 
-    androidx.compose.material3.FloatingActionButton(
+    FloatingActionButton(
         onClick = {
             showBalance()
             if (isEnabled) onNavNuevoGasto()
             else showDialog = true
         },
+        elevation = FloatingActionButtonDefaults.elevation(0.dp),
         modifier = modifier
             .height(80.dp)
             .width(80.dp)
@@ -677,6 +773,7 @@ fun CustomFloatButton(
             contentDescription = "Logo Hoja",
         )
     }
+
 }
 
 fun generateRandomColor(): Color {

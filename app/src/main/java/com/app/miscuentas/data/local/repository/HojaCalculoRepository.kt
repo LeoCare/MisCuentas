@@ -5,9 +5,11 @@ import androidx.room.Insert
 import androidx.room.Transaction
 import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.dao.DbHojaCalculoDao
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.toEntity
@@ -34,8 +36,9 @@ class HojaCalculoRepository @Inject constructor(
         hojaCalculoDao.insertHojaConParticipantes(hoja, participantes)
     }
 
+
     @Update
-    suspend fun update(hojaCalculo: HojaCalculo) = hojaCalculoDao.update(hojaCalculo.toEntity())
+    suspend fun update(hojaCalculo: DbHojaCalculoEntity) = hojaCalculoDao.update(hojaCalculo)
 
     @Delete
     suspend fun deleteHojaConParticipantes(hojaCalculo: DbHojaCalculoEntity) = hojaCalculoDao.delete(hojaCalculo)
@@ -43,6 +46,8 @@ class HojaCalculoRepository @Inject constructor(
 
     fun getHojaCalculo(id: Long): Flow<HojaCalculo> =
         hojaCalculoDao.getHojaCalculo(id).map { it.toDomain() }
+
+
 
     fun getAllHojasCalculos(): Flow<List<HojaCalculo>> =
         hojaCalculoDao.getAllHojasCalculos().map { list -> list.map { it.toDomain() } }
@@ -59,6 +64,9 @@ class HojaCalculoRepository @Inject constructor(
 
     fun getHojaConParticipantes(id: Long): Flow<HojaConParticipantes?> =
         hojaCalculoDao.getHojaConParticipantes(id)
+
+    fun getHojaConBalances(id: Long): Flow<HojaConBalances?> =
+        hojaCalculoDao.getHojaConBalances(id)
 
     fun getTotalHojasCreadas() : Flow<Int> =
         hojaCalculoDao.getTotalHojasCreadas()

@@ -4,6 +4,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
@@ -131,21 +132,6 @@ class NuevaHojaViewModel @Inject constructor(
         hojaCalculoRepository.insertHojaConParticipantes(hoja, participantes)
         _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
     }
-
-
-    //3_LLAMADA A INSERTAR PARTICIPANTES...
-    fun insertAllParticipante(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-
-//                //val insertPartOK = insertParticipante()
-//                if (insertPartOK){
-//                    _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
-//                }
-            }
-        }
-    }
-
 
 
     fun getHojaConParticipantes(id: Long) {

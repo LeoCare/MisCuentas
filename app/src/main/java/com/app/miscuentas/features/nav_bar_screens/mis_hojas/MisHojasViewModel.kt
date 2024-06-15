@@ -99,7 +99,7 @@ class MisHojasViewModel @Inject constructor(
     suspend fun update() = viewModelScope.launch{
         _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
         withContext(Dispatchers.IO) {
-            repositoryHojaCalculo.update(misHojasState.value.hojaAModificar!!)
+            repositoryHojaCalculo.update(misHojasState.value.hojaAModificar!!.toEntity())
             updatePreferenceIdHojaPrincipal()
         }
 

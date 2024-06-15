@@ -43,4 +43,12 @@ object DatabaseModule {
     @Provides
     fun provideGastoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getGastoDao()
 
+    @Singleton
+    @Provides
+    fun provideDeudaDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getDeudaDao()
+
+    @Singleton
+    @Provides
+    fun providePagoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getPagoDao()
+
 }

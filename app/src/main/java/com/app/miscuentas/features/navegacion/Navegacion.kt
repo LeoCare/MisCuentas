@@ -159,7 +159,7 @@ fun MiTopBar(
 ) {
     val activity = LocalContext.current as FragmentActivity
 
-    if (currentScreen != "SPLASH"){
+    if (currentScreen != "SPLASH" && currentScreen != "LOGIN"){
         TopAppBar(
             title = {
                 Text(

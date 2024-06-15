@@ -3,6 +3,7 @@ package com.app.miscuentas.features.splash
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.dbroom.DATABASE_VERSION
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,25 +30,48 @@ class SplashViewModel @Inject constructor(
     }
 
     init {
-        var inicioHuella: String?
-        var registrado: String?
         viewModelScope.launch {
-            try {
-                 inicioHuella = dataStoreConfig.getInicoHuellaPreference()
-                 registrado = dataStoreConfig.getRegistroPreference()
+            withContext(Dispatchers.IO){
+                val versionActual = DATABASE_VERSION
+                val versionGuardada = dataStoreConfig.getDatabaseVersion()
 
-                onContinuarChanged( true)
-                if (registrado != null && inicioHuella != "SI") {
-                    onAutoInicioChanged( true)
-                } else {
-                    onAutoInicioChanged(  false)
-                }
-
-            }catch (ex: Exception){
-                null
+                checkAndClearDataStore(versionActual, versionGuardada)
             }
         }
     }
+
+    suspend fun checkAndClearDataStore(versionActual: Int, versionGuardada: Int?) {
+        val inicioHuella: String?
+        val registrado: String?
+
+        try {//si la version de la bbdd cambia -> limpio las preference
+            if (versionGuardada == null || versionGuardada < versionActual) {
+                // Limpiar DataStore
+                clearDataStore()
+                // Actualizar la versión de la base de datos en DataStore
+                dataStoreConfig.saveDatabaseVersion(versionActual)
+            }
+            else {//si no, las recoge y actua en consecuencia
+                inicioHuella = dataStoreConfig.getInicoHuellaPreference()
+                registrado = dataStoreConfig.getRegistroPreference()
+
+                if (registrado != null && inicioHuella != "SI") {
+                    onAutoInicioChanged(true)
+                } else {
+                    onAutoInicioChanged(false)
+                }
+            }
+            onContinuarChanged(true)
+        }catch (ex: Exception){
+            null
+        }
+    }
+
+    suspend fun clearDataStore() {
+        dataStoreConfig.clearDataStore()
+    }
+
+
 
     /** PERMISOS **/
     @OptIn(ExperimentalPermissionsApi::class)

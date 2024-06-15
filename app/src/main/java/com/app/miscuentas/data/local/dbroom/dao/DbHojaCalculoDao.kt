@@ -7,10 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 //import com.app.miscuentas.data.local.dbroom.entitys.DbHojaParticipantesGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.Gasto
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +27,7 @@ interface DbHojaCalculoDao {
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertParticipante(participante: DbParticipantesEntity): Long
+
 
     @Update
     suspend fun update(hojaCalculo: DbHojaCalculoEntity)
@@ -48,6 +51,7 @@ interface DbHojaCalculoDao {
     @Transaction
     @Query("SELECT * FROM t_hojas_cab WHERE idRegistroHoja = :idRegistro ORDER BY idHoja DESC")
     fun getAllHojaConParticipantes(idRegistro: Long): Flow<List<HojaConParticipantes>>
+
 
 
     //Obtener el ID de la ultima hoja creada para la insercion en t_hojas_cab_lin
@@ -76,6 +80,11 @@ interface DbHojaCalculoDao {
     @Transaction
     @Query("SELECT COUNT(idHoja) FROM t_hojas_cab")
     fun getTotalHojasCreadas(): Flow<Int>
+
+    @Transaction
+    @Query("SELECT * FROM t_hojas_cab WHERE idHoja = :id")
+    fun getHojaConBalances(id: Long): Flow<HojaConBalances?>
+
 
 //    @Transaction
 //    @Query("SELECT * FROM t_hojas_cab")

@@ -162,8 +162,7 @@ class Desing {
             titulo: String,
             mensaje: String,
             cancelar: () -> Unit,
-            aceptar: () -> Unit,
-            onParticipantSelected: (String) -> Unit
+            onParticipantSelected: (Pair<String, Double>) -> Unit
         ) {
             if (show) {
                 AlertDialog(
@@ -177,14 +176,6 @@ class Desing {
                             )
                         }
                     },
-//                    dismissButton = {
-//                        TextButton(onClick = { cerrar() }) {
-//                            Text(
-//                                text = "Cancelar",
-//                                style = MaterialTheme.typography.titleMedium
-//                            )
-//                        }
-//                    },
                     title = { Text(
                         text = titulo,
                         style = MaterialTheme.typography.titleLarge
@@ -197,14 +188,12 @@ class Desing {
                                 style = MaterialTheme.typography.titleMedium
                             )
                             LazyColumn {
-                                items(participantes.filter { it.value < 0 }.toList()) { (nombre, deuda) ->
+                                items(participantes.filter { it.value > 0 }.toList()) { (nombre, deuda) ->
+
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable {
-                                                onParticipantSelected(nombre)
-                                                aceptar()
-                                            }
+                                            .clickable { onParticipantSelected(Pair(nombre,deuda)) }
                                             .padding(vertical = 8.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
