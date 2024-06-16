@@ -1,6 +1,12 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
@@ -45,14 +56,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.util.Desing
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.random.Random
@@ -107,61 +122,204 @@ fun MisHojasScreen(
         }
     } else {
         Column(horizontalAlignment = CenterHorizontally) {
-            FiltersRow(
-                itemsTipo,
-                itemsOrden,
-                viewModel::onMostrarTipoChanged,
-                viewModel::onTipoOrdenChanged)
-            OrderCheckbox(
-                hojaState.ordenDesc,
-                viewModel::onOrdenDescChanged)
+            SeleccionFiltros(
+                filtroElegido = hojaState.filtroElegido,
+                ordenElegido = hojaState.ordenElegido,
+                descending = hojaState.descending,
+                onMostrarFiltroChanged = viewModel::onMostrarFiltroChanged,
+                onTipoOrdenChanged = viewModel::onTipoOrdenChanged,
+                onDescendingChanged = viewModel::onDescendingChanged
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             HojasList(
                 innerPadding,
                 hojaState.listaHojasAMostrar,
                 onNavGastos,
                 viewModel::onOpcionSelectedChanged,
-                viewModel::onStatusChanged )
+                viewModel::onStatusChanged
+            )
         }
     }
 }
 
 
 @Composable
-fun FiltersRow(
-    itemsTipo: List<String>,
-    itemsOrden: List<String>,
-    onMostrarTipoChanged: (String) -> Unit,
-    onTipoOrdenChanged: (String) -> Unit
+fun SeleccionFiltros(
+    filtroElegido: String,
+    ordenElegido: String,
+    descending: Boolean,
+    onMostrarFiltroChanged: (String) -> Unit,
+    onTipoOrdenChanged: (String) -> Unit,
+    onDescendingChanged: (Boolean) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        SpinnerCustoms("Mostrar:", itemsTipo, "Filtrar por tipo") { mostrar ->
-            onMostrarTipoChanged(when (mostrar) {
-                "Activas" -> "C"
-                "Finalizadas" -> "F"
-                "Anuladas" -> "A"
-                else -> "T"
-            })
+
+    Column(modifier = Modifier.padding(20.dp)) {
+        Spacer(modifier = Modifier.height(10.dp))
+
+        /** FILTRO **/
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Filtro:",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(end = 10.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = { onMostrarFiltroChanged("C") },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (filtroElegido == "C") MaterialTheme.colorScheme.primary else Color.White
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(35.dp)
+            ){
+                Text(
+                    text = "Activas",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (filtroElegido == "C") Color.White else Color.Black
+                )
+            }
+            Button(
+                onClick = { onMostrarFiltroChanged("F") },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (filtroElegido == "F") MaterialTheme.colorScheme.primary else Color.White
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(35.dp)
+            ){
+                Text(
+                    text = "Finalizadas",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (filtroElegido == "F") Color.White else Color.Black
+                )
+            }
+            Button(
+                onClick = { onMostrarFiltroChanged("A") },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (filtroElegido == "A") MaterialTheme.colorScheme.primary else Color.White
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(35.dp)
+            ){
+                Text(
+                    text = "Anuladas",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (filtroElegido == "A") Color.White else Color.Black
+                )
+            }
+            Button(
+                onClick = { onMostrarFiltroChanged("T") },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (filtroElegido == "T") MaterialTheme.colorScheme.primary else Color.White
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(35.dp)
+            ){
+                Text(
+                    text = "Todos",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (filtroElegido == "T") Color.White else Color.Black
+                )
+            }
+
         }
-        SpinnerCustoms("Ordenar por:", itemsOrden, "Opcion de ordenacion") { orden ->
-            onTipoOrdenChanged(orden)
+
+        /** ORDEN **/
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Orden:",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(end = 10.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = {
+                        onTipoOrdenChanged("Fecha Creacion")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (ordenElegido == "Fecha Creacion") MaterialTheme.colorScheme.primary else Color.White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(35.dp),
+                    content = {
+                        Text(
+                            text = "Fecha Creacion",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (ordenElegido == "Fecha Creacion") Color.White else Color.Black
+                        )
+                    }
+                )
+                Button(
+                    onClick = {
+                        onTipoOrdenChanged("Fecha Cierre")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (ordenElegido == "Fecha Cierre") MaterialTheme.colorScheme.primary else Color.White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(35.dp),
+                    content = {
+                        Text(
+                            text = "Fecha Cierre",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (ordenElegido == "Fecha Cierre") Color.White else Color.Black
+                        )
+                    }
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = "Descendente",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = descending,
+                onCheckedChange = { onDescendingChanged(it) }
+            )
         }
     }
-}
-
-@Composable
-fun OrderCheckbox(ordenDesc: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp, end = 10.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = "Descendente", style = MaterialTheme.typography.titleSmall)
-        Checkbox(checked = ordenDesc, onCheckedChange = onCheckedChange)
+            .height(30.dp)
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ){
+        Text(
+            style = MaterialTheme.typography.titleMedium,
+            text = "Mostrar  ${
+                when (filtroElegido) {
+                    "C" -> "Activas"
+                    "F" -> "Finalizadas"
+                    "B" -> "Balanceadas"
+                    "A" -> "Anuladas"
+                    else  -> "Todos"
+                }
+            }",
+            color = Color.White
+        )
     }
 }
 
@@ -182,68 +340,6 @@ fun HojasList(
                     onOpcionSelectedChanged = { onOpcionSelectedChanged(it) },
                     onStatusChanged = { onStatusChanged(hojaConParticipantes.hoja.toDomain(), it) }
                 )
-            }
-        }
-    }
-}
-
-
-/** Composable para las opciones de filtrado **/
-@Composable
-fun SpinnerCustoms(
-    titulo: String,
-    items: List<String>,
-    contentDescription: String,
-    onOptionSelected: (String) -> Unit
-){
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
-
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-
-        Text(
-            text = titulo,
-            style = MaterialTheme.typography.titleSmall
-        )
-        Card(
-            modifier = Modifier
-                .height(IntrinsicSize.Min)
-                .clip(MaterialTheme.shapes.extraSmall)
-                .clickable { expanded = !expanded },
-            colors = CardDefaults.cardColors(
-                containerColor =  MaterialTheme.colorScheme.primary,
-                contentColor = Color.White
-            )
-        ) {
-
-            Row(modifier = Modifier.padding(6.dp))
-            {
-                Text(text = AnnotatedString(items[selectedIndex]))
-                Icon(
-                    imageVector = if(expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = contentDescription,
-                    tint = Color.White
-                )
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    items.forEachIndexed { index, item ->
-
-                        DropdownMenuItem(onClick = {
-                            selectedIndex = index
-                            expanded = false
-                            onOptionSelected( item)
-                        }) {
-                            Text(text = item)
-                        }
-                    }
-                }
             }
         }
     }
@@ -283,14 +379,14 @@ fun HojaDesing(
         }
     )
     /*****************************************/
-    Card(
+
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        elevation = 12.dp,
         modifier = Modifier
-            .padding(start = 10.dp, end = 10.dp, bottom = 9.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
+            .padding(vertical = 3.dp, horizontal = 5.dp)
+            .fillMaxWidth()
             .clickable { onNavGastos(hojaConParticipantes.hoja.idHoja) },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.outline,
-            contentColor = Color.Black)
     ) {
         Column(
             modifier = Modifier
@@ -309,7 +405,8 @@ fun HojaDesing(
                 )
 
                 //Spacer(modifier = Modifier.weight(1f))
-                /** API **/ //   Text(text = hoja.type)
+                /** API **/
+                /** API **/  //   Text(text = hoja.type)
                 OpcionesHoja(hojaConParticipantes) { opcion ->
                     when(opcion) {
                         "Finalizar" ->  {
@@ -374,7 +471,8 @@ fun HojaDesing(
                             text = hojaConParticipantes.participantes.size.toString(),
                             style = MaterialTheme.typography.titleMedium
                         )
-                        /** API **/ //   Text(text = hoja.price.toString())
+                        /** API **/
+                        /** API **/  //   Text(text = hoja.price.toString())
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
@@ -386,7 +484,8 @@ fun HojaDesing(
                             text = hojaConParticipantes.hoja.fechaCierre ?: "sin definir",
                             style = MaterialTheme.typography.titleMedium
                         )
-                        /** API **/ //  Text(text = hoja.id)
+                        /** API **/
+                        /** API **/  //  Text(text = hoja.id)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
@@ -398,7 +497,8 @@ fun HojaDesing(
                             text = if(hojaConParticipantes.hoja.limite == null) "sin definir" else hojaConParticipantes.hoja.limite.toString(),
                             style = MaterialTheme.typography.titleMedium
                         )
-                        /** API **/ //  Text(text = hoja.id)
+                        /** API **/
+                        /** API **/  //  Text(text = hoja.id)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
@@ -410,7 +510,8 @@ fun HojaDesing(
                             text = hojaConParticipantes.hoja.fechaCreacion!!,
                             style = MaterialTheme.typography.titleMedium
                         )
-                        /** API **/ //   Text(text = hoja.type)
+                        /** API **/
+                        /** API **/  //   Text(text = hoja.type)
                     }
 
                 }
@@ -469,26 +570,4 @@ fun OpcionesHoja(
             }
         }
     }
-}
-
-
-
-
-/** ESPACIADOR  **/
-@Composable
-fun CustomSpacer(size: Dp) {
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(size)
-    )
-}
-
-
-fun generateRandomColor(): Color {
-    val random = Random
-    val red = random.nextInt(0, 256)
-    val green = random.nextInt(0, 256)
-    val blue = random.nextInt(0, 256)
-    return Color(red, green, blue)
 }

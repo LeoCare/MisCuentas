@@ -9,11 +9,11 @@ data class MisHojasState(
     val listaHojasConParticipantes: List<HojaConParticipantes>? = null,
     val listaHojasAMostrar: List<HojaConParticipantes>? = null,
     val circularIndicator: Boolean = true,
-    val tipoOrden: String = "Fecha creacion",
-    val ordenDesc: Boolean = true,
-    val mostrarTipo: String = "T",
     val hojaAModificar: HojaCalculo? = null,
     val opcionSelected: String = "",
     val nuevoStatusHoja: String = "",
     val idRegistro: Long = 0,
+    val descending: Boolean = false,
+    val ordenElegido: String = "Fecha Creacion",
+    val filtroElegido: String = "T"
 )

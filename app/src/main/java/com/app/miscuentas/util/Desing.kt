@@ -158,11 +158,11 @@ class Desing {
         @Composable
         fun MiDialogoWithOptions(
             show:Boolean,
-            participantes: Map<String, Double>,
+            participantes: Map<String, Double>?,
             titulo: String,
             mensaje: String,
             cancelar: () -> Unit,
-            onParticipantSelected: (Pair<String, Double>) -> Unit
+            onParticipantSelected: (Pair<String, Double>?) -> Unit
         ) {
             if (show) {
                 AlertDialog(
@@ -188,21 +188,23 @@ class Desing {
                                 style = MaterialTheme.typography.titleMedium
                             )
                             LazyColumn {
-                                items(participantes.filter { it.value > 0 }.toList()) { (nombre, deuda) ->
+                                participantes?.filter { it.value > 0 }?.let {
+                                    items(it.toList()) { (nombre, deuda) ->
 
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { onParticipantSelected(Pair(nombre,deuda)) }
-                                            .padding(vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(text = nombre, fontSize = 16.sp)
-                                        Text(
-                                            text = String.format("%.2f €", deuda),
-                                            fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable { onParticipantSelected(Pair(nombre,deuda)) }
+                                                .padding(vertical = 8.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(text = nombre, fontSize = 16.sp)
+                                            Text(
+                                                text = String.format("%.2f €", deuda),
+                                                fontSize = 16.sp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
                                 }
                             }

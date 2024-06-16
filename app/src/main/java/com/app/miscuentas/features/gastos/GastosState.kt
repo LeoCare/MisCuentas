@@ -16,6 +16,6 @@ data class GastosState (
     val gastoElegido: DbGastosEntity? = null,
     val cierreAceptado: Boolean = false,
     val resumenGastos: Map<String, Double>? = null, //suma de gastos por participante
-    val balanceDeuda: Map<String, Double>? = null //importe que debe/recibe cada participante
+    val balanceDeuda: Map<String, Double>? = null //importe que debe/recibe cada participante hasta antes del cierre
 
 )

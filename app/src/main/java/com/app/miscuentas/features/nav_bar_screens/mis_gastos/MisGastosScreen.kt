@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
@@ -90,13 +91,12 @@ fun MisGastosScreen(
         LazyColumn(
             contentPadding = innerPadding!!,
             modifier = Modifier
-                .padding(horizontal = 15.dp)
                 .fillMaxSize()
                 .background(Color.White),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            gastosState.listaGastosAMostrar?.let {
-                items(it) { gasto ->
+            gastosState.listaGastosAMostrar?.let { listaGasto ->
+                items(listaGasto) { gasto ->
                     val icono = listaIconosGastos.firstOrNull{ it.id.toLong() == gasto.tipo }
                     GastosDesing(gasto, icono)
                 }
@@ -113,9 +113,11 @@ fun GastosDesing(
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        elevation = 2.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+        elevation = 12.dp,
+        modifier = Modifier
+            .padding(vertical = 3.dp, horizontal = 5.dp)
+            .fillMaxWidth()
+    ){
         Row(
             modifier = Modifier
                 .padding(8.dp)
@@ -346,13 +348,7 @@ fun SeleccionFiltros(
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
                 checked = descending,
-                onCheckedChange = {
-                    onDescendingChanged(it)
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    uncheckedThumbColor = Color.Gray
-                )
+                onCheckedChange = {onDescendingChanged(it)}
             )
         }
     }
@@ -474,11 +470,8 @@ fun FiltroHojas(
 //@Preview(showBackground = true)
 //@Composable
 //fun FilterSortSectionPreview() {
-//    SeleccionFiltros(
-//        onFilterChanged = { },
-//        onSortChanged = { },
-//        onDescendingChanged = { },
-//        listaIconosGastos = listOf(),
-//        listaHojas = listOf()
+//    MisGastosScreen(
+//        innerPadding = null,
+//
 //    )
 //}

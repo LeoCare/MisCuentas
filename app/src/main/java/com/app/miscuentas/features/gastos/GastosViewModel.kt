@@ -49,6 +49,10 @@ class GastosViewModel @Inject constructor(
     fun onCierreAceptado(aceptado: Boolean) {
         _gastosState.value = _gastosState.value.copy(cierreAceptado = aceptado)
     }
+
+    /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
+     * Posteriormetne comprueba si existe un usuario que sea el registrado.
+     * Ademas, actualiza el DataStore. **/
     fun onHojaAMostrar(idHoja: Long?) {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
@@ -67,7 +71,7 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-    /** RESUMEN DE GASTOS POR PARTICIPANTES **/
+    /** METODO QUE COMPRUEBA SI EN LA HOJA EXISTE UN PARTICIPANTE PARA EL REGISTRADO **/
     fun comprobarExisteRegistrado(){
         val hoja = gastosState.value.hojaAMostrar
         hoja?.participantes?.forEach {
@@ -78,21 +82,47 @@ class GastosViewModel @Inject constructor(
         }
     }
 
+    /** OBTIENE EL TOTAL DE GASTOS POR PARTICIPANTE PARA PINTAR EN 'RESUMEN' **/
     fun obtenerParticipantesYSumaGastos() {
         val hoja = gastosState.value.hojaAMostrar
         val mapaResumen = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>
         onResumenGastoChanged(mapaResumen)
     }
-    /************************/
 
-    /** BALANCE DE DEUDAS POR PARTICIPANTES **/
-    fun calcularDeudas() {
+
+    /** METODO QUE CALCULA EL BALANCE:
+     * Si la hoja esta finalizada el balance se obtiene de la BBDD
+     * **/
+    fun calcularBalance() {
         val hoja = gastosState.value.hojaAMostrar
-        val mapaDeuda = Contabilidad.calcularDeudas(hoja!!) as MutableMap<String, Double>
+        val mapaDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<String, Double>
         onBalanceDeudaChanged(mapaDeuda)
-        if(gastosState.value.hojaAMostrar?.hoja?.status == "F") getHojaConBalances()
+        //si esta finalizada...
+        if (gastosState.value.hojaAMostrar?.hoja?.status == "F") {
+            getHojaConBalances() //..obtengo una HojaConBalance y modifico el mapa(nombre, monto) desde t_balance
+        }
     }
-    /************************/
+
+    /** METODO QUE CLACULA EL BALANCE AL FINALIZAR LA HOJA **/
+    fun calcularBalanceFinal(){
+        val hoja = gastosState.value.hojaAMostrar
+        val hojaConBalances = gastosState.value.hojaConBalances
+        val balanceActual = gastosState.value.balanceDeuda
+        val balances = mutableMapOf<String, Double>()
+
+        balanceActual?.forEach { (nombre, monto) -> //para el primer nombre del mapa de balance
+            hoja?.participantes?.forEach { participantes -> //..busco en la lista de participantes de la hoja
+                if(participantes.participante.nombre == nombre) { //..el que coincida con el nombre
+                    hojaConBalances?.balances?.forEach{balance -> //..busco en t_balance
+                        if(participantes.participante.idParticipante == balance.idParticipanteBalance){ //..el que coincida con el idParticipante
+                            balances[nombre] = balance.monto
+                        }
+                    }
+                }
+            }
+        }
+        onBalanceDeudaChanged(balances)
+    }
 
 
     /** ELIMINAR GASTO **/
@@ -104,7 +134,7 @@ class GastosViewModel @Inject constructor(
             }
         }
     }
-    /************************/
+
 
     /** ACTUALIZAR HOJA **/
     //Actualizar
@@ -113,7 +143,7 @@ class GastosViewModel @Inject constructor(
         _gastosState.value.hojaAMostrar?.hoja?.status = "F"
         withContext(Dispatchers.IO) {
             hojaCalculoRepository.update(gastosState.value.hojaAMostrar?.hoja!!)
-            instanciarInsertarDeudas()
+            instanciarInsertarBalance()
         }
     }
 
@@ -121,14 +151,12 @@ class GastosViewModel @Inject constructor(
     suspend fun updatePreferenceIdHojaPrincipal() {
         dataStoreConfig.putIdHojaPrincipalPreference(0)
     }
-    /************************/
 
 
     /** INSERTAR DEUDAS AL CERRAR LA HOJA **/
-    suspend fun instanciarInsertarDeudas(){
-        calcularDeudas()
+    suspend fun instanciarInsertarBalance(){
         var balances : List<DbBalanceEntity> = listOf()
-
+        calcularBalance()
         gastosState.value.balanceDeuda?.forEach { (nombre, monto) ->
             val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
             val idParticipante =
@@ -144,30 +172,31 @@ class GastosViewModel @Inject constructor(
             )
             balances = balances + deuda
         }
+
         insertBalancesForHoja(balances)
         updatePreferenceIdHojaPrincipal()
-
     }
 
+    /** INSERTA DATOS EN T_BALANCE **/
     private suspend fun insertBalancesForHoja(balances: List<DbBalanceEntity>){
         balanceRepository.insertBalancesForHoja(gastosState.value.hojaAMostrar?.hoja!!, balances)
     }
 
-    /***************************************/
 
 
-    /** INSERTAR PAGO DE LA DEUDA **/
-    //Obtengo la hoja con los balances
+    /** METODO QUE OBTIENE UNA HOJACONBALANCE DE LA BBDD Y CARGA AL INFO EN UNO DE LOS STATE **/
     fun getHojaConBalances() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 hojaCalculoRepository.getHojaConBalances(gastosState.value.hojaAMostrar?.hoja!!.idHoja).collect{
                     _gastosState.value = _gastosState.value.copy(hojaConBalances = it)
+                    calcularBalanceFinal()
                 }
             }
         }
     }
 
+    /** INSERTAR PAGO DE LA DEUDA **/
     fun pagarDeuda(acreedor: Pair<String, Double>?){
         viewModelScope.launch{
             instanciarPagoDeuda(acreedor)?.let {
@@ -176,6 +205,7 @@ class GastosViewModel @Inject constructor(
         }
     }
 
+    /** INSTANCIA UNA ENTIDAD DE T_PAGOS **/
     fun instanciarPagoDeuda(acreedor: Pair<String, Double>?): DbPagoEntity? {
         //valores del State:
         val participantes = gastosState.value.hojaAMostrar?.participantes
@@ -199,5 +229,4 @@ class GastosViewModel @Inject constructor(
         } else null
     }
 
-    /***************************************/
 }

@@ -33,29 +33,26 @@ class MisHojasViewModel @Inject constructor(
     fun onCircularIndicatorChanged(circular: Boolean){
         _misHojasState.value = _misHojasState.value.copy(circularIndicator = circular)
     }
-
     /** ORDEN DE LAS HOJAS **/
     //Metodo que define el orden elegido
-    fun onTipoOrdenChanged(tipoOrden: String){
-        _misHojasState.value = _misHojasState.value.copy(tipoOrden = tipoOrden)
+    fun onTipoOrdenChanged(ordenElegido: String){
+        _misHojasState.value = _misHojasState.value.copy(ordenElegido = ordenElegido)
         ordenHoja()
     }
-
     //Metodo que indica la direccion asc. o desc.
-    fun onOrdenDescChanged(ordenDesc: Boolean){
-        _misHojasState.value = _misHojasState.value.copy(ordenDesc = ordenDesc)
+    fun onDescendingChanged(desc: Boolean){
+        _misHojasState.value = _misHojasState.value.copy(descending = desc)
         ordenHoja()
     }
-
 
     private fun ordenHoja() {
         val ordenado = _misHojasState.value.listaHojasConParticipantes?.let { lista ->
-            val comparator = when (_misHojasState.value.tipoOrden) {
-                "Fecha creacion" -> compareBy<HojaConParticipantes> { Validaciones.fechaToDateFormat(it.hoja.fechaCreacion) }
-                "Fecha cierre" -> compareBy { Validaciones.fechaToDateFormat(it.hoja.fechaCierre) }
+            val comparator = when (_misHojasState.value.ordenElegido) {
+                "Fecha Creacion" -> compareBy<HojaConParticipantes> { Validaciones.fechaToDateFormat(it.hoja.fechaCreacion) }
+                "Fecha Cierre" -> compareBy { Validaciones.fechaToDateFormat(it.hoja.fechaCierre) }
                 else -> null
             }
-            comparator?.let { if (_misHojasState.value.ordenDesc) lista.sortedWith(it.reversed()) else lista.sortedWith(it) }
+            comparator?.let { if (_misHojasState.value.descending) lista.sortedWith(it.reversed()) else lista.sortedWith(it) }
         }
         _misHojasState.value = _misHojasState.value.copy(listaHojasAMostrar = ordenado)
     }
@@ -64,18 +61,19 @@ class MisHojasViewModel @Inject constructor(
 
     /** MOSTRAR POR: **/
     //Metodo que define el tipo a mostrar
-    fun onMostrarTipoChanged(mostrarTipo: String){
-        _misHojasState.value = _misHojasState.value.copy(mostrarTipo = mostrarTipo)
+    fun onMostrarFiltroChanged(filtroElegido: String){
+        _misHojasState.value = _misHojasState.value.copy(filtroElegido = filtroElegido)
         mostrarSolo()
     }
 
 
     private fun mostrarSolo() {
         val filtrado = _misHojasState.value.listaHojasConParticipantes?.filter {
-            when (_misHojasState.value.mostrarTipo) {
+            when (_misHojasState.value.filtroElegido) {
                 "A" -> it.hoja.status == "A"
                 "F" -> it.hoja.status == "F"
                 "C" -> it.hoja.status == "C"
+                "B" -> it.hoja.status == "B"
                 else -> true
             }
         }
