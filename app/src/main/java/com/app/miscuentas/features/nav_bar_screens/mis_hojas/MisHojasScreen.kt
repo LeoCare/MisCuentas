@@ -1,17 +1,11 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,65 +15,42 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Surface
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.domain.model.HojaCalculo
-import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.util.Desing
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.random.Random
 
-
-//BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-//@Preview
-//@Composable
-//fun Prev() {
-//    val padding = PaddingValues(20.dp)
-//    HojasScreen(padding)
-//}
 
 /** Contenedor del resto de elementos para la pestaña Hojas **/
 @Composable
@@ -88,8 +59,6 @@ fun MisHojasScreen(
     onNavGastos: (Long) -> Unit,
     viewModel: MisHojasViewModel = hiltViewModel()
 ) {
-    val itemsTipo = listOf("Activas", "Finalizadas", "Anuladas", "Todas")
-    val itemsOrden = listOf("Fecha creacion", "Fecha cierre")
 
     val hojaState by viewModel.misHojasState.collectAsState()
 
@@ -153,7 +122,7 @@ fun SeleccionFiltros(
     onDescendingChanged: (Boolean) -> Unit
 ) {
 
-    Column(modifier = Modifier.padding(20.dp)) {
+    Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 10.dp)) {
         Spacer(modifier = Modifier.height(10.dp))
 
         /** FILTRO **/
@@ -390,8 +359,7 @@ fun HojaDesing(
     ) {
         Column(
             modifier = Modifier
-                .padding(horizontal = 20.dp, vertical =10.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
 
             Row(
@@ -399,41 +367,9 @@ fun HojaDesing(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = hojaConParticipantes.hoja.titulo,
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                //Spacer(modifier = Modifier.weight(1f))
-                /** API **/
-                /** API **/  //   Text(text = hoja.type)
-                OpcionesHoja(hojaConParticipantes) { opcion ->
-                    when(opcion) {
-                        "Finalizar" ->  {
-                            onStatusChanged("F")
-                            titulo = "FINALIZAR LA HOJA"
-                            mensaje = "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
-                        }
-
-                        "Anular" ->  {
-                            onStatusChanged("A")
-                            titulo = "ANULAR LA HOJA"
-                            mensaje = "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
-                        }
-                        "Eliminar" ->  {
-                            onStatusChanged("E")
-                            titulo = "ELIMINAR LA HOJA"
-                            mensaje = "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
-                        }
-                    }
-                    opcionSeleccionada = opcion
-                    showDialog = true
-                }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.hoja),
                         contentDescription = "Logo Hoja",
@@ -441,23 +377,73 @@ fun HojaDesing(
                             .width(80.dp)
                             .height(80.dp)
                     )
+                    Text(
+                        text = hojaConParticipantes.hoja.titulo,
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
+
+                //Spacer(modifier = Modifier.weight(1f))
+                /** API **/
+                /** API **/  //   Text(text = hoja.type)
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OpcionesHoja(hojaConParticipantes) { opcion ->
+                        when(opcion) {
+                            "Finalizar" ->  {
+                                onStatusChanged("F")
+                                titulo = "FINALIZAR LA HOJA"
+                                mensaje = "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
+                            }
+
+                            "Anular" ->  {
+                                onStatusChanged("A")
+                                titulo = "ANULAR LA HOJA"
+                                mensaje = "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
+                            }
+                            "Eliminar" ->  {
+                                onStatusChanged("E")
+                                titulo = "ELIMINAR LA HOJA"
+                                mensaje = "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
+                            }
+                        }
+                        opcionSeleccionada = opcion
+                        showDialog = true
+                    }
+                }
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Column{
                     when (hojaConParticipantes.hoja.status) { //pinta segun valor status de la BBDD
                         "C" ->
                             Text(
                                 text = "Activa",
                                 style = MaterialTheme.typography.titleMedium,
+                                fontSize = 20.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         "A" ->
                             Text(
                                 text = "Anulada",
                                 style = MaterialTheme.typography.titleMedium,
+                                fontSize = 20.sp,
                                 color = MaterialTheme.colorScheme.error
                             )
+                        "B" ->
+                            Text(
+                                text = "Balanceada",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.error
+                            )
+
                         else -> Text(
                             text = "Finalizada",
+                            fontSize = 20.sp,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
@@ -481,7 +467,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = hojaConParticipantes.hoja.fechaCierre ?: "sin definir",
+                            text = hojaConParticipantes.hoja.fechaCierre ?: "-",
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/
@@ -494,7 +480,7 @@ fun HojaDesing(
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = if(hojaConParticipantes.hoja.limite == null) "sin definir" else hojaConParticipantes.hoja.limite.toString(),
+                            text = if(hojaConParticipantes.hoja.limite.isNullOrEmpty()) "-" else hojaConParticipantes.hoja.limite.toString(),
                             style = MaterialTheme.typography.titleMedium
                         )
                         /** API **/

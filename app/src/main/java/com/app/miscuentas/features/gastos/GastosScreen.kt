@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -152,7 +153,6 @@ fun GastosContent(
         cerrar = { showDialog = false },
     )
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -164,47 +164,59 @@ fun GastosContent(
                 .fillMaxSize()
 
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ){
-                Column{
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(180.dp),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        Text(
-                            text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = Color.Black
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column{
-                            DatosHoja(hojaDeGastos)
+            Surface(
+                shape = RoundedCornerShape(1.dp),
+                elevation = 2.dp,
+                modifier = Modifier
+                    .padding(vertical = 5.dp, horizontal = 5.dp)
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ){
+                    Column{
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 7.dp),
+                            horizontalArrangement = Arrangement.spacedBy(180.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Text(
+                                text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 24.sp
+                            )
                         }
-                        Column{
-                            ImagenCierre(hojaDeGastos, {onCierreAceptado(it)})
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                DatosHoja(hojaDeGastos)
+                            }
+                            Column {
+                                ImagenCierre(hojaDeGastos, { onCierreAceptado(it) })
+                            }
                         }
                     }
                 }
             }
+
+            /** FILA CON RESUMEN Y BALANCE **/
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(35.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
+
+                //RESUMEN:
                 Row(
                     Modifier
                         .clickable {
@@ -218,16 +230,16 @@ fun GastosContent(
                     Icon(
                         Icons.Default.AccountBox,
                         contentDescription = "Icono de participantes",
-                        tint = Color.Black,
+                        tint = if(showResumen) Color.Black else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(26.dp)
                     )
                     Text(
                         style = MaterialTheme.typography.titleMedium,
                         text = "Resumen",
-                        color = Color.White
+                        color = if(showResumen) Color.Black else MaterialTheme.colorScheme.primary
                     )
                 }
-
+                //BALANCE:
                 Row(
                     Modifier
                         .clickable {
@@ -245,18 +257,18 @@ fun GastosContent(
                     Icon(
                         Icons.Default.Payments,
                         contentDescription = "Iconos de pagos",
-                        tint = Color.Black,
+                        tint = if(showDialog) Color.Black else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(26.dp)
                     )
                     Text(
                         style = MaterialTheme.typography.titleMedium,
                         text = "Balance",
-                        color = Color.White
+                        color = if(showDialog) Color.Black else MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
-            /**  LISTA DEL RESUMEN **/
+            /** LISTA DEL RESUMEN **/
             AnimatedVisibility(
                 visible = showResumen,
                 enter = fadeIn() + expandVertically(),
@@ -325,53 +337,79 @@ fun GastosContent(
         }
         CustomFloatButton(
             onNavNuevoGasto = { onNavNuevoGasto(hojaDeGastos?.hoja?.idHoja!!) },
-            modifier = Modifier.align(Alignment.BottomEnd), // Alinear el botón en la esquina inferior derecha
+            modifier = Modifier.align(Alignment.BottomCenter), // Alinear el botón en la esquina inferior derecha
             isEnabled = isEnabled,
             showBalance = {
                 showBalance = false
                 showResumen = false
             }
         )
-        Spacer(modifier = Modifier.height(36.dp))
     }
 }
 
 @Composable
 fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
     Row {
+        when (hojaDeGastos?.hoja?.status) { //pinta segun valor status de la BBDD
+            "C" ->
+                Text(
+                    text = "Activa",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+
+            "A" ->
+                Text(
+                    text = "Anulada",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
+
+            "B" ->
+                Text(
+                    text = "Balanceada",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
+
+            else -> Text(
+                text = "Finalizada",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+    }
+    Row {
+
         Text(
-            text = "Fecha fin: ",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium
+            text = "Fecha Cierre: ",
+            style = MaterialTheme.typography.labelLarge
         )
         Text(
-            text = hojaDeGastos?.hoja?.fechaCierre ?: "no tiene",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
+            text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
+            style = MaterialTheme.typography.titleMedium
         )
     }
     Row {
         Text(
             text = "Limite: ",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.labelLarge
         )
         Text(
-            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "no tiene" else hojaDeGastos?.hoja?.limite.toString(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
+            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
+            style = MaterialTheme.typography.titleMedium
         )
     }
     Row {
         Text(
             text = "Participantes: ",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.labelLarge
         )
         Text(
             text = hojaDeGastos?.participantes?.size.toString(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.titleMedium
         )
     }
 }
@@ -413,32 +451,8 @@ fun ImagenCierre(
         shape = MaterialTheme.shapes.small)
     {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.End
         ) {
-            when (hojaDeGastos?.hoja?.status) { //pinta segun valor status de la BBDD
-                "C" ->
-                    Text(
-                        text = "Activa",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                "A" ->
-                    Text(
-                        text = "Anulada",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                "B" ->
-                    Text(
-                        text = "Balanceada",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                else -> Text(
-                    text = "Finalizada",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
             Image(
                 modifier = Modifier
                     .height(80.dp)
@@ -486,7 +500,7 @@ fun GastoDesing(
         shape = RoundedCornerShape(8.dp),
         elevation = 12.dp,
         modifier = Modifier
-            .padding(vertical = 3.dp, horizontal = 5.dp)
+            .padding(vertical = 4.dp, horizontal = 12.dp)
             .fillMaxWidth()
     ) {
         Row(
@@ -702,23 +716,43 @@ fun ListaBalanceDesing(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ){
-            Text(
-                text = participante,
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = 20.sp
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = if(monto > 0) "Recibe" else if(monto < 0) "Debe" else "Saldado",
-                fontSize = 14.sp,
-                color = if(monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if(monto < 0) Color.Red else Color.Black
-            )
-            Spacer(modifier = Modifier.width(14.dp))
-            Text(
-                text = String.format("%.2f €", monto),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Column(
+                modifier = Modifier.width(170.dp),
+                horizontalAlignment = Alignment.Start
+            ){
+                Row {
+                    Text(
+                        text = participante,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 20.sp
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.width(60.dp),
+                horizontalAlignment = Alignment.Start
+            ){
+                Row {
+                    Text(
+                        text = if(monto > 0) "Recibe" else if(monto < 0) "Debe" else "Saldado",
+                        fontSize = 14.sp,
+                        color = if(monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if(monto < 0) Color.Red else Color.Black
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.width(130.dp),
+                horizontalAlignment = Alignment.End
+            ){
+                Row  {
+                    Text(
+                        text = String.format("%.2f €", monto),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
         }
     }
 }
@@ -769,7 +803,7 @@ fun Balance(
         LazyColumn(modifier = Modifier.padding(8.dp)) {
             if (participantes.isNotEmpty()){
 
-
+                /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
                 itemsIndexed(participantes.toList()) { _index, (nombre, monto) ->
                     ListaBalanceDesing(
                         participantes = participantes,
@@ -778,13 +812,14 @@ fun Balance(
                         pagarDeuda = pagarDeuda
                     )
                 }
+                /** RECUADRO CON LAS ACCIONES (SOLICITO O PAGO) **/
                 item{
                     if(exiteRegistrado) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Card(
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color.White,//MaterialTheme.colorScheme.outline,
+                                containerColor = MaterialTheme.colorScheme.outline,
                                 contentColor = Color.Black
                             ),
                             elevation = CardDefaults.cardElevation(4.dp),
@@ -799,13 +834,17 @@ fun Balance(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier
-                                        .padding(8.dp)
+                                        .padding(bottom = 5.dp)
                                         .fillMaxWidth()
                                 ) {
-                                    Text(
-                                        text = if (montoRegistrado > 0) "SOLICITAR" else if (montoRegistrado < 0) "PAGAR A.." else "LISTO",
-                                        fontSize = 14.sp
-                                    )
+                                    Row {
+                                        Text(text = "1 - ")
+                                        Text(
+                                            text = if (montoRegistrado > 0) "SOLICITAR" else if (montoRegistrado < 0) "PAGAR A.." else "LISTO",
+                                            fontSize = 14.sp
+                                        )
+                                    }
+
                                     Button(
                                         enabled = montoRegistrado != 0.0,
                                         onClick = {
@@ -816,7 +855,7 @@ fun Balance(
                                             ).show()
                                             else {
                                                 titulo = "PAGAR A.."
-                                                mensaje = "Elige a quien pagar:"
+                                                mensaje = "(Se te descontará solo tu parte de la deuda)"
                                                 showDialog = true
                                             }
                                         },
@@ -826,7 +865,8 @@ fun Balance(
                                             text =
                                             if(opcionSeleccionada != null) opcionSeleccionada!!.first
                                             else if (montoRegistrado > 0) "TODOS" else if (montoRegistrado < 0) "ELEGIR" else "LISTO",
-                                            fontSize = 15.sp
+                                            fontSize = 15.sp,
+                                            color = Color.White
                                         )
                                     }
                                     opcionSeleccionada?.let {elegido ->
@@ -838,8 +878,10 @@ fun Balance(
                                 }
                                 if (montoRegistrado < 0) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(bottom = 5.dp)
                                     ) {
+                                        Text(text = "2 - ")
                                         IconButton(onClick = tomarFotoGasto) {
                                             Icon(
                                                 Icons.Default.PhotoCamera,
@@ -853,6 +895,25 @@ fun Balance(
                                             color = Color.Gray
                                         )
                                     }
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(bottom = 5.dp)
+                                ) {
+                                    Text(text = "3 - ")
+                                    Button(
+                                        enabled = montoRegistrado != 0.0,
+                                        onClick = {
+                                            titulo = "CONFIRMAR"
+                                            mensaje = "Si acepta se enviará un mensaje a.."
+                                            showDialog = true
+
+                                        },
+                                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
+                                        content = {
+                                            Text(text = "Pagar", color = Color.White)
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -887,11 +948,11 @@ fun CustomFloatButton(
             if (isEnabled) onNavNuevoGasto()
             else showDialog = true
         },
-        elevation = FloatingActionButtonDefaults.elevation(0.dp),
+        elevation = FloatingActionButtonDefaults.elevation(13.dp),
         modifier = modifier
-            .height(80.dp)
+            .height(120.dp)
             .width(80.dp)
-            .padding(bottom = 14.dp, end = 14.dp), // Añade el padding al botón flotante
+            .padding(bottom = 54.dp, end = 14.dp), // Añade el padding al botón flotante
         shape = MaterialTheme.shapes.large
     ) {
         Image(

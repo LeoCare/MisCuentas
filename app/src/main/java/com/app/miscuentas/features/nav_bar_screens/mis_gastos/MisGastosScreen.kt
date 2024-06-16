@@ -162,7 +162,7 @@ fun SeleccionFiltros(
 ) {
     var isFilterExpanded by rememberSaveable { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(20.dp)) {
+    Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 10.dp)) {
         Spacer(modifier = Modifier.height(10.dp))
 
         /** FILTRO **/
