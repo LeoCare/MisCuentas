@@ -21,9 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -59,7 +57,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavHost(
     innerPadding: PaddingValues?,
-    navController: NavHostController
+    navController: NavHostController,
+    selectImage: () -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -72,7 +71,7 @@ fun AppNavHost(
         nuevaHojaScreen(navController)
         nuevoGastoScreen(navController)
         misHojasScreen(innerPadding, navController)
-        gastosScreen(innerPadding, navController)
+        gastosScreen(innerPadding, navController, selectImage)
         misGastosScreen(innerPadding, navController)
         participantesScreen(innerPadding, navController)
     }

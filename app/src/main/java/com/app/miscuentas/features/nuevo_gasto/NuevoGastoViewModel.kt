@@ -2,14 +2,11 @@ package com.app.miscuentas.features.nuevo_gasto
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
-import com.app.miscuentas.data.local.repository.ParticipanteRepository
-import com.app.miscuentas.domain.Validaciones
+import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.domain.model.Gasto
-import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.toEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

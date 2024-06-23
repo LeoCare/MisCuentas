@@ -74,7 +74,7 @@ fun MisHojasScreen(
 
     LaunchedEffect(hojaState.opcionSelected){
         when(hojaState.opcionSelected) {
-            "Finalizar","Anular" -> { viewModel.update() }
+            "Finalizar","Anular" -> { viewModel.updateHoja() }
             "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
         }
     }
@@ -143,10 +143,10 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "C") 37.dp else 32.dp)
             ){
                 Text(
-                    text = "Activas",
+                    text = "Activ.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (filtroElegido == "C") Color.White else Color.Black
                 )
@@ -158,10 +158,10 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "F") 37.dp else 32.dp)
             ){
                 Text(
-                    text = "Finalizadas",
+                    text = "Finali.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (filtroElegido == "F") Color.White else Color.Black
                 )
@@ -173,10 +173,10 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "A") 37.dp else 32.dp)
             ){
                 Text(
-                    text = "Anuladas",
+                    text = "Anul.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (filtroElegido == "A") Color.White else Color.Black
                 )
@@ -188,7 +188,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "T") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Todos",
@@ -222,7 +222,7 @@ fun SeleccionFiltros(
                     ),
                     modifier = Modifier
                         .weight(1f)
-                        .height(35.dp),
+                        .height(if(ordenElegido == "Fecha Creacion")  37.dp else 32.dp),
                     content = {
                         Text(
                             text = "Fecha Creacion",
@@ -238,9 +238,9 @@ fun SeleccionFiltros(
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = if (ordenElegido == "Fecha Cierre") MaterialTheme.colorScheme.primary else Color.White
                     ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(35.dp),
+                    modifier =
+                        Modifier.weight(1f)
+                            .height(if(ordenElegido == "Fecha Cierre") 37.dp else 32.dp),
                     content = {
                         Text(
                             text = "Fecha Cierre",

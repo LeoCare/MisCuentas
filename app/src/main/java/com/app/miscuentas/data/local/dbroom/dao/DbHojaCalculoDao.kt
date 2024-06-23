@@ -30,7 +30,7 @@ interface DbHojaCalculoDao {
 
 
     @Update
-    suspend fun update(hojaCalculo: DbHojaCalculoEntity)
+    suspend fun updateHoja(hojaCalculo: DbHojaCalculoEntity)
 
     @Delete
     suspend fun delete(hojaCalculo: DbHojaCalculoEntity)

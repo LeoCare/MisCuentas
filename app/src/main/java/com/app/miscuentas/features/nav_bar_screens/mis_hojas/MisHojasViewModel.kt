@@ -6,7 +6,7 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
-import com.app.miscuentas.domain.Validaciones
+import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.toEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,10 +94,10 @@ class MisHojasViewModel @Inject constructor(
     }
 
     //Actualizar
-    suspend fun update() = viewModelScope.launch{
+    suspend fun updateHoja() = viewModelScope.launch{
         _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
         withContext(Dispatchers.IO) {
-            repositoryHojaCalculo.update(misHojasState.value.hojaAModificar!!.toEntity())
+            repositoryHojaCalculo.updateHoja(misHojasState.value.hojaAModificar!!.toEntity())
             updatePreferenceIdHojaPrincipal()
         }
 

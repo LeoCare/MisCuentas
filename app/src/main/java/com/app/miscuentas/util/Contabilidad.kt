@@ -1,5 +1,6 @@
 package com.app.miscuentas.util
 
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 
@@ -52,6 +53,10 @@ class Contabilidad {
             }
 
             return balances
+        }
+
+        fun saldarDeuda(balanceActual: DbBalanceEntity){
+
         }
 
     }

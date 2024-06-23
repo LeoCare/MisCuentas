@@ -192,7 +192,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "Tipo") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Tipo",
@@ -216,7 +216,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "Hoja") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Hoja",
@@ -235,7 +235,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp)
+                    .height(if(filtroElegido == "Todos") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Todos",
@@ -261,9 +261,7 @@ fun SeleccionFiltros(
                 else if(filtroElegido == "Hoja") FiltroHojas(listaHojas, {onFiltroHojaElegidoChanged(it)}, { onEleccionEnTituloChanged(it)})
             }
         }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
+        
         /** ORDEN **/
         Spacer(modifier = Modifier.height(20.dp))
         Row(
@@ -287,7 +285,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp),
+                    .height(if(ordenElegido == "Tipo") 37.dp else 32.dp),
                 content = {
                     Text(
                         text = "Tipo",
@@ -305,7 +303,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp),
+                    .height(if(ordenElegido == "Importe") 37.dp else 32.dp),
                 content = {
                     Text(
                         text = "Importe",
@@ -324,7 +322,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(35.dp),
+                    .height(if(ordenElegido == "Fecha") 37.dp else 32.dp),
                 content = {
                     Text(
                         text = "Fecha",

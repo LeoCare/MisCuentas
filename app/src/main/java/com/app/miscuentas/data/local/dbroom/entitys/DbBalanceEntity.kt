@@ -25,6 +25,6 @@ data class DbBalanceEntity(
     @PrimaryKey(autoGenerate = true) val idBalance: Long = 0,
     val idHojaBalance: Long,
     val idParticipanteBalance: Long,
-    val tipo: String,
-    val monto: Double
+    var tipo: String,
+    var monto: Double
 )

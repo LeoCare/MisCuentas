@@ -1,11 +1,12 @@
 package com.app.miscuentas.features.splash
 
+import android.Manifest
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DATABASE_VERSION
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,23 +30,26 @@ class SplashViewModel @Inject constructor(
         _splashState.value = _splashState.value.copy(autoInicio = autoInicio)
     }
 
-    init {
+    fun checkAndClearDataStore() {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 val versionActual = DATABASE_VERSION
                 val versionGuardada = dataStoreConfig.getDatabaseVersion()
 
+                //Comprobamos si la bbdd ha cambiado y es necesario limpiar las preferences
                 checkAndClearDataStore(versionActual, versionGuardada)
             }
         }
     }
 
+
+    /** METODO PARA COMPROBAR LAS PREFERENCE Y BORRARLAS SI FUERA NECESARIO **/
     suspend fun checkAndClearDataStore(versionActual: Int, versionGuardada: Int?) {
         val inicioHuella: String?
         val registrado: String?
 
         try {//si la version de la bbdd cambia -> limpio las preference
-            if (versionGuardada == null || versionGuardada < versionActual) {
+            if (versionGuardada == null || versionGuardada > versionActual) {
                 // Limpiar DataStore
                 clearDataStore()
                 // Actualizar la versión de la base de datos en DataStore
@@ -67,30 +71,8 @@ class SplashViewModel @Inject constructor(
         }
     }
 
+    /** METODO PARA LIMPIAR LAS PREFERENCES **/
     suspend fun clearDataStore() {
         dataStoreConfig.clearDataStore()
-    }
-
-
-
-    /** PERMISOS **/
-    @OptIn(ExperimentalPermissionsApi::class)
-//    suspend fun solicitaPermiso(statePermisoCamara: PermissionState) = withContext(Dispatchers.IO) {
-//        statePermisoCamara.launchPermissionRequest()
-//    }
-    fun solicitaPermiso(statePermisoCamara: PermissionState)  {
-        statePermisoCamara.launchPermissionRequest()
-    }
-
-    fun setPermisoConcedido(){
-        _splashState.value = _splashState.value.copy(permisoState = SplashState.PermissionState.Concedido)
-    }
-
-    fun setPermisoDenegado(){
-        _splashState.value = _splashState.value.copy(permisoState = SplashState.PermissionState.Denegado)
-    }
-
-    fun setPermisoDenegPermanente(){
-        _splashState.value = _splashState.value.copy(permisoState = SplashState.PermissionState.DenegPermanente)
     }
 }

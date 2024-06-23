@@ -71,9 +71,11 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
 
-//    // Corrutinas
-//    implementation("org.jetbrains.kotlin:kotlin-corrutines-core:1.6.1")
-//    implementation("org.jetbrains.kotlin:kotlin-corrutines-android:1.6.1")
+    // CAMARA
+    val camerax_version = "1.3.4"
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
 
     /*Solicitud de permisos*/
     implementation ("com.google.accompanist:accompanist-permissions:0.35.0-alpha")

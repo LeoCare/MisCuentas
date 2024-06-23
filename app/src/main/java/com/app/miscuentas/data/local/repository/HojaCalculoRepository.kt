@@ -38,7 +38,7 @@ class HojaCalculoRepository @Inject constructor(
 
 
     @Update
-    suspend fun update(hojaCalculo: DbHojaCalculoEntity) = hojaCalculoDao.update(hojaCalculo)
+    suspend fun updateHoja(hojaCalculo: DbHojaCalculoEntity) = hojaCalculoDao.updateHoja(hojaCalculo)
 
     @Delete
     suspend fun deleteHojaConParticipantes(hojaCalculo: DbHojaCalculoEntity) = hojaCalculoDao.delete(hojaCalculo)

@@ -23,6 +23,8 @@ object DataStoreKeys {
     val INICIOHUELLA = stringPreferencesKey("INICIOHUELLA")
     val IDREGISTRADO = longPreferencesKey("IDREGISTRADO")
     val IDHOJAPRINCIPAL = longPreferencesKey("IDHOJAPRINCIPAL")
+    val PERMISOCAMARA = booleanPreferencesKey("PERMISOCAMARA")
+    val PERMISOSALMACENAMIENTO = booleanPreferencesKey("PERMISOSALMACENAMIENTO")
 }
 
 class DataStoreConfig @Inject constructor(
@@ -130,4 +132,39 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
+    //Metodo para guardar el estado del permiso de la camara
+    suspend fun putPermisoCamaraPreference(concedido: Boolean){
+        context.dataStore.edit { preferences ->
+            preferences[DataStoreKeys.PERMISOCAMARA] = concedido
+        }
+    }
+
+    //Metodo que retorna el estado del permiso de la camara
+    suspend fun getPermisoCamaraPreference(): Boolean? {
+        return try {
+            val preferences = context.dataStore.data.first()
+            preferences[DataStoreKeys.PERMISOCAMARA]
+
+        }catch (e: Exception){
+            null
+        }
+    }
+
+    //Metodo para guardar el estado del permiso de la camara
+    suspend fun putPermisosPreference(concedido: Boolean){
+        context.dataStore.edit { preferences ->
+            preferences[DataStoreKeys.PERMISOSALMACENAMIENTO] = concedido
+        }
+    }
+
+    //Metodo que retorna el estado del permiso de la camara
+    suspend fun getPermisosPreference(): Boolean? {
+        return try {
+            val preferences = context.dataStore.data.first()
+            preferences[DataStoreKeys.PERMISOSALMACENAMIENTO]
+
+        }catch (e: Exception){
+            null
+        }
+    }
 }

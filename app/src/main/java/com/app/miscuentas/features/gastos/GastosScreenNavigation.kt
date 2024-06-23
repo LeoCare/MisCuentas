@@ -17,7 +17,8 @@ fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
 
 fun NavGraphBuilder.gastosScreen(
     innerPadding: PaddingValues?,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    selectImage: () -> Unit
 ){
     composable(
         route = "$GASTOS_ROUTE/{$GASTOS_ID_HOJA_A_MOSTRAR}",
@@ -32,7 +33,8 @@ fun NavGraphBuilder.gastosScreen(
                 innerPadding,
                 idHojaAMostrar,
                 onNavNuevoGasto = { idHoja ->
-                    navHostController.NavigateToNuevoGasto(idHoja)}
+                    navHostController.NavigateToNuevoGasto(idHoja)},
+                selectImage
             )
         }
     }

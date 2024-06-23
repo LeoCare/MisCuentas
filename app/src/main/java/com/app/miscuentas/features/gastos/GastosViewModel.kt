@@ -1,25 +1,38 @@
 package com.app.miscuentas.features.gastos
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Environment.DIRECTORY_PICTURES
+import android.provider.MediaStore
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
-import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
+import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.local.repository.BalanceRepository
+import com.app.miscuentas.data.local.repository.FotoRepository
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
-import com.app.miscuentas.domain.Validaciones
+import com.app.miscuentas.features.splash.SplashState
+import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.util.Contabilidad
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -31,7 +44,8 @@ class GastosViewModel @Inject constructor(
     private val hojaCalculoRepository: HojaCalculoRepository,
     private val balanceRepository: BalanceRepository,
     private val gastoRepository: GastoRepository,
-    private val pagoRepository: PagoRepository
+    private val pagoRepository: PagoRepository,
+    private val fotoRepository: FotoRepository
 ): ViewModel() {
 
     private val _gastosState = MutableStateFlow(GastosState())
@@ -48,6 +62,18 @@ class GastosViewModel @Inject constructor(
     }
     fun onCierreAceptado(aceptado: Boolean) {
         _gastosState.value = _gastosState.value.copy(cierreAceptado = aceptado)
+    }
+    fun onPagoRealizadoChanged(realizado: Boolean){
+        _gastosState.value = _gastosState.value.copy(pagoRealizado = realizado)
+    }
+    fun onPermisoCamaraChanged(permitido: Boolean){
+        _gastosState.value = _gastosState.value.copy(permisoCamara = permitido)
+    }
+    fun onListaPagosConParticipantesChanged(listaPagosConParticipantes: List<PagoConParticipantes>){
+        _gastosState.value = _gastosState.value.copy(listaPagosConParticipantes = listaPagosConParticipantes)
+    }
+    fun onImageUriChanged(image: Uri){
+        _gastosState.value = _gastosState.value.copy(imageUri = image)
     }
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
@@ -103,7 +129,7 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-    /** METODO QUE CLACULA EL BALANCE AL FINALIZAR LA HOJA **/
+    /** METODO QUE CALCULA EL BALANCE AL FINALIZAR LA HOJA **/
     fun calcularBalanceFinal(){
         val hoja = gastosState.value.hojaAMostrar
         val hojaConBalances = gastosState.value.hojaConBalances
@@ -122,10 +148,11 @@ class GastosViewModel @Inject constructor(
             }
         }
         onBalanceDeudaChanged(balances)
+        getPagos()
     }
 
 
-    /** ELIMINAR GASTO **/
+    /** METODO QUE ELIMINA LA LINEA DE T_GASTOS **/
     //Borrar
     suspend fun deleteGasto(){
         viewModelScope.launch {
@@ -136,24 +163,24 @@ class GastosViewModel @Inject constructor(
     }
 
 
-    /** ACTUALIZAR HOJA **/
+    /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
     //Actualizar
-    suspend fun update() = viewModelScope.launch{
+    suspend fun updateHoja() = viewModelScope.launch{
         onCierreAceptado(false)
         _gastosState.value.hojaAMostrar?.hoja?.status = "F"
         withContext(Dispatchers.IO) {
-            hojaCalculoRepository.update(gastosState.value.hojaAMostrar?.hoja!!)
+            hojaCalculoRepository.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
             instanciarInsertarBalance()
         }
     }
 
-    //Metodo que actualiza el preference del idHoja a 0 al ya no estar Activa.
+    /** METODO QUE ACTUALIZA EL PREFERENCE DE IDHOJA A O PARA AQUELLA QUE NO ESTE ACTIVA **/
     suspend fun updatePreferenceIdHojaPrincipal() {
         dataStoreConfig.putIdHojaPrincipalPreference(0)
     }
 
 
-    /** INSERTAR DEUDAS AL CERRAR LA HOJA **/
+    /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
     suspend fun instanciarInsertarBalance(){
         var balances : List<DbBalanceEntity> = listOf()
         calcularBalance()
@@ -198,35 +225,160 @@ class GastosViewModel @Inject constructor(
 
     /** INSERTAR PAGO DE LA DEUDA **/
     fun pagarDeuda(acreedor: Pair<String, Double>?){
-        viewModelScope.launch{
-            instanciarPagoDeuda(acreedor)?.let {
-                pagoRepository.insertPago(it)
+        if (acreedor != null) {
+            viewModelScope.launch{
+                calculoUpdatePago(acreedor)?.let {
+                    val pagoInsertado = pagoRepository.insertPago(it)
+                    if (pagoInsertado > 0) onPagoRealizadoChanged(true)
+                }
             }
         }
     }
 
     /** INSTANCIA UNA ENTIDAD DE T_PAGOS **/
-    fun instanciarPagoDeuda(acreedor: Pair<String, Double>?): DbPagoEntity? {
+    suspend fun calculoUpdatePago(acreedor: Pair<String, Double>): DbPagoEntity?{
         //valores del State:
-        val participantes = gastosState.value.hojaAMostrar?.participantes
-        val hojaConBalances = gastosState.value.hojaConBalances
+        val participantes = gastosState.value.hojaAMostrar?.participantes ?: return null
+        val hojaConBalances = gastosState.value.hojaConBalances ?: return null
         val idRegistrado = gastosState.value.idRegistrado
-        //valores a pasar para instanciar:
-        val montoRedondeado = BigDecimal(acreedor!!.second).setScale(2, RoundingMode.HALF_UP).toDouble()
-        val idPagador = participantes?.first{ it.participante.idRegistroParti == idRegistrado }?.participante?.idParticipante
-        val idBalance = hojaConBalances?.balances?.firstOrNull { it.idParticipanteBalance == idPagador }?.idBalance
-        val idBalancePagado = hojaConBalances?.balances?.firstOrNull { it.monto == montoRedondeado }?.idBalance
+//        //valores a pasar para instanciar:
+        val idPagador = participantes.firstOrNull{
+            it.participante.idRegistroParti == idRegistrado
+        }?.participante?.idParticipante ?: return null
+//
+        var montoAcreedorRedondeado = BigDecimal(acreedor.second).setScale(2, RoundingMode.HALF_UP).toDouble()
+        val miDeuda = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }?.monto ?: return null
+        val montoDeudaRedondeado = BigDecimal(miDeuda).setScale(2, RoundingMode.HALF_UP).toDouble()
 
-        return if(idBalance != null && idBalancePagado != null ){
-            DbPagoEntity(
-                idPago = 0,
-                idBalance = idBalance,
-                idBalancePagado = idBalancePagado,
-                monto = montoRedondeado,
-                fechaPago = Validaciones.fechaToStringFormat(LocalDate.now())!!,
-                fechaConfirmacion = ""
+        val balanceDeudor = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }
+        val balanceAcreedor = hojaConBalances.balances.firstOrNull { it.monto == montoAcreedorRedondeado }
+
+
+        val resto = montoDeudaRedondeado + montoAcreedorRedondeado
+        var nuevoMontoDeudor = 0.0
+        val montoPagado: Double
+
+        if(resto < 0.0) { //si el resto es negativo, aun me queda deuda pendiente
+            nuevoMontoDeudor = resto
+            montoPagado = montoAcreedorRedondeado
+            montoAcreedorRedondeado = 0.0
+        }
+        else {
+            montoPagado = montoAcreedorRedondeado - resto
+            montoAcreedorRedondeado = resto
+        }
+
+        val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorRedondeado)
+
+        return if (actualizado) {
+            instanciarPago(balanceDeudor,balanceAcreedor,montoPagado)
+        }
+        else{
+            null
+        }
+    }
+
+    /** METODO QUE ACTUALIZA LA LINEA DE T_BALANCE **/
+    suspend fun updateBalance(
+        balanceDeudor: DbBalanceEntity?,
+        balanceAcreedor: DbBalanceEntity?,
+        nuevoMontoDeudor: Double,
+        montoAcreedorRedondeado: Double
+    ): Boolean
+    {
+        var exito = false
+        if (balanceDeudor != null) {
+            if(nuevoMontoDeudor == 0.0) balanceDeudor.tipo = "B"
+            balanceDeudor.monto = nuevoMontoDeudor
+            exito = balanceRepository.updateBalance(balanceDeudor)
+        }
+        if (balanceAcreedor != null && exito) {
+            if(montoAcreedorRedondeado == 0.0) balanceAcreedor.tipo = "B"
+            balanceAcreedor.monto = montoAcreedorRedondeado
+            exito = balanceRepository.updateBalance(balanceAcreedor)
+        }
+        return exito
+    }
+
+    /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
+    fun instanciarPago(
+        balanceDeudor: DbBalanceEntity?,
+        balanceAcreedor: DbBalanceEntity?,
+        montoPagado: Double
+    ): DbPagoEntity{
+        return DbPagoEntity(
+            idPago = 0,
+            idBalance = balanceDeudor!!.idBalance,
+            idBalancePagado = balanceAcreedor!!.idBalance,
+            monto = montoPagado,
+            fechaPago = Validaciones.fechaToStringFormat(LocalDate.now())!!,
+            fechaConfirmacion = ""
+        )
+    }
+
+    /** METODO QUE OBTIENE UNA LISTA DE LOS PAGOS PARA UN BALANCE **/
+    fun getPagos(){
+        var listaPagos: List<DbPagoEntity> = listOf()
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                gastosState.value.hojaConBalances?.balances?.forEach{
+                    listaPagos = listaPagos + pagoRepository.getPagosByDeuda(it.idBalance)
+                }
+                pagosConParticipantes(listaPagos)
+            }
+        }
+    }
+
+
+    /** METODO QUE CREA UNA LISTA DE PAGOS CON PARTICIPANTES, SU MONTO Y FECHA **/
+    fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
+        var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
+        var nombreDeudor = ""
+        var nombreAcreedor = ""
+        val hoja = gastosState.value.hojaAMostrar
+        val hojaConBalances = gastosState.value.hojaConBalances
+
+        listaPagos.forEach { pago ->
+            hojaConBalances?.balances?.forEach { balance ->
+                if (pago.idBalance == balance.idBalance) {
+                    hoja?.participantes?.forEach { participantes ->
+                        if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
+                            nombreDeudor = participantes.participante.nombre
+                        }
+                    }
+                }
+                if (pago.idBalancePagado == balance.idBalance) {
+                    hoja?.participantes?.forEach { participantes ->
+                        if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
+                            nombreAcreedor = participantes.participante.nombre
+                        }
+                    }
+                }
+            }
+            val pagoConParticipantes = PagoConParticipantes(
+                nombreDeudor,
+                nombreAcreedor,
+                pago.monto,
+                pago.fechaPago,
+                (pago.fechaConfirmacion.isNotEmpty())
             )
-        } else null
+            listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
+
+        }
+        onListaPagosConParticipantesChanged(listPagosConParticipantes)
+    }
+
+    /** INSERTAR IMAGEN EN LA BBDD **/
+    fun insertFoto(photoPath: String) {
+        viewModelScope.launch {
+            fotoRepository.insertFoto(DbFotoEntity(photoPath = photoPath))
+        }
+    }
+
+
+    @OptIn(ExperimentalPermissionsApi::class)
+    fun solicitaPermisos(statePermisosAlmacenamiento: MultiplePermissionsState)  {
+        statePermisosAlmacenamiento.launchMultiplePermissionRequest()
     }
 
 }

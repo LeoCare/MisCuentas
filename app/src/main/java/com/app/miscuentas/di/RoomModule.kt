@@ -51,4 +51,8 @@ object DatabaseModule {
     @Provides
     fun providePagoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getPagoDao()
 
+    @Singleton
+    @Provides
+    fun provideFotoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getFotoDao()
+
 }

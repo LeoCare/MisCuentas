@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain
+package com.app.miscuentas.util
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,6 +39,16 @@ class Validaciones {
         /** FORMATEA UN LOCALDATE a tipo String dd/MM/yyyy **/
         fun fechaToStringFormat(fecha: LocalDate?): String?{
             val format = "dd/MM/yyyy"
+
+            return if (fecha != null){
+                val formatter = DateTimeFormatter.ofPattern(format)
+                formatter.format(fecha)
+            }
+            else null
+        }
+
+        fun fechaToStringFormatFoto(fecha: LocalDate?): String?{
+            val format = "dd_MM_yyyy"
 
             return if (fecha != null){
                 val formatter = DateTimeFormatter.ofPattern(format)
