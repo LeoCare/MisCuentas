@@ -326,8 +326,8 @@ fun CustomTextField(
         textStyle = TextStyle(
             fontSize = 20.sp
         ),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
+        colors = TextFieldDefaults.colors(
+             if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)
         )
     )
 }

@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -162,7 +163,7 @@ fun SeleccionFiltros(
 ) {
     var isFilterExpanded by rememberSaveable { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 10.dp)) {
+    Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 27.dp)) {
         Spacer(modifier = Modifier.height(10.dp))
 
         /** FILTRO **/
@@ -171,7 +172,8 @@ fun SeleccionFiltros(
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Filtro:",
-                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .padding(end = 10.dp)
             )
@@ -196,7 +198,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Tipo",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "Tipo") Color.White else Color.Black
                 )
             }
@@ -220,7 +222,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Hoja",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "Hoja") Color.White else Color.Black
                 )
             }
@@ -239,7 +241,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Todos",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "Todos") Color.White else Color.Black
                 )
             }
@@ -263,13 +265,14 @@ fun SeleccionFiltros(
         }
         
         /** ORDEN **/
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Orden:",
-                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .padding(end = 10.dp)
             )
@@ -289,7 +292,7 @@ fun SeleccionFiltros(
                 content = {
                     Text(
                         text = "Tipo",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodySmall,
                         color = if (ordenElegido == "Tipo") Color.White else Color.Black
                     )
                 }
@@ -307,7 +310,7 @@ fun SeleccionFiltros(
                 content = {
                     Text(
                         text = "Importe",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodySmall,
                         color = if (ordenElegido == "Importe") Color.White else Color.Black
                     )
                 }
@@ -326,7 +329,7 @@ fun SeleccionFiltros(
                 content = {
                     Text(
                         text = "Fecha",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodySmall,
                         color = if (ordenElegido == "Fecha") Color.White else Color.Black
                     )
                 }
@@ -341,7 +344,8 @@ fun SeleccionFiltros(
         ) {
             Text(
                 text = "Descendente",
-                style = MaterialTheme.typography.titleMedium
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = Modifier.width(8.dp))
             Switch(

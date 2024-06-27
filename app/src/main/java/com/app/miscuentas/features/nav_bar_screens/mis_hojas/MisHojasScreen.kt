@@ -42,6 +42,8 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -122,7 +124,7 @@ fun SeleccionFiltros(
     onDescendingChanged: (Boolean) -> Unit
 ) {
 
-    Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 10.dp)) {
+    Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 27.dp)) {
         Spacer(modifier = Modifier.height(10.dp))
 
         /** FILTRO **/
@@ -131,7 +133,8 @@ fun SeleccionFiltros(
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Filtro:",
-                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .padding(end = 10.dp)
             )
@@ -147,7 +150,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Activ.",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "C") Color.White else Color.Black
                 )
             }
@@ -162,7 +165,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Finali.",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "F") Color.White else Color.Black
                 )
             }
@@ -177,7 +180,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Anul.",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "A") Color.White else Color.Black
                 )
             }
@@ -192,7 +195,7 @@ fun SeleccionFiltros(
             ){
                 Text(
                     text = "Todos",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (filtroElegido == "T") Color.White else Color.Black
                 )
             }
@@ -200,19 +203,21 @@ fun SeleccionFiltros(
         }
 
         /** ORDEN **/
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Orden:",
-                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .padding(end = 10.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Button(
                     onClick = {
                         onTipoOrdenChanged("Fecha Creacion")
@@ -226,7 +231,7 @@ fun SeleccionFiltros(
                     content = {
                         Text(
                             text = "Fecha Creacion",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodySmall,
                             color = if (ordenElegido == "Fecha Creacion") Color.White else Color.Black
                         )
                     }
@@ -244,7 +249,7 @@ fun SeleccionFiltros(
                     content = {
                         Text(
                             text = "Fecha Cierre",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodySmall,
                             color = if (ordenElegido == "Fecha Cierre") Color.White else Color.Black
                         )
                     }
@@ -259,7 +264,8 @@ fun SeleccionFiltros(
         ) {
             Text(
                 text = "Descendente",
-                style = MaterialTheme.typography.titleMedium
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
@@ -271,8 +277,8 @@ fun SeleccionFiltros(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(30.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .height(20.dp)
+            .background(Color.LightGray),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){
@@ -286,8 +292,8 @@ fun SeleccionFiltros(
                     "A" -> "Anuladas"
                     else  -> "Todos"
                 }
-            }",
-            color = Color.White
+            }"
+
         )
     }
 }
@@ -361,7 +367,7 @@ fun HojaDesing(
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
-
+            /** IMAGEN Y TITULO **/
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -383,9 +389,10 @@ fun HojaDesing(
                     )
                 }
 
-                //Spacer(modifier = Modifier.weight(1f))
                 /** API **/
                 /** API **/  //   Text(text = hoja.type)
+
+                /** LISTA DE OPCIONES **/
                 Row(
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -414,48 +421,33 @@ fun HojaDesing(
                     }
                 }
             }
+
+            /** DATOS **/
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column{
-                    when (hojaConParticipantes.hoja.status) { //pinta segun valor status de la BBDD
-                        "C" ->
-                            Text(
-                                text = "Activa",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        "A" ->
-                            Text(
-                                text = "Anulada",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        "B" ->
-                            Text(
-                                text = "Balanceada",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.error
-                            )
-
-                        else -> Text(
-                            text = "Finalizada",
-                            fontSize = 20.sp,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+                    Text(
+                        text =  when (hojaConParticipantes.hoja.status) {
+                            "C" -> "Activa"
+                            "A" -> "Anulada"
+                            "B" -> "Balanceada"
+                            else ->"Finalizada"
+                        },
+                        fontSize = 20.sp,
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall
+                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
                     {
                         Text(
                             text = "Participantes:",
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = hojaConParticipantes.participantes.size.toString(),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         /** API **/
                         /** API **/  //   Text(text = hoja.price.toString())
@@ -464,11 +456,11 @@ fun HojaDesing(
                     {
                         Text(
                             text = "Fecha Cierre:",
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = hojaConParticipantes.hoja.fechaCierre ?: "-",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         /** API **/
                         /** API **/  //  Text(text = hoja.id)
@@ -477,11 +469,11 @@ fun HojaDesing(
                     {
                         Text(
                             text = "Limite:",
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = if(hojaConParticipantes.hoja.limite.isNullOrEmpty()) "-" else hojaConParticipantes.hoja.limite.toString(),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         /** API **/
                         /** API **/  //  Text(text = hoja.id)
@@ -490,11 +482,11 @@ fun HojaDesing(
                     {
                         Text(
                             text = "Creada el:",
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = hojaConParticipantes.hoja.fechaCreacion!!,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         /** API **/
                         /** API **/  //   Text(text = hoja.type)
