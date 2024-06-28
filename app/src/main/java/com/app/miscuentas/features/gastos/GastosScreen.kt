@@ -152,7 +152,7 @@ fun GastosScreen(
     )
 
 
-    val onTomarFoto = {
+    val tomarFoto = {
         //al presionar el boton de la camara:
         viewModel.solicitaPermisos(statePermisoAlmacenamiento)
         if(statePermisoAlmacenamiento.allPermissionsGranted) {
@@ -166,7 +166,6 @@ fun GastosScreen(
             showDialog = true
         }
     }
-    val tomarFoto = remember {{ onTomarFoto }}
 
     /** ***Fin solicitud de permisos** */
 
@@ -996,7 +995,7 @@ fun Balance(
                                             style = MaterialTheme.typography.bodyMedium
                                         )
                                     }
-                                    opcionSeleccionada?.let {elegido ->
+                                    opcionSeleccionada?.let {
                                         Text(
                                             text = currencyFormatter.format(montoRegistrado),
                                             fontSize = 14.sp
