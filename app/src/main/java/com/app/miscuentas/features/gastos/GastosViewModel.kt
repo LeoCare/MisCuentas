@@ -1,12 +1,13 @@
 package com.app.miscuentas.features.gastos
 
-import android.app.Activity
+import android.content.ContentUris
 import android.content.Context
-import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
-import android.os.Environment.DIRECTORY_PICTURES
+import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
-import androidx.core.content.FileProvider
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
@@ -20,19 +21,17 @@ import com.app.miscuentas.data.local.repository.FotoRepository
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
-import com.app.miscuentas.features.splash.SplashState
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.util.Contabilidad
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
-import com.google.accompanist.permissions.PermissionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -54,8 +53,8 @@ class GastosViewModel @Inject constructor(
     fun onBorrarGastoChanged(gasto: DbGastosEntity?){
         _gastosState.value = _gastosState.value.copy(gastoElegido = gasto)
     }
-    fun onResumenGastoChanged(mapaGastos: Map<String,Double>){
-        _gastosState.value = _gastosState.value.copy(resumenGastos = mapaGastos)
+    fun onSumaParticipantesChanged(sumaParticipantes: Map<String,Double>){
+        _gastosState.value = _gastosState.value.copy(sumaParticipantes = sumaParticipantes)
     }
     fun onBalanceDeudaChanged(mapaDeuda: Map<String,Double>){
         _gastosState.value = _gastosState.value.copy(balanceDeuda = mapaDeuda)
@@ -66,15 +65,19 @@ class GastosViewModel @Inject constructor(
     fun onPagoRealizadoChanged(realizado: Boolean){
         _gastosState.value = _gastosState.value.copy(pagoRealizado = realizado)
     }
-    fun onPermisoCamaraChanged(permitido: Boolean){
-        _gastosState.value = _gastosState.value.copy(permisoCamara = permitido)
+    fun onImagenPagoChanged(imagen: String?){
+        _gastosState.value = _gastosState.value.copy(imagenPago = imagen)
     }
     fun onListaPagosConParticipantesChanged(listaPagosConParticipantes: List<PagoConParticipantes>){
         _gastosState.value = _gastosState.value.copy(listaPagosConParticipantes = listaPagosConParticipantes)
     }
-    fun onImageUriChanged(image: Uri){
-        _gastosState.value = _gastosState.value.copy(imageUri = image)
+    fun onImageUriChanged(imageUri: Uri?){
+        _gastosState.value = _gastosState.value.copy(imageUri = imageUri)
     }
+    fun onImageAbsolutePathChanged(imageAbsolutePath: String?){
+        _gastosState.value = _gastosState.value.copy(imageAbsolutePath = imageAbsolutePath)
+    }
+
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
      * Posteriormetne comprueba si existe un usuario que sea el registrado.
@@ -111,8 +114,8 @@ class GastosViewModel @Inject constructor(
     /** OBTIENE EL TOTAL DE GASTOS POR PARTICIPANTE PARA PINTAR EN 'RESUMEN' **/
     fun obtenerParticipantesYSumaGastos() {
         val hoja = gastosState.value.hojaAMostrar
-        val mapaResumen = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>
-        onResumenGastoChanged(mapaResumen)
+        val mapaSumaParticipantes = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>
+        onSumaParticipantesChanged(mapaSumaParticipantes)
     }
 
 
@@ -236,45 +239,51 @@ class GastosViewModel @Inject constructor(
     }
 
     /** INSTANCIA UNA ENTIDAD DE T_PAGOS **/
-    suspend fun calculoUpdatePago(acreedor: Pair<String, Double>): DbPagoEntity?{
-        //valores del State:
+    suspend fun calculoUpdatePago(acreedor: Pair<String, Double>): DbPagoEntity? {
         val participantes = gastosState.value.hojaAMostrar?.participantes ?: return null
         val hojaConBalances = gastosState.value.hojaConBalances ?: return null
         val idRegistrado = gastosState.value.idRegistrado
-//        //valores a pasar para instanciar:
-        val idPagador = participantes.firstOrNull{
+        val fotoPago = gastosState.value.imageAbsolutePath
+
+        val idPagador = participantes.firstOrNull {
             it.participante.idRegistroParti == idRegistrado
         }?.participante?.idParticipante ?: return null
-//
-        var montoAcreedorRedondeado = BigDecimal(acreedor.second).setScale(2, RoundingMode.HALF_UP).toDouble()
+
+        val montoAcreedorRedondeado = acreedor.second.redondearADosDecimales()
         val miDeuda = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }?.monto ?: return null
-        val montoDeudaRedondeado = BigDecimal(miDeuda).setScale(2, RoundingMode.HALF_UP).toDouble()
+        val montoDeudaRedondeado = miDeuda.redondearADosDecimales()
 
         val balanceDeudor = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }
         val balanceAcreedor = hojaConBalances.balances.firstOrNull { it.monto == montoAcreedorRedondeado }
 
+        val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
 
-        val resto = montoDeudaRedondeado + montoAcreedorRedondeado
-        var nuevoMontoDeudor = 0.0
-        val montoPagado: Double
-
-        if(resto < 0.0) { //si el resto es negativo, aun me queda deuda pendiente
-            nuevoMontoDeudor = resto
-            montoPagado = montoAcreedorRedondeado
-            montoAcreedorRedondeado = 0.0
-        }
-        else {
-            montoPagado = montoAcreedorRedondeado - resto
-            montoAcreedorRedondeado = resto
-        }
-
-        val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorRedondeado)
+        val idFotoPago = insertFoto(fotoPago)
+        val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
 
         return if (actualizado) {
-            instanciarPago(balanceDeudor,balanceAcreedor,montoPagado)
-        }
-        else{
+            instanciarPago(balanceDeudor, balanceAcreedor, montoPagado, idFotoPago)
+        } else {
             null
+        }
+    }
+
+    fun Double.redondearADosDecimales(): Double {
+        return BigDecimal(this).setScale(2, RoundingMode.HALF_UP).toDouble()
+    }
+
+    fun calcularNuevosMontos(deuda: Double, acreedor: Double): Triple<Double, Double, Double> {
+        val resto = deuda + acreedor
+        return if (resto < 0.0) {
+            Triple(resto, acreedor, 0.0)
+        } else {
+            Triple(0.0, acreedor - resto, resto)
+        }.let { (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) ->
+            Triple(
+                nuevoMontoDeudor,
+                montoPagado,
+                montoAcreedorActualizado
+            )
         }
     }
 
@@ -284,33 +293,35 @@ class GastosViewModel @Inject constructor(
         balanceAcreedor: DbBalanceEntity?,
         nuevoMontoDeudor: Double,
         montoAcreedorRedondeado: Double
-    ): Boolean
-    {
-        var exito = false
-        if (balanceDeudor != null) {
-            if(nuevoMontoDeudor == 0.0) balanceDeudor.tipo = "B"
-            balanceDeudor.monto = nuevoMontoDeudor
-            exito = balanceRepository.updateBalance(balanceDeudor)
-        }
-        if (balanceAcreedor != null && exito) {
-            if(montoAcreedorRedondeado == 0.0) balanceAcreedor.tipo = "B"
-            balanceAcreedor.monto = montoAcreedorRedondeado
-            exito = balanceRepository.updateBalance(balanceAcreedor)
-        }
-        return exito
+    ): Boolean {
+        val exitoDeudor = balanceDeudor?.let {
+            it.monto = nuevoMontoDeudor.redondearADosDecimales()
+            if (nuevoMontoDeudor == 0.0) it.tipo = "B"
+            balanceRepository.updateBalance(it)
+        } ?: false
+
+        val exitoAcreedor = balanceAcreedor?.let {
+            it.monto = montoAcreedorRedondeado.redondearADosDecimales()
+            if (montoAcreedorRedondeado == 0.0) it.tipo = "B"
+            balanceRepository.updateBalance(it)
+        } ?: false
+
+        return exitoDeudor && exitoAcreedor
     }
 
     /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
     fun instanciarPago(
         balanceDeudor: DbBalanceEntity?,
         balanceAcreedor: DbBalanceEntity?,
-        montoPagado: Double
+        montoPagado: Double,
+        idFotoPago: Long?
     ): DbPagoEntity{
         return DbPagoEntity(
             idPago = 0,
             idBalance = balanceDeudor!!.idBalance,
             idBalancePagado = balanceAcreedor!!.idBalance,
             monto = montoPagado,
+            idFotoPago = idFotoPago,
             fechaPago = Validaciones.fechaToStringFormat(LocalDate.now())!!,
             fechaConfirmacion = ""
         )
@@ -360,6 +371,7 @@ class GastosViewModel @Inject constructor(
                 nombreAcreedor,
                 pago.monto,
                 pago.fechaPago,
+                pago.idFotoPago,
                 (pago.fechaConfirmacion.isNotEmpty())
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
@@ -369,16 +381,108 @@ class GastosViewModel @Inject constructor(
     }
 
     /** INSERTAR IMAGEN EN LA BBDD **/
-    fun insertFoto(photoPath: String) {
-        viewModelScope.launch {
-            fotoRepository.insertFoto(DbFotoEntity(photoPath = photoPath))
-        }
+    suspend fun insertFoto(foto: String?): Long?{
+
+        return foto?.let { DbFotoEntity(rutaFoto = it) }?.let { fotoRepository.insertFoto(it) }
     }
 
+    /** OBTENER IMAGEN DE LA BBDD **/
+    suspend fun getFotoPago(idFoto: Long): String? {
+        return fotoRepository.getFoto(idFoto).firstOrNull()?.rutaFoto
+    }
+
+    fun obtenerFotoPago(idFoto: Long) {
+        viewModelScope.launch {
+            val rutaFoto = getFotoPago(idFoto)
+            onImageAbsolutePathChanged(rutaFoto)
+
+        }
+    }
 
     @OptIn(ExperimentalPermissionsApi::class)
     fun solicitaPermisos(statePermisosAlmacenamiento: MultiplePermissionsState)  {
         statePermisosAlmacenamiento.launchMultiplePermissionRequest()
+    }
+
+
+    fun getPathFromUri(context: Context, uri: Uri): String? {
+        val isKitKat = true
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            when {
+                isExternalStorageDocument(uri) -> {
+                    val docId = DocumentsContract.getDocumentId(uri)
+                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    val type = split[0]
+                    if ("primary".equals(type, ignoreCase = true)) {
+                        return "${Environment.getExternalStorageDirectory()}/${split[1]}"
+                    }
+                    // Handle non-primary volumes
+                }
+                isDownloadsDocument(uri) -> {
+                    val id = DocumentsContract.getDocumentId(uri)
+                    val contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id)
+                    )
+                    return getDataColumn(context, contentUri, null, null)
+                }
+                isMediaDocument(uri) -> {
+                    val docId = DocumentsContract.getDocumentId(uri)
+                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    val type = split[0]
+                    var contentUri: Uri? = null
+                    when (type) {
+                        "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    }
+                    val selection = "_id=?"
+                    val selectionArgs = arrayOf(split[1])
+                    return getDataColumn(context, contentUri, selection, selectionArgs)
+                }
+            }
+        } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+            return getDataColumn(context, uri, null, null)
+        } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+            return uri.path
+        }
+
+        return null
+    }
+
+    private fun getDataColumn(context: Context, uri: Uri?, selection: String?,
+                              selectionArgs: Array<String>?): String? {
+
+        var cursor: Cursor? = null
+        val column = "_data"
+        val projection = arrayOf(column)
+
+        try {
+            cursor = uri?.let {
+                context.contentResolver.query(it, projection, selection, selectionArgs,
+                    null)
+            }
+            if (cursor != null && cursor.moveToFirst()) {
+                val columnIndex: Int = cursor.getColumnIndexOrThrow(column)
+                return cursor.getString(columnIndex)
+            }
+        } finally {
+            cursor?.close()
+        }
+        return null
+    }
+
+    private fun isExternalStorageDocument(uri: Uri): Boolean {
+        return "com.android.externalstorage.documents" == uri.authority
+    }
+
+    private fun isDownloadsDocument(uri: Uri): Boolean {
+        return "com.android.providers.downloads.documents" == uri.authority
+    }
+
+    private fun isMediaDocument(uri: Uri): Boolean {
+        return "com.android.providers.media.documents" == uri.authority
     }
 
 }

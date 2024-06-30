@@ -25,8 +25,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ExpandLess
@@ -100,7 +102,6 @@ import com.app.miscuentas.util.Desing.Companion.showDatePickerDialog
 
 @Composable
 fun NuevaHoja(
-    navigateUp: () -> Unit,
     onNavMisHojas: () -> Unit,
     viewModel: NuevaHojaViewModel = hiltViewModel()
 ){
@@ -151,9 +152,6 @@ fun NuevaHojaScreen(
     val tieneLimite = remember { mutableStateOf(true) }
     val tieneFecha = remember{ mutableStateOf(true) }
 
-    //Tipo letra
-    val robotoMedItalic = FontFamily(Font(R.font.roboto_mediumitalic))
-
     //Oculta Teclado
     val controlTeclado = LocalSoftwareKeyboardController.current
 
@@ -173,17 +171,13 @@ fun NuevaHojaScreen(
     ) {
         /** TITULO **/
         item {
-            Card(
+            Surface(
+                shape = RoundedCornerShape(7.dp),
+                elevation = 25.dp,
+                color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
-                    .padding(vertical = 9.dp)
+                    .padding(vertical = 4.dp, horizontal = 4.dp)
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.large)
-                    .fillMaxHeight(0.15f),
-
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = Color.Black
-                )
             ) {
                 Column(
                     modifier = Modifier
@@ -199,22 +193,13 @@ fun NuevaHojaScreen(
 
         /** PARTICIPANTES **/
         item {
-            Card(
+            Surface(
+                shape = RoundedCornerShape(7.dp),
+                elevation = 25.dp,
+                color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
-                    .padding(bottom = 9.dp)
+                    .padding(vertical = 4.dp, horizontal = 4.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight(0.5f)
-                    .clip(MaterialTheme.shapes.large)
-                    .animateContentSize(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    ),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
             ) {
                 Column(
                     modifier = Modifier
@@ -234,29 +219,25 @@ fun NuevaHojaScreen(
 
         /** LIMITES FECHA/GASTOS **/
         item{
-            Card(
+            Surface(
+                shape = RoundedCornerShape(7.dp),
+                elevation = 25.dp,
+                color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
-                    .padding(bottom = 9.dp)
+                    .padding(vertical = 7.dp, horizontal = 4.dp)
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.large),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
             ) {
                 Column(
                     modifier = Modifier
                         .padding(vertical = 25.dp, horizontal = 5.dp)
                 ) {
                     LimiteGasto(
-                        robotoMedItalic,
                         tieneLimite,
                         eventoState.limiteGasto) { onLimiteGastoFieldChanged(it) }
 
                     LimiteFecha(
                         eventoState.fechaCierre,
-                        tieneFecha,
-                        robotoMedItalic) { onFechaCierreFieldChanged(it) }
+                        tieneFecha) { onFechaCierreFieldChanged(it) }
 
                 }
             }
@@ -436,7 +417,6 @@ fun ListaParticipantes(
 /** Composable para el recuadro de LimiteGasto **/
 @Composable
 fun LimiteGasto(
-    robotoMedItalic: FontFamily,
     tieneLimite: MutableState<Boolean>,
     statusLimiteGasto: String,
     onLimiteGastoFieldChange: (String) -> Unit) {
@@ -506,8 +486,7 @@ fun LimiteGasto(
             )
             Text(
                 text = "Sin Límite\n(sobra el dinero)",
-                fontSize = 13.sp,
-                fontFamily = robotoMedItalic
+                fontSize = 13.sp
             )
         }
     }
@@ -518,7 +497,6 @@ fun LimiteGasto(
 fun LimiteFecha(
     fechaCierre: String,
     tieneFecha: MutableState<Boolean>,
-    robotoMedItalic: FontFamily,
     onFechaCierreFieldChanged: (String) -> Unit) {
 
     val context = LocalContext.current
@@ -574,30 +552,11 @@ fun LimiteFecha(
             )
             Text(
                 text = "Sin fecha\n(yo decido cuando)",
-                fontSize = 13.sp,
-                fontFamily = robotoMedItalic
+                fontSize = 13.sp
             )
         }
     }
 }
-
-/** Boton de expandir participantes **/
-@Composable
-fun IconoVerParticipantes(
-    expanded: Boolean,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-    ) {
-        Icon(
-            imageVector = if(expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore ,
-            contentDescription = "Ver participantes",
-            tint = MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
 
 /** Composable para el boton de creacion de nueva hoja **/
 @Composable
@@ -606,11 +565,8 @@ fun BotonCrear(
     listaParticipantes: List<DbParticipantesEntity>?,
     insertHoja: () -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
 
-    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
-
-    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
-    //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
     if (showDialog) {
         MiAviso(
             true,

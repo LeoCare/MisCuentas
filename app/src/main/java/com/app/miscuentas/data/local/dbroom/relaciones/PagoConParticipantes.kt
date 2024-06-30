@@ -6,5 +6,6 @@ data class PagoConParticipantes(
     val nombreAcreedor: String,
     val monto: Double,
     val fechaPago: String,
+    val fotoPago: Long?,
     val confirmado: Boolean = false
 )

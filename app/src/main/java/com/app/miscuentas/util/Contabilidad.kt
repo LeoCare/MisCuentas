@@ -55,9 +55,5 @@ class Contabilidad {
             return balances
         }
 
-        fun saldarDeuda(balanceActual: DbBalanceEntity){
-
-        }
-
     }
 }

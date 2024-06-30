@@ -18,11 +18,13 @@ data class GastosState (
     val idHojaPrincipal: Long? = null,
     val gastoElegido: DbGastosEntity? = null,
     val cierreAceptado: Boolean = false,
-    val resumenGastos: Map<String, Double>? = null, //suma de gastos por participante
+    val sumaParticipantes: Map<String, Double>? = null, //suma de gastos por participante
     val balanceDeuda: Map<String, Double>? = null, //importe que debe/recibe cada participante hasta antes del cierre
     val pagoRealizado: Boolean = false,
     val permisoCamara: Boolean = false,
     var imageUri: Uri? = null,
+    val imageAbsolutePath: String? = null,
+    val imagenPago: String? = null,
     val listaPagosConParticipantes: List<PagoConParticipantes>? = listOf(),
     val permisoDenegadoPermanente: Boolean = false,
     val permisoState: PermissionState? = null

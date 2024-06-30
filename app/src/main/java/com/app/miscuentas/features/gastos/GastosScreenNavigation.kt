@@ -17,8 +17,7 @@ fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
 
 fun NavGraphBuilder.gastosScreen(
     innerPadding: PaddingValues?,
-    navHostController: NavHostController,
-    selectImage: () -> Unit
+    navHostController: NavHostController
 ){
     composable(
         route = "$GASTOS_ROUTE/{$GASTOS_ID_HOJA_A_MOSTRAR}",
@@ -30,11 +29,11 @@ fun NavGraphBuilder.gastosScreen(
     ) {
         it.arguments?.getLong(GASTOS_ID_HOJA_A_MOSTRAR)?.let { idHojaAMostrar ->
             GastosScreen(
-                innerPadding,
-                idHojaAMostrar,
+                innerPadding = innerPadding,
+                idHojaAMostrar = idHojaAMostrar,
                 onNavNuevoGasto = { idHoja ->
-                    navHostController.NavigateToNuevoGasto(idHoja)},
-                selectImage
+                    navHostController.NavigateToNuevoGasto(idHoja)
+                                  }
             )
         }
     }

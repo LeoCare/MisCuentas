@@ -10,8 +10,11 @@ class FotoRepository @Inject constructor(
     private val fotoDao: DbFotoDao
 ) {
 
-    fun getAllPhotos(): Flow<List<DbFotoEntity>> = fotoDao.getAllPhotos()
+    suspend fun insertFoto(foto: DbFotoEntity): Long {
+        return fotoDao.insertFoto(foto)
+    }
 
-    suspend fun insertFoto(photo: DbFotoEntity) = fotoDao.insertFoto(photo)
+    fun getAllFotos(): Flow<List<DbFotoEntity>> = fotoDao.getAllFotos()
 
+    fun getFoto(idFoto: Long): Flow<DbFotoEntity> = fotoDao.getFoto(idFoto)
 }

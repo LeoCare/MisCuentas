@@ -11,8 +11,12 @@ import kotlinx.coroutines.flow.Flow
 interface DbFotoDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFoto(photo: DbFotoEntity): Long
+    suspend fun insertFoto(foto: DbFotoEntity): Long
 
-    @Query("SELECT * FROM photos")
-    fun getAllPhotos(): Flow<List<DbFotoEntity>>
+    @Query("SELECT * FROM t_fotos")
+    fun getAllFotos(): Flow<List<DbFotoEntity>>
+
+    @Query("SELECT * FROM t_fotos WHERE idFoto = :idFoto")
+    fun getFoto(idFoto: Long): Flow<DbFotoEntity>
+
 }

@@ -18,8 +18,6 @@ fun NavGraphBuilder.nuevaHojaScreen(
 ){
     composable(route = NUEVA_HOJA_ROUTE) {
         NuevaHoja(
-           // canNavigateBack,
-            {navHostController.navigateUp()},
             onNavMisHojas = { navHostController.NavigateToMisHojas() }
         )
     }

@@ -49,7 +49,7 @@ class SplashViewModel @Inject constructor(
         val registrado: String?
 
         try {//si la version de la bbdd cambia -> limpio las preference
-            if (versionGuardada == null || versionGuardada > versionActual) {
+            if (versionGuardada == null || versionActual  > versionGuardada) {
                 // Limpiar DataStore
                 clearDataStore()
                 // Actualizar la versión de la base de datos en DataStore

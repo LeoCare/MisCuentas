@@ -4,9 +4,14 @@ package com.app.miscuentas.features.gastos
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.net.Uri
 import android.os.Build
-import android.provider.SyncStateContract.Columns
+import android.os.Environment
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -21,7 +26,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,10 +49,11 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -56,6 +62,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,6 +75,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -75,7 +84,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
@@ -85,12 +97,16 @@ import com.app.miscuentas.data.local.repository.IconoGastoProvider
 import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.features.MainActivity
 import com.app.miscuentas.util.Desing.Companion.MiAviso
+import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import okhttp3.internal.concurrent.Task
+import java.io.File
 import java.text.NumberFormat
+import kotlin.math.abs
 import kotlin.random.Random
 
 
@@ -101,23 +117,12 @@ fun GastosScreen(
     innerPadding: PaddingValues?,
     idHojaAMostrar: Long?,
     onNavNuevoGasto: (Long) -> Unit,
-    selectImage: () -> Unit,
     viewModel: GastosViewModel = hiltViewModel()
 ) {
     val gastosState by viewModel.gastosState.collectAsState()
     val context = LocalContext.current
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
-
-
-    val colors = listOf(
-        generateRandomColor(),
-        generateRandomColor(),
-        generateRandomColor(),
-        generateRandomColor(),
-        generateRandomColor(),
-        generateRandomColor()
-    )
-
+    
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var mensaje by rememberSaveable { mutableStateOf("") }
     if (showDialog) {
@@ -150,13 +155,58 @@ fun GastosScreen(
     val statePermisoAlmacenamiento = rememberMultiplePermissionsState(
         permissions = permisosRequeridos
     )
+    /**************************/
 
+    /** GALERIA DE IMAGENES **/
+    val singleImagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            viewModel.onImageUriChanged(uri)
+            val ruta = viewModel.getPathFromUri(context, uri)
+            viewModel.onImageAbsolutePathChanged(ruta)
+        }
+    }
 
+    val elegirImagen = {
+        singleImagePickerLauncher.launch(
+            PickVisualMediaRequest(
+                ActivityResultContracts.PickVisualMedia.ImageOnly
+            )
+        ) }
+    /**************************/
+
+    /** CAMARA DE FOTOS **/
+    var tempPhotoUri by remember { mutableStateOf(value = Uri.EMPTY) }
+
+    //LANZA LA CAMARA
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                viewModel.onImageUriChanged(tempPhotoUri)
+            }
+        }
+    )
+
+    //CREAR ARCHIVO URI
+    fun Context.createTempPictureUri(
+        fileName: String = "IMG_${System.currentTimeMillis()}",
+        fileExtension: String = ".jpg"
+    ): Uri {
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera")
+        if (!storageDir.exists()) {
+            storageDir.mkdirs()
+        }
+        val tempFile = File(storageDir, "$fileName$fileExtension")
+        viewModel.onImageAbsolutePathChanged(tempFile.absolutePath)
+        return FileProvider.getUriForFile(this, "${packageName}.provider", tempFile)
+    }
+
+    //AL PRESIONAR EL BOTON DE LA CAMARA:
     val tomarFoto = {
-        //al presionar el boton de la camara:
         viewModel.solicitaPermisos(statePermisoAlmacenamiento)
         if(statePermisoAlmacenamiento.allPermissionsGranted) {
-            (context as? MainActivity)?.tomarFoto(context) //Se lanza desde el MAINACTIVITY
+            tempPhotoUri = context.createTempPictureUri()
+            cameraLauncher.launch(tempPhotoUri)
         }
         else if(!statePermisoAlmacenamiento.permissions[0].status.isGranted) {
             viewModel.solicitaPermisos(statePermisoAlmacenamiento)
@@ -166,20 +216,19 @@ fun GastosScreen(
             showDialog = true
         }
     }
-
-    /** ***Fin solicitud de permisos** */
+    /******************************************************/
 
     //Hoja a mostrar pasada por el Screen Hojas
     LaunchedEffect(Unit) {
-            viewModel.onHojaAMostrar(idHojaAMostrar)
+        viewModel.onHojaAMostrar(idHojaAMostrar)
     }
 
     //Borrar un gasto o cerrar al hoja
     LaunchedEffect(gastosState){
-        if(gastosState.gastoElegido != null){
+        if (gastosState.gastoElegido != null){
             viewModel.deleteGasto()
         }
-        if(gastosState.cierreAceptado){
+        if (gastosState.cierreAceptado){
             viewModel.updateHoja()
         }
     }
@@ -191,19 +240,22 @@ fun GastosScreen(
         { onNavNuevoGasto(it) },
         viewModel::onBorrarGastoChanged,
         gastosState.permisoCamara,
-        { tomarFoto()},
-        { selectImage() },
+        { tomarFoto() },
+        { elegirImagen() },
+        viewModel::onImageUriChanged,
         gastosState.pagoRealizado,
         gastosState.existeRegistrado,
-        gastosState.resumenGastos,
+        gastosState.sumaParticipantes,
         gastosState.balanceDeuda,
+        gastosState.imageUri,
+        gastosState.imageAbsolutePath,
+        viewModel::obtenerFotoPago,
         viewModel::obtenerParticipantesYSumaGastos,
         viewModel::calcularBalance,
         viewModel::onCierreAceptado,
         viewModel::onPagoRealizadoChanged,
         viewModel::pagarDeuda,
-        gastosState.listaPagosConParticipantes,
-        colors
+        gastosState.listaPagosConParticipantes
     )
 }
 
@@ -216,20 +268,23 @@ fun GastosContent(
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
     permisoCamara: Boolean,
     tomarFoto: () -> Unit,
-    selectImage: () -> Unit,
+    elegirImagen: () -> Unit,
+    onImageUriChanged: (Uri?) -> Unit,
     pagoRealizado: Boolean,
     existeRegistrado: Boolean,
-    resumenGastos: Map<String, Double>?,
+    sumaParticipantes: Map<String, Double>?,
     balanceDeuda: Map<String, Double>?,
+    imagenUri: Uri?,
+    imagenPago: String?,
+    obtenerFotoPago: (Long) -> Unit,
     obtenerParticipantesYSumaGastos: () -> Unit,
     calcularBalance: () -> Unit,
     onCierreAceptado: (Boolean) -> Unit,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?) -> Unit,
-    listPagos: List<PagoConParticipantes>?,
-    colors: List<Color>
+    listPagos: List<PagoConParticipantes>?
 ){
-    val isEnabled = hojaDeGastos?.hoja?.status == "C" //para controlar el boton de 'Agregar Gasto'
+    val hojaEnCurso = hojaDeGastos?.hoja?.status == "C" //para controlar el boton de 'Agregar Gasto'
     var showResumen by rememberSaveable { mutableStateOf(false) }
     var showBalance by rememberSaveable { mutableStateOf(false) }
 
@@ -285,9 +340,12 @@ fun GastosContent(
                             Column {
                                 DatosHoja(hojaDeGastos)
                             }
-                            Column {
-                                ImagenCierre(hojaDeGastos, { onCierreAceptado(it) })
+                            if (hojaDeGastos?.hoja?.status != "F"){
+                                Column {
+                                    ImagenCierre(hojaDeGastos, { onCierreAceptado(it) })
+                                }
                             }
+
                         }
                     }
                 }
@@ -329,12 +387,13 @@ fun GastosContent(
                 Column(
                     Modifier
                         .clickable {
-                            if (hojaDeGastos?.hoja?.status == "C"){
+                            if (hojaEnCurso){
                                 showDialog = true
                             }
                             else {
                                 calcularBalance()
 //                                getPagos()
+                                onImageUriChanged(null)
                                 showBalance = !showBalance
                                 if (showResumen) showResumen = false
                             }
@@ -368,9 +427,9 @@ fun GastosContent(
                 ) {
                     Resumen(
                         balanceDeuda = balanceDeuda,
-                        participantes = resumenGastos,
-                        onParticipanteClick = {},
-                        colors = colors)
+                        sumaParticipantes = sumaParticipantes,
+                        onParticipanteClick = {}
+                    )
                 }
             }
 
@@ -392,10 +451,13 @@ fun GastosContent(
                             exiteRegistrado = existeRegistrado,
                             participantes = balanceDeuda,
                             tomarFoto = tomarFoto,
-                            selectImage = selectImage,
+                            elegirImagen = elegirImagen,
                             pagarDeuda = pagarDeuda,
                             onPagoRealizadoChanged = onPagoRealizadoChanged,
-                            listPagos = listPagos
+                            listPagos = listPagos,
+                            imagenUri = imagenUri,
+                            imagenPago = imagenPago,
+                            obtenerFotoPago = obtenerFotoPago
                         )
                     }
                 }
@@ -428,11 +490,10 @@ fun GastosContent(
                 }
             }
         }
-        if (hojaDeGastos?.hoja?.status == "C") {
+        if (hojaEnCurso) {
             CustomFloatButton(
-                onNavNuevoGasto = { onNavNuevoGasto(hojaDeGastos.hoja.idHoja) },
+                onNavNuevoGasto = { hojaDeGastos?.hoja?.idHoja?.let { onNavNuevoGasto(it) } },
                 modifier = Modifier.align(Alignment.BottomCenter), // Alinear el botón en la esquina inferior derecha
-                isEnabled = isEnabled,
                 showBalance = {
                     showBalance = false
                     showResumen = false
@@ -648,21 +709,32 @@ fun GastoDesing(
 fun SumaPorParticipanteDesing(
     nombre: String,
     sumaGastos: Double,
-    color: Color,
     onClick: () -> Unit) {
 
     val currencyFormatter = NumberFormat.getCurrencyInstance()
-    Box(
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        elevation = 3.dp,
+        color = MaterialTheme.colorScheme.onSecondary,
         modifier = Modifier
-            .padding(2.dp)
-            .size(100.dp, 60.dp)
-            .background(color, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
+            .padding(vertical = 16.dp, horizontal = 10.dp)
+            .fillMaxWidth()
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = nombre, color = Color.White, fontSize = 16.sp, textAlign = TextAlign.Center)
-            Text(text = currencyFormatter.format(sumaGastos), color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
+        Column( modifier = Modifier
+            .padding(28.dp)
+            .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = nombre,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = currencyFormatter.format(sumaGastos),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -672,99 +744,92 @@ fun SumaPorParticipanteDesing(
 fun ResumenBalanceDesing(
     participante: String,
     monto: Double,
+    paddVert: Int
 ) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance()
+
     Surface(
         shape = RoundedCornerShape(18.dp),
         elevation = 6.dp,
         modifier = Modifier
-            .padding(vertical = 6.dp, horizontal = 35.dp)
+            .padding(vertical = paddVert.dp, horizontal = 10.dp)
             .fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(vertical = 6.dp, horizontal = 10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column(
-                    modifier = Modifier.width(150.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Row {
-                        Text(
-                            text = participante,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier.width(60.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Row {
-                        Text(
-                            text = if (monto > 0) "Recibe" else if (monto < 0) "Debe" else "Saldado",
-                            fontSize = 14.sp,
-                            color = if (monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if (monto < 0) Color.Red else Color.Black
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier.width(130.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Row {
-                        val currencyFormatter = NumberFormat.getCurrencyInstance()
-                        Text(
-                            text = currencyFormatter.format(monto),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-            }
+        Column(
+            modifier = Modifier
+                .padding(28.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = participante,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = if (monto > 0) "Recibe" else if (monto < 0) "Debe" else "Saldado",
+                fontSize = 14.sp,
+                color = if (monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if (monto < 0) Color.Red else Color.Black
+            )
+            Text(
+                text = currencyFormatter.format(monto),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
 
+
 @Composable
 fun Resumen(
     balanceDeuda: Map<String, Double>?,
-    participantes: Map<String, Double>?,
-    onParticipanteClick: (String) -> Unit,
-    colors: List<Color>
+    sumaParticipantes: Map<String, Double>?,
+    onParticipanteClick: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-
-        LazyColumn {
-            participantes?.keys?.chunked(3)?.forEach { fila ->
-                item {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        items(fila, key = {it.first()}) { participante ->
-                            val colorIndex =
-                                (participantes.keys.indexOf(participante) % colors.size)
-                            val color = colors[colorIndex]
-                            SumaPorParticipanteDesing(
-                                nombre = participante,
-                                sumaGastos = participantes[participante] ?: 0.0,
-                                color = color,
-                                onClick = { onParticipanteClick(participante) }
-                            )
-                        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 7.dp, horizontal = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(text = "Total gastado:")
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                sumaParticipantes?.let{
+                    items(sumaParticipantes.toList(), key = { it.first }) { participante ->
+                        SumaPorParticipanteDesing(
+                            nombre = participante.first,
+                            sumaGastos = participante.second,
+                            onClick = { onParticipanteClick(participante.first)
+                            }
+                        )
                     }
                 }
             }
-            balanceDeuda?.let {
-                items(balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
-                    ResumenBalanceDesing(
-                        participante = nombre,
-                        monto = monto,
-                    )
+
+            Spacer(modifier = Modifier.size(20.dp))
+            Text(text = "Resumen de deuda:")
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                balanceDeuda?.let {
+                    items(balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
+                        ResumenBalanceDesing(
+                            participante = nombre,
+                            monto = monto,
+                            paddVert = 16
+                        )
+                    }
                 }
             }
         }
@@ -777,85 +842,120 @@ fun Resumen(
 @Composable
 fun PagoDesing(
     permisoCamara: Boolean,
-    pago: PagoConParticipantes
+    pago: PagoConParticipantes,
+    imagenPago: String?,
+    obtenerFotoPago: (Long) -> Unit
 ){
     val context = LocalContext.current
     //Aviso de la opcion elegida:
     val showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    var showFoto by rememberSaveable { mutableStateOf(false)}
     val currencyFormatter = NumberFormat.getCurrencyInstance()
 
     if (showDialog){
         Toast.makeText(context, "${pago.nombreAcreedor} no ha confirmado aun.", Toast.LENGTH_SHORT).show()
     }
 
+    if (showFoto){
+        if (imagenPago != null) {
+            MiImagenDialog(
+                show = true,
+                imagen = imagenPago,
+                cerrar = { showFoto = false }
+            )
+        }
+    }
+
+
     Surface(
         shape = RoundedCornerShape(10.dp),
-        elevation = 20.dp,
+        elevation = 15.dp,
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 12.dp)
             .fillMaxWidth()
+
     ) {
-        Column {
-            Text(
-                modifier = Modifier.padding(5.dp),
-                text = pago.fechaPago,
-                fontStyle = FontStyle.Italic,
-                style = MaterialTheme.typography.bodyMedium
-            )
+        Column(
+            modifier = Modifier
+                .width(180.dp)
+                .padding(vertical = 4.dp, horizontal = 7.dp)
+        ) {
             Row(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(bottom = 10.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = pago.fechaPago,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+            }
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = currencyFormatter.format(pago.monto),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
                     .fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row{
                     Text(
-                        text = "De  ${pago.nombrePagador} ",
+                        text = "De ${pago.nombrePagador} ",
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = 17.sp
                     )
                 }
                 Row {
                     Text(
-                        text = "a   ${pago.nombreAcreedor}",
+                        text = "a ${pago.nombreAcreedor}",
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = 17.sp
                     )
                 }
-                Text(text = currencyFormatter.format(pago.monto), fontWeight = FontWeight.Bold)
             }
             Row(
                 modifier = Modifier
-                    .width(100.dp)
-                    .padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxSize(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Card(
-                    elevation = CardDefaults.cardElevation(2.dp),
+                    elevation = CardDefaults.cardElevation(12.dp),
                     shape = MaterialTheme.shapes.small,
                     colors = CardDefaults.cardColors(Color.Transparent),
                     modifier = Modifier.clickable {
-                        if (permisoCamara) {
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "El permiso se ha denegado anteriormente.\nConcede el permiso desde los ajustes del telefono.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        pago.fotoPago?.let { fotoPago ->
+                            obtenerFotoPago(fotoPago)
+                            showFoto = true
                         }
+
                     },
                 ) {
                     Icon(
                         Icons.Default.Photo,
                         contentDescription = "Iconos de la camara",
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = if (pago.fotoPago != null) MaterialTheme.colorScheme.primary else Color.DarkGray,
                         modifier = Modifier.size(26.dp)
                     )
                 }
                 Card(
-                    elevation = CardDefaults.cardElevation(0.dp),
+                    elevation = CardDefaults.cardElevation(12.dp),
                     shape = MaterialTheme.shapes.small,
                     colors = CardDefaults.cardColors(Color.Transparent),
                     modifier = Modifier.clickable {
@@ -869,7 +969,7 @@ fun PagoDesing(
                     Icon(
                         Icons.Filled.Handshake,
                         contentDescription = "Iconos de confirmacion del pago",
-                        tint = if (pago.confirmado) MaterialTheme.colorScheme.primary else Color.DarkGray,
+                        tint = if (pago.confirmado) Color.Green else Color.DarkGray,
                         modifier = Modifier.size(26.dp)
                     )
                 }
@@ -885,10 +985,13 @@ fun Balance(
     exiteRegistrado: Boolean,
     participantes: Map<String, Double>?,
     tomarFoto: () -> Unit,
-    selectImage: () -> Unit,
+    elegirImagen: () -> Unit,
     pagarDeuda: (Pair<String, Double>?) -> Unit,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    listPagos: List<PagoConParticipantes>?
+    listPagos: List<PagoConParticipantes>?,
+    imagenUri: Uri?,
+    imagenPago: String?,
+    obtenerFotoPago: (Long) -> Unit
 ) {
     val montoRegistrado = participantes!!.firstNotNullOf { it.value } //mi monto
     val context = LocalContext.current
@@ -904,6 +1007,7 @@ fun Balance(
         }
     }
 
+    //AVISO PARA MOSTRAR LOS ACREEDORES A PAGAR:
     var showDialogWhitOptions by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     if (showDialogWhitOptions) participantes.let { listaParticipantes ->
         val listaParticipantesSinPrimero = listaParticipantes
@@ -923,6 +1027,7 @@ fun Balance(
         )
     }
 
+    //AVISO CUANDO SE PAGA LA DEUDA:
     var showConfirm by rememberSaveable { mutableStateOf(false) }
     if (showConfirm){
         MiDialogo(show = true,
@@ -936,7 +1041,7 @@ fun Balance(
             })
     }
 
-    //Este aviso se lanzara cuando se deniega el permiso...
+    //AVISO CUANDO SE DENIEGA EL PERMISO:
     var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
     if (showDialog) {
         MiAviso(
@@ -952,108 +1057,172 @@ fun Balance(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        LazyColumn(modifier = Modifier.padding(8.dp)) {
+
+        LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
             if (participantes.isNotEmpty()){
 
                 /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
-                itemsIndexed(participantes.toList()) { _index, (nombre, monto) ->
-                    ResumenBalanceDesing(
-                        participante = nombre,
-                        monto = monto
-                    )
+                item{
+                    Text(text = "Deuda:")
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        items(participantes.toList(), key = { it.first }) { (nombre, monto) ->
+                            ResumenBalanceDesing(
+                                participante = nombre,
+                                monto = monto,
+                                paddVert = 10
+                            )
+                        }
+                    }
                 }
+
                 /** RECUADRO CON LAS ACCIONES (SOLICITO O PAGO) **/
                 item{
-                    if(exiteRegistrado && montoRegistrado != 0.0) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                    if(exiteRegistrado && montoRegistrado == 0.0) {
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Text(text = "Resolver:")
                         Card(
                             shape = RoundedCornerShape(4.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.outline,
                                 contentColor = Color.Black
                             ),
-                            elevation = CardDefaults.cardElevation(4.dp),
+                            elevation = CardDefaults.cardElevation(7.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(5.dp)
+                                .padding(4.dp)
                         ) {
                             Column(
-                                modifier = Modifier.padding(8.dp)
+                                modifier = Modifier.padding(6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(text = "Nada que resolver")
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Text(text = "Resolver:")
+                        Card(
+                            shape = RoundedCornerShape(4.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.outline,
+                                contentColor = Color.Black
+                            ),
+                            elevation = CardDefaults.cardElevation(7.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(6.dp)
                             ){
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier
-                                        .padding(bottom = 5.dp)
                                         .fillMaxWidth()
                                 ) {
-                                    Row {
+                                    /** OPCION 1: ELEGIR ACREEDOR **/
+                                    Row(
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Text(text = "1 - ")
                                         Text(
-                                            text = if (montoRegistrado > 0) "SOLICITAR EL PAGO A.." else if (montoRegistrado < 0) "RECIBE.." else "LISTO",
+                                            text = if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "Pagar a..." else "Saldado",
                                             fontWeight = FontWeight.Black,
                                             style = MaterialTheme.typography.bodyMedium
                                         )
                                     }
-                                    opcionSeleccionada?.let {
+                                    if(opcionSeleccionada != null){
                                         Text(
-                                            text = currencyFormatter.format(montoRegistrado),
+                                            text = opcionSeleccionada!!.first,
+                                            fontSize = 25.sp,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier
+                                                .clickable {
+                                                    if (montoRegistrado > 0) Toast.makeText(
+                                                        context,
+                                                        "Se ha solicitado el pago a los deudores",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    else {
+                                                        titulo = "PAGAR A.."
+                                                        mensaje = "(Solo se descontará tu parte de la deuda)"
+                                                        showDialogWhitOptions = true
+                                                    }
+                                                },
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    else{
+                                        Icon(
+                                            Icons.Filled.People,
+                                            "Elegir Participante",
+                                            modifier = Modifier
+                                                .size(30.dp)
+                                                .clickable {
+                                                    if (montoRegistrado > 0) Toast
+                                                        .makeText(
+                                                            context,
+                                                            "Se ha solicitado el pago a los deudores",
+                                                            Toast.LENGTH_SHORT
+                                                        )
+                                                        .show()
+                                                    else {
+                                                        titulo = "PAGAR A.."
+                                                        mensaje =
+                                                            "(Solo se descontará tu parte de la deuda)"
+                                                        showDialogWhitOptions = true
+                                                    }
+                                                },
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    if(opcionSeleccionada?.second != null) {
+                                        Text(
+                                            text = if (opcionSeleccionada!!.second > abs(montoRegistrado)) currencyFormatter.format(abs(montoRegistrado)) else currencyFormatter.format(opcionSeleccionada!!.second),
                                             fontSize = 14.sp
                                         )
                                     }
-                                    Button(
-                                        onClick = {
-                                            if (montoRegistrado > 0) Toast.makeText(
-                                                context,
-                                                "Se ha solicitado el pago a los deudores",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            else {
-                                                titulo = "PAGAR A.."
-                                                mensaje = "(Solo se descontará tu parte de la deuda)"
-                                                showDialogWhitOptions = true
-                                            }
-                                        },
-                                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
-                                    ) {
-                                        Text(
-                                            text =
-                                            if(opcionSeleccionada != null) opcionSeleccionada!!.first
-                                            else if (montoRegistrado > 0) "Todos" else if (montoRegistrado < 0) "Elegir" else "Listo",
-                                            fontSize = 15.sp,
-                                            color = Color.White
-                                        )
-                                    }
+                                    else Spacer(Modifier.width(30.dp))
                                 }
+                                /** OPCION 2: COMPROBANTE **/
                                 if (montoRegistrado < 0) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         modifier = Modifier
-                                            .padding(bottom = 5.dp)
                                             .fillMaxWidth()
                                     ) {
                                         Row {
                                             Text(text = "2 - ")
                                             Text(
-                                                text = "COMPROBANTE",
+                                                text = "Adjuntar comprobante..",
                                                 fontWeight = FontWeight.Black,
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
+
                                         Row {
-                                            IconButton(onClick = {
-                                                tomarFoto()
-                                            }) {
+                                            IconButton(onClick = { tomarFoto() }) {
                                                 Icon(
                                                     Icons.Default.PhotoCamera,
                                                     contentDescription = "Tomar foto",
                                                     tint = MaterialTheme.colorScheme.primary
                                                 )
                                             }
-                                            IconButton(onClick = {
-                                                selectImage()
-                                            }) {
+                                            IconButton(onClick = { elegirImagen() }) {
                                                 Icon(
                                                     Icons.Default.PhotoLibrary,
                                                     contentDescription = "Galeria",
@@ -1061,36 +1230,57 @@ fun Balance(
                                                 )
                                             }
                                         }
+                                        AsyncImage(
+                                            model = imagenUri,
+                                            contentDescription = "Foto del comprobante de pago",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(70.dp)
+                                                .padding(top = 16.dp)
+                                        )
                                     }
-
+                                   /** OPCION 3: ENVIAR **/
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         modifier = Modifier
-                                            .padding(bottom = 5.dp)
                                             .fillMaxWidth()
                                     ) {
                                         Row {
                                             Text(text = "3 - ")
                                             Text(
-                                                text = "ENVIAR",
+                                                text = "Enviar",
                                                 fontWeight = FontWeight.Black,
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
-                                        Button(
-                                            enabled = (opcionSeleccionada != null),
-                                            onClick = {
-                                                titulo = "CONFIRMAR"
-                                                mensaje = "Si acepta se enviará un mensaje a ${opcionSeleccionada?.first} por el pago de ${opcionSeleccionada?.second}"
-                                                showConfirm = true
-
-                                            },
-                                            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
-                                            content = {
-                                                Icon( Icons.Filled.Email, "Enviar Aviso", tint = Color.LightGray)
-                                            }
+                                        Icon(
+                                            Icons.Filled.Email,
+                                            "Enviar Aviso",
+                                            modifier = Modifier
+                                                .size(30.dp)
+                                                .clickable {
+                                                    if (opcionSeleccionada != null) {
+                                                        titulo = "CONFIRMAR"
+                                                        mensaje =
+                                                            "Si acepta se enviará un mensaje a ${opcionSeleccionada?.first} por el pago de ${
+                                                                if (opcionSeleccionada!!.second > abs(
+                                                                        montoRegistrado
+                                                                    )
+                                                                ) currencyFormatter.format(
+                                                                    abs(
+                                                                        montoRegistrado
+                                                                    )
+                                                                ) else currencyFormatter.format(
+                                                                    opcionSeleccionada!!.second
+                                                                )
+                                                            }"
+                                                        showConfirm = true
+                                                    }
+                                                },
+                                            tint = if(opcionSeleccionada != null) MaterialTheme.colorScheme.primary else Color.LightGray
                                         )
+                                        Spacer(Modifier.width(10.dp))
                                     }
                                 }
                             }
@@ -1099,22 +1289,25 @@ fun Balance(
                 }
 
                 /** LISTA DE PAGOS **/
-                item{
-                    Divider(
-                        modifier = Modifier.padding(vertical = 20.dp),
-                        color  = Color.LightGray
-                    )
-                    Text(
-                        modifier = Modifier.padding(vertical = 10.dp),
-                        text = "PAGOS:",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-                items(listPagos!!) {pago ->
-                    PagoDesing(
-                        permisoCamara,
-                        pago
-                    )
+                if (!listPagos.isNullOrEmpty()){
+                    item {
+                        Spacer(modifier = Modifier.size(25.dp))
+                        Text(text = "Pagos:")
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            items(listPagos) { pago ->
+                                PagoDesing(
+                                    permisoCamara,
+                                    pago,
+                                    imagenPago,
+                                    obtenerFotoPago
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1128,22 +1321,12 @@ fun Balance(
 fun CustomFloatButton(
     onNavNuevoGasto: () -> Unit,
     modifier: Modifier = Modifier,
-    isEnabled: Boolean,
     showBalance: () -> Unit
 ) {
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-
-    if (showDialog) MiAviso(
-        show = true,
-        texto = "La hoja no esta activa, no puede agregar mas gastos!",
-        cerrar = { showDialog = false }
-    )
-
     FloatingActionButton(
         onClick = {
             showBalance()
-            if (isEnabled) onNavNuevoGasto()
-            else showDialog = true
+             onNavNuevoGasto()
         },
         elevation = FloatingActionButtonDefaults.elevation(13.dp),
         modifier = modifier
@@ -1161,15 +1344,8 @@ fun CustomFloatButton(
     }
 
 }
-
 /*************************/
-fun generateRandomColor(): Color {
-    val random = Random
-    val red = random.nextInt(0, 256)
-    val green = random.nextInt(0, 256)
-    val blue = random.nextInt(0, 256)
-    return Color(red, green, blue)
-}
+
 
 //@Preview
 //@Composable

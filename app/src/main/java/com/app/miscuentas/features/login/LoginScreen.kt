@@ -19,6 +19,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -293,7 +298,6 @@ fun TextoLogin(registroState: Boolean) {
 }
 
 /** Composable para la creacion de los TextField **/
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(
     placeholder: String,
@@ -301,6 +305,7 @@ fun CustomTextField(
     onTextFieldChange: (String) -> Unit
 ) {
     var isFocused by rememberSaveable { mutableStateOf(false) }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     TextField(
         value = value,
@@ -317,14 +322,28 @@ fun CustomTextField(
             "Contraseña" -> KeyboardOptions(keyboardType = KeyboardType.Password)
             else -> KeyboardOptions(keyboardType = KeyboardType.Text)
         },
-        visualTransformation = when (placeholder) {
-            "Contraseña" -> PasswordVisualTransformation()
+        visualTransformation = when {
+            placeholder == "Contraseña" && !passwordVisible -> PasswordVisualTransformation()
             else -> VisualTransformation.None
+        },
+        trailingIcon = {
+            if (placeholder == "Contraseña") {
+                val image = if (passwordVisible)
+                    Icons.Filled.Visibility
+                else Icons.Filled.VisibilityOff
+
+                IconButton(onClick = {
+                    passwordVisible = !passwordVisible
+                }) {
+                    Icon(imageVector = image, contentDescription = null)
+                }
+            }
         },
         singleLine = true, //en una misma linea
         maxLines = 1,
         textStyle = TextStyle(
-            fontSize = 20.sp
+            fontSize = 20.sp,
+            color = Color.Blue
         ),
         colors = TextFieldDefaults.colors(
              if (isFocused) Color(0xFFDFECF7) else Color(0xFFC0D6E7)

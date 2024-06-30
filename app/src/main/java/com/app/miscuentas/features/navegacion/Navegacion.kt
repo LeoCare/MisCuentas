@@ -57,8 +57,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavHost(
     innerPadding: PaddingValues?,
-    navController: NavHostController,
-    selectImage: () -> Unit
+    navController: NavHostController
 ) {
     NavHost(
         navController = navController,
@@ -71,7 +70,7 @@ fun AppNavHost(
         nuevaHojaScreen(navController)
         nuevoGastoScreen(navController)
         misHojasScreen(innerPadding, navController)
-        gastosScreen(innerPadding, navController, selectImage)
+        gastosScreen(innerPadding, navController)
         misGastosScreen(innerPadding, navController)
         participantesScreen(innerPadding, navController)
     }
