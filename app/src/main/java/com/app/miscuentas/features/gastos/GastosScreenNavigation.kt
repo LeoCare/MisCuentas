@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.miscuentas.features.balance.NavigateToBalance
 import com.app.miscuentas.features.nuevo_gasto.NavigateToNuevoGasto
 
 const val GASTOS_ROUTE = "GASTOS"
@@ -33,7 +34,10 @@ fun NavGraphBuilder.gastosScreen(
                 idHojaAMostrar = idHojaAMostrar,
                 onNavNuevoGasto = { idHoja ->
                     navHostController.NavigateToNuevoGasto(idHoja)
-                                  }
+                                  },
+                onNavBalance = { idHoja ->
+                    navHostController.NavigateToBalance(idHoja)
+                }
             )
         }
     }

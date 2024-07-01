@@ -33,6 +33,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.miscuentas.R
+import com.app.miscuentas.features.balance.balanceScreen
 import com.app.miscuentas.features.inicio.inicioScreen
 import com.app.miscuentas.features.login.loginScreen
 import com.app.miscuentas.features.gastos.gastosScreen
@@ -73,6 +74,7 @@ fun AppNavHost(
         gastosScreen(innerPadding, navController)
         misGastosScreen(innerPadding, navController)
         participantesScreen(innerPadding, navController)
+        balanceScreen(innerPadding, navController)
     }
 }
 /** *************************FIN**************************** **/
@@ -122,19 +124,9 @@ fun BottomNavigationBar(navControllerMisHojas: NavController) {
                 label = { Text(screen.title, color = colorSeleccionado) },
                 selected = isSelected,
                 onClick = {
-//                    if (screen == MisHojasScreen.MisGastos) {
-//                        // idHoja 0 para que no lo tenga en cuenta
-//                        val idHojaPredeterminado = 0
-//                        navControllerMisHojas.navigate("${screen.route}/$idHojaPredeterminado") {
-//                            // Evitar recrear la pantalla si ya está en la pila
-//                            popUpTo(navControllerMisHojas.graph.startDestinationId)
-//                            launchSingleTop = true
-//                        }
-//                    } else {
                         navControllerMisHojas.navigate(screen.route) {
                             popUpTo(navControllerMisHojas.graph.startDestinationId)
                             launchSingleTop = true
-//                        }
                     }
                 },
                 selectedContentColor = MaterialTheme.colorScheme.onSecondary

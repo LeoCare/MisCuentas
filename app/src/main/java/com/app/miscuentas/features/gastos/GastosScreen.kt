@@ -43,6 +43,7 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
@@ -51,6 +52,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -81,7 +83,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
@@ -107,6 +108,7 @@ fun GastosScreen(
     innerPadding: PaddingValues?,
     idHojaAMostrar: Long?,
     onNavNuevoGasto: (Long) -> Unit,
+    onNavBalance: (Long) -> Unit,
     viewModel: GastosViewModel = hiltViewModel()
 ) {
     val gastosState by viewModel.gastosState.collectAsState()
@@ -228,6 +230,7 @@ fun GastosScreen(
         gastosState.hojaAMostrar,
         listaIconosGastos,
         { onNavNuevoGasto(it) },
+        { onNavBalance(it) },
         viewModel::onBorrarGastoChanged,
         gastosState.permisoCamara,
         { tomarFoto() },
@@ -255,6 +258,7 @@ fun GastosContent(
     hojaDeGastos: HojaConParticipantes?,
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Long) -> Unit,
+    onNavBalance: (Long) -> Unit,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
     permisoCamara: Boolean,
     tomarFoto: () -> Unit,
@@ -345,13 +349,13 @@ fun GastosContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(45.dp),
+                    .height(65.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
 
                 /** RESUMEN: **/
-                Column(
+                Row(
                     Modifier
                         .clickable {
                             obtenerParticipantesYSumaGastos()
@@ -359,16 +363,16 @@ fun GastosContent(
                             showResumen = !showResumen
                             if(showBalance) showBalance = false
                         },
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    verticalAlignment = Alignment.CenterVertically
                 ){
                     Icon(
                         Icons.Default.AccountBox,
                         contentDescription = "Icono de participantes",
-                        tint = if(showResumen) Color.Black else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(26.dp)
+                        tint = if(showResumen) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
                     )
                     Text(
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.bodyLarge,
                         text = "Resumen",
                         color = if(showResumen) Color.Black else MaterialTheme.colorScheme.primary
                     )
@@ -480,16 +484,16 @@ fun GastosContent(
                 }
             }
         }
-        if (hojaEnCurso) {
-            CustomFloatButton(
-                onNavNuevoGasto = { hojaDeGastos?.hoja?.idHoja?.let { onNavNuevoGasto(it) } },
-                modifier = Modifier.align(Alignment.BottomCenter), // Alinear el botón en la esquina inferior derecha
-                showBalance = {
-                    showBalance = false
-                    showResumen = false
-                }
-            )
-        }
+        CustomFloatButton(
+            onNavNuevoGasto =  { onNavNuevoGasto(it) } ,
+            onNavBalance = { onNavBalance(it) },
+            modifier = Modifier.align(Alignment.BottomCenter), // Alinear el botón en la esquina inferior derecha
+            showBalance = {
+                showBalance = false
+                showResumen = false
+            },
+            hojaDeGastos
+        )
     }
 }
 
@@ -581,12 +585,13 @@ fun ImagenCierre(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
+            Icon(
                 modifier = Modifier
-                    .height(45.dp)
-                    .width(45.dp),
-                painter = painterResource(id = R.drawable.cerrar),
-                contentDescription = "Cierre de la Hoja")
+                    .size(50.dp),
+                tint = MaterialTheme.colorScheme.error,
+                imageVector = Icons.Default.Handshake, //IMAGEN DEL GASTO
+                contentDescription = "Cierre de la Hoja",
+            )
             Text(
                 text= "Finalizar",
                 style = MaterialTheme.typography.labelLarge,
@@ -1309,27 +1314,38 @@ fun Balance(
 
 @Composable
 fun CustomFloatButton(
-    onNavNuevoGasto: () -> Unit,
+    onNavNuevoGasto: (Long) -> Unit,
+    onNavBalance: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    showBalance: () -> Unit
+    showBalance: () -> Unit,
+    hojaDeGastos: HojaConParticipantes?
 ) {
+    val imagenVector = if(hojaDeGastos?.hoja?.status == "C") Icons.Filled.Balance  else  Icons.Filled.ShoppingCart
+    val navegarTo = {
+        hojaDeGastos?.hoja?.idHoja?.let {
+            if(hojaDeGastos.hoja.status == "C") onNavNuevoGasto(it) else onNavBalance(it)
+        }
+    }
+
     FloatingActionButton(
         onClick = {
             showBalance()
-             onNavNuevoGasto()
+            navegarTo()
         },
         elevation = FloatingActionButtonDefaults.elevation(13.dp),
         modifier = modifier
             .height(120.dp)
             .width(80.dp)
             .padding(bottom = 54.dp, end = 14.dp), // Añade el padding al botón flotante
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.large,
+        containerColor = MaterialTheme.colorScheme.onPrimaryContainer ,
+        contentColor = MaterialTheme.colorScheme.onPrimary
     ) {
-        Image(
+        Icon(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.inversePrimary),
-            painter = painterResource(id = R.drawable.nuevo_gasto), //IMAGEN DEL GASTO
-            contentDescription = "Logo Hoja",
+                .size(50.dp),
+            imageVector = imagenVector, //IMAGEN DEL GASTO
+            contentDescription = "Pago o Balance",
         )
     }
 

@@ -80,7 +80,9 @@ fun BalanceScreen(
     val balanceState by viewModel.balanceState.collectAsState()
     val context = LocalContext.current
 
-    val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
+    LaunchedEffect(key1 = Unit) {
+        viewModel.onHojaAMostrar(idHojaAMostrar)
+    }
 
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var mensaje by rememberSaveable { mutableStateOf("") }
@@ -205,7 +207,8 @@ fun BalanceContent(
     elegirImagen: () -> Unit,
     imagenUri: Uri?
 ){
-    val montoRegistrado = balanceDeuda!!.firstNotNullOf { it.value } //mi monto
+
+    //val montoRegistrado = balanceDeuda?.firstNotNullOf { it.value } //mi monto
 
     Box(
         modifier = Modifier
@@ -251,7 +254,7 @@ fun BalanceContent(
                                 DatosHoja(hojaDeGastos)
 
                                 LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
-                                    if (balanceDeuda.isNotEmpty()) {
+                                    if (balanceDeuda?.isNotEmpty() == true) {
                                         /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
                                         item {
                                             Text(text = "Deuda:")
