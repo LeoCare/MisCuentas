@@ -1,4 +1,4 @@
-package com.app.miscuentas.features.gastos
+package com.app.miscuentas.features.balance
 
 import android.content.ContentUris
 import android.content.Context
@@ -12,7 +12,6 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.local.repository.BalanceRepository
@@ -20,7 +19,6 @@ import com.app.miscuentas.data.local.repository.FotoRepository
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
-import com.app.miscuentas.util.Contabilidad
 import com.app.miscuentas.util.Validaciones
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -37,7 +35,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class GastosViewModel @Inject constructor(
+class BalanceViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,
     private val hojaCalculoRepository: HojaCalculoRepository,
     private val balanceRepository: BalanceRepository,
@@ -46,183 +44,20 @@ class GastosViewModel @Inject constructor(
     private val fotoRepository: FotoRepository
 ): ViewModel() {
 
-    private val _gastosState = MutableStateFlow(GastosState())
-    val gastosState: StateFlow<GastosState> = _gastosState
+    val _balanceState = MutableStateFlow(BalanceState())
+    val balanceState: StateFlow<BalanceState> = _balanceState
 
-    fun onBorrarGastoChanged(gasto: DbGastosEntity?){
-        _gastosState.value = _gastosState.value.copy(gastoElegido = gasto)
-    }
-    fun onSumaParticipantesChanged(sumaParticipantes: Map<String,Double>){
-        _gastosState.value = _gastosState.value.copy(sumaParticipantes = sumaParticipantes)
-    }
-    fun onBalanceDeudaChanged(mapaDeuda: Map<String,Double>){
-        _gastosState.value = _gastosState.value.copy(balanceDeuda = mapaDeuda)
-    }
-    fun onCierreAceptado(aceptado: Boolean) {
-        _gastosState.value = _gastosState.value.copy(cierreAceptado = aceptado)
-    }
     fun onPagoRealizadoChanged(realizado: Boolean){
-        _gastosState.value = _gastosState.value.copy(pagoRealizado = realizado)
-    }
-    fun onImagenPagoChanged(imagen: String?){
-        _gastosState.value = _gastosState.value.copy(imagenPago = imagen)
+        _balanceState.value = _balanceState.value.copy(pagoRealizado = realizado)
     }
     fun onListaPagosConParticipantesChanged(listaPagosConParticipantes: List<PagoConParticipantes>){
-        _gastosState.value = _gastosState.value.copy(listaPagosConParticipantes = listaPagosConParticipantes)
-    }
-    fun onImageUriChanged(imageUri: Uri?){
-        _gastosState.value = _gastosState.value.copy(imageUri = imageUri)
+        _balanceState.value = _balanceState.value.copy(listaPagosConParticipantes = listaPagosConParticipantes)
     }
     fun onImageAbsolutePathChanged(imageAbsolutePath: String?){
-        _gastosState.value = _gastosState.value.copy(imageAbsolutePath = imageAbsolutePath)
+        _balanceState.value = _balanceState.value.copy(imageAbsolutePath = imageAbsolutePath)
     }
-
-
-    /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
-     * Posteriormetne comprueba si existe un usuario que sea el registrado.
-     * Ademas, actualiza el DataStore. **/
-    fun onHojaAMostrar(idHoja: Long?) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                if (idHoja != null) {
-                    hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
-                        _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
-                        _gastosState.value = _gastosState.value.copy(idRegistrado = dataStoreConfig.getIdRegistroPreference()!!)
-                        comprobarExisteRegistrado()
-                        //Actualizo DataStore con idhoja si esta Activa
-                        if (hojaCalculo?.hoja?.status == "C") {
-                            dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.hoja.idHoja)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /** METODO QUE COMPRUEBA SI EN LA HOJA EXISTE UN PARTICIPANTE PARA EL REGISTRADO **/
-    fun comprobarExisteRegistrado(){
-        val hoja = gastosState.value.hojaAMostrar
-        hoja?.participantes?.forEach {
-            if(it.participante.idRegistroParti == gastosState.value.idRegistrado ){
-                _gastosState.value = _gastosState.value.copy(existeRegistrado = true)
-                return
-            }
-        }
-    }
-
-    /** OBTIENE EL TOTAL DE GASTOS POR PARTICIPANTE PARA PINTAR EN 'RESUMEN' **/
-    fun obtenerParticipantesYSumaGastos() {
-        val hoja = gastosState.value.hojaAMostrar
-        val mapaSumaParticipantes = Contabilidad.obtenerParticipantesYSumaGastos(hoja!!) as MutableMap<String, Double>
-        onSumaParticipantesChanged(mapaSumaParticipantes)
-    }
-
-
-    /** METODO QUE CALCULA EL BALANCE:
-     * Si la hoja esta finalizada el balance se obtiene de la BBDD
-     * **/
-    fun calcularBalance() {
-        val hoja = gastosState.value.hojaAMostrar
-        val mapaDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<String, Double>
-        onBalanceDeudaChanged(mapaDeuda)
-        //si esta finalizada...
-        if (gastosState.value.hojaAMostrar?.hoja?.status == "F") {
-            getHojaConBalances() //..obtengo una HojaConBalance y modifico el mapa(nombre, monto) desde t_balance
-        }
-    }
-
-    /** METODO QUE CALCULA EL BALANCE AL FINALIZAR LA HOJA **/
-    fun calcularBalanceFinal(){
-        val hoja = gastosState.value.hojaAMostrar
-        val hojaConBalances = gastosState.value.hojaConBalances
-        val balanceActual = gastosState.value.balanceDeuda
-        val balances = mutableMapOf<String, Double>()
-
-        balanceActual?.forEach { (nombre, monto) -> //para el primer nombre del mapa de balance
-            hoja?.participantes?.forEach { participantes -> //..busco en la lista de participantes de la hoja
-                if(participantes.participante.nombre == nombre) { //..el que coincida con el nombre
-                    hojaConBalances?.balances?.forEach{balance -> //..busco en t_balance
-                        if(participantes.participante.idParticipante == balance.idParticipanteBalance){ //..el que coincida con el idParticipante
-                            balances[nombre] = balance.monto
-                        }
-                    }
-                }
-            }
-        }
-        onBalanceDeudaChanged(balances)
-        getPagos()
-    }
-
-
-    /** METODO QUE ELIMINA LA LINEA DE T_GASTOS **/
-    //Borrar
-    suspend fun deleteGasto(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                gastoRepository.delete(gastosState.value.gastoElegido)
-            }
-        }
-    }
-
-
-    /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
-    //Actualizar
-    suspend fun updateHoja() = viewModelScope.launch{
-        onCierreAceptado(false)
-        _gastosState.value.hojaAMostrar?.hoja?.status = "F"
-        withContext(Dispatchers.IO) {
-            hojaCalculoRepository.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
-            instanciarInsertarBalance()
-        }
-    }
-
-    /** METODO QUE ACTUALIZA EL PREFERENCE DE IDHOJA A O PARA AQUELLA QUE NO ESTE ACTIVA **/
-    suspend fun updatePreferenceIdHojaPrincipal() {
-        dataStoreConfig.putIdHojaPrincipalPreference(0)
-    }
-
-
-    /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
-    suspend fun instanciarInsertarBalance(){
-        var balances : List<DbBalanceEntity> = listOf()
-        calcularBalance()
-        gastosState.value.balanceDeuda?.forEach { (nombre, monto) ->
-            val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
-            val idParticipante =
-                gastosState.value.hojaAMostrar?.participantes?.firstOrNull {
-                    it.participante.nombre == nombre
-                }?.participante?.idParticipante
-            val deuda = DbBalanceEntity(
-                idBalance = 0,
-                idHojaBalance = gastosState.value.hojaAMostrar?.hoja?.idHoja!!,
-                idParticipanteBalance = idParticipante!!,
-                tipo = if(monto < 0) "D" else if(monto > 0) "A" else "B",
-                monto = montoRedondeado //redondeo y con 2 decimales
-            )
-            balances = balances + deuda
-        }
-
-        insertBalancesForHoja(balances)
-        updatePreferenceIdHojaPrincipal()
-    }
-
-    /** INSERTA DATOS EN T_BALANCE **/
-    private suspend fun insertBalancesForHoja(balances: List<DbBalanceEntity>){
-        balanceRepository.insertBalancesForHoja(gastosState.value.hojaAMostrar?.hoja!!, balances)
-    }
-
-
-
-    /** METODO QUE OBTIENE UNA HOJACONBALANCE DE LA BBDD Y CARGA AL INFO EN UNO DE LOS STATE **/
-    fun getHojaConBalances() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaConBalances(gastosState.value.hojaAMostrar?.hoja!!.idHoja).collect{
-                    _gastosState.value = _gastosState.value.copy(hojaConBalances = it)
-                    calcularBalanceFinal()
-                }
-            }
-        }
+    fun onImageUriChanged(imageUri: Uri?){
+        _balanceState.value = _balanceState.value.copy(imagenUri = imageUri)
     }
 
     /** INSERTAR PAGO DE LA DEUDA **/
@@ -239,10 +74,10 @@ class GastosViewModel @Inject constructor(
 
     /** INSTANCIA UNA ENTIDAD DE T_PAGOS **/
     suspend fun calculoUpdatePago(acreedor: Pair<String, Double>): DbPagoEntity? {
-        val participantes = gastosState.value.hojaAMostrar?.participantes ?: return null
-        val hojaConBalances = gastosState.value.hojaConBalances ?: return null
-        val idRegistrado = gastosState.value.idRegistrado
-        val fotoPago = gastosState.value.imageAbsolutePath
+        val participantes = balanceState.value.hojaAMostrar?.participantes ?: return null
+        val hojaConBalances = balanceState.value.hojaConBalances ?: return null
+        val idRegistrado = balanceState.value.idRegistrado
+        val fotoPago = balanceState.value.imageAbsolutePath
 
         val idPagador = participantes.firstOrNull {
             it.participante.idRegistroParti == idRegistrado
@@ -318,7 +153,7 @@ class GastosViewModel @Inject constructor(
         balanceAcreedor: DbBalanceEntity?,
         montoPagado: Double,
         idFotoPago: Long?
-    ): DbPagoEntity{
+    ): DbPagoEntity {
         return DbPagoEntity(
             idPago = 0,
             idBalance = balanceDeudor!!.idBalance,
@@ -335,7 +170,7 @@ class GastosViewModel @Inject constructor(
         var listaPagos: List<DbPagoEntity> = listOf()
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                gastosState.value.hojaConBalances?.balances?.forEach{
+                balanceState.value.hojaConBalances?.balances?.forEach{
                     listaPagos = listaPagos + pagoRepository.getPagosByDeuda(it.idBalance)
                 }
                 pagosConParticipantes(listaPagos)
@@ -349,8 +184,8 @@ class GastosViewModel @Inject constructor(
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var nombreAcreedor = ""
-        val hoja = gastosState.value.hojaAMostrar
-        val hojaConBalances = gastosState.value.hojaConBalances
+        val hoja = balanceState.value.hojaAMostrar
+        val hojaConBalances = balanceState.value.hojaConBalances
 
         listaPagos.forEach { pago ->
             hojaConBalances?.balances?.forEach { balance ->
@@ -487,5 +322,7 @@ class GastosViewModel @Inject constructor(
     private fun isMediaDocument(uri: Uri): Boolean {
         return "com.android.providers.media.documents" == uri.authority
     }
+
+
 
 }

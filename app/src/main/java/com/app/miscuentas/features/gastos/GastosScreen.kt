@@ -439,7 +439,7 @@ fun GastosContent(
                             permisoCamara = permisoCamara,
                             pagoRealizado = pagoRealizado,
                             exiteRegistrado = existeRegistrado,
-                            participantes = balanceDeuda,
+                            balanceDeuda = balanceDeuda,
                             tomarFoto = tomarFoto,
                             elegirImagen = elegirImagen,
                             pagarDeuda = pagarDeuda,
@@ -973,7 +973,7 @@ fun Balance(
     permisoCamara: Boolean,
     pagoRealizado: Boolean,
     exiteRegistrado: Boolean,
-    participantes: Map<String, Double>?,
+    balanceDeuda: Map<String, Double>?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
     pagarDeuda: (Pair<String, Double>?) -> Unit,
@@ -983,7 +983,7 @@ fun Balance(
     imagenPago: String?,
     obtenerFotoPago: (Long) -> Unit
 ) {
-    val montoRegistrado = participantes!!.firstNotNullOf { it.value } //mi monto
+    val montoRegistrado = balanceDeuda!!.firstNotNullOf { it.value } //mi monto
     val context = LocalContext.current
     var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
@@ -999,7 +999,7 @@ fun Balance(
 
     //AVISO PARA MOSTRAR LOS ACREEDORES A PAGAR:
     var showDialogWhitOptions by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    if (showDialogWhitOptions) participantes.let { listaParticipantes ->
+    if (showDialogWhitOptions) balanceDeuda.let { listaParticipantes ->
         val listaParticipantesSinPrimero = listaParticipantes
             .filter { it.value > 0.0 } // Filtrar valores mayores a 0.0
             .toList() // Convertir a lista
@@ -1049,7 +1049,7 @@ fun Balance(
     ) {
 
         LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
-            if (participantes.isNotEmpty()){
+            if (balanceDeuda.isNotEmpty()){
 
                 /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
                 item{
@@ -1059,7 +1059,7 @@ fun Balance(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        items(participantes.toList(), key = { it.first }) { (nombre, monto) ->
+                        items(balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
                             ResumenBalanceDesing(
                                 participante = nombre,
                                 monto = monto,

@@ -1,4 +1,4 @@
-package com.app.miscuentas.features.balances
+package com.app.miscuentas.features.balance
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
