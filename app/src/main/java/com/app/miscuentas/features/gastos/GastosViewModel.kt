@@ -272,17 +272,21 @@ class GastosViewModel @Inject constructor(
         return BigDecimal(this).setScale(2, RoundingMode.HALF_UP).toDouble()
     }
 
+    fun Double.esMontoPequeno(): Boolean {
+        return (this.redondearADosDecimales() == -0.01 || this.redondearADosDecimales() == 0.01)
+    }
+
     fun calcularNuevosMontos(deuda: Double, acreedor: Double): Triple<Double, Double, Double> {
         val resto = deuda + acreedor
-        return if (resto < 0.0) {
+        return if (resto < 0) {
             Triple(resto, acreedor, 0.0)
         } else {
             Triple(0.0, acreedor - resto, resto)
         }.let { (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) ->
             Triple(
-                nuevoMontoDeudor,
+                if (nuevoMontoDeudor.esMontoPequeno()) 0.0 else nuevoMontoDeudor,
                 montoPagado,
-                montoAcreedorActualizado
+                if (montoAcreedorActualizado.esMontoPequeno()) 0.0 else montoAcreedorActualizado
             )
         }
     }
@@ -295,14 +299,14 @@ class GastosViewModel @Inject constructor(
         montoAcreedorRedondeado: Double
     ): Boolean {
         val exitoDeudor = balanceDeudor?.let {
-            it.monto = nuevoMontoDeudor.redondearADosDecimales()
-            if (nuevoMontoDeudor == 0.0) it.tipo = "B"
+            it.monto = nuevoMontoDeudor
+            if (it.monto == 0.0) it.tipo = "B"
             balanceRepository.updateBalance(it)
         } ?: false
 
         val exitoAcreedor = balanceAcreedor?.let {
-            it.monto = montoAcreedorRedondeado.redondearADosDecimales()
-            if (montoAcreedorRedondeado == 0.0) it.tipo = "B"
+            it.monto = montoAcreedorRedondeado
+            if (it.monto == 0.0) it.tipo = "B"
             balanceRepository.updateBalance(it)
         } ?: false
 
