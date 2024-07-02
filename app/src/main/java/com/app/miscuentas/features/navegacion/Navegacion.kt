@@ -156,6 +156,7 @@ fun MiTopBar(
                     text = when { //para que no pinte el nombre de la screen mas el del parametro.
                         currentScreen.startsWith("GASTOS") -> "GASTOS"
                         currentScreen.startsWith("NUEVO") -> "NUEVO GASTO"
+                        currentScreen.startsWith("BALANCE") -> "BALANCE"
                         else -> {currentScreen}
                     },
                     fontSize = 25.sp

@@ -9,7 +9,6 @@ data class BalanceState (
     val imagenPago: String? = null,
     val imagenUri: Uri? = null,
     val imagenAbsolutePath: String? = null,
-    val hojaDeGastos: HojaConParticipantes? = null,
     val hojaAMostrar: HojaConParticipantes? = null,
     val hojaConBalances: HojaConBalances? = null,
     val idRegistrado: Long = 0,

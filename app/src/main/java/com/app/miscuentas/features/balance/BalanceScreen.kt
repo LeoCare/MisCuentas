@@ -181,15 +181,15 @@ fun BalanceScreen(
 
     BalanceContent(
         innerPadding = innerPadding,
-        hojaDeGastos = balanceState.hojaDeGastos,
+        hojaDeGastos = balanceState.hojaAMostrar,
         balanceDeuda = balanceState.balanceDeuda,
         existeRegistrado = balanceState.existeRegistrado,
         pagoRealizado = balanceState.pagoRealizado,
-        viewModel::onPagoRealizadoChanged,
-        viewModel::pagarDeuda,
-        { tomarFoto() },
-        { elegirImagen() },
-         imagenUri = balanceState.imagenUri
+        onPagoRealizadoChanged = viewModel::onPagoRealizadoChanged,
+        pagarDeuda = viewModel::pagarDeuda,
+        tomarFoto = { tomarFoto() },
+        elegirImagen = { elegirImagen() },
+        imagenUri = balanceState.imagenUri
     )
 }
 
@@ -208,7 +208,7 @@ fun BalanceContent(
     imagenUri: Uri?
 ){
 
-    //val montoRegistrado = balanceDeuda?.firstNotNullOf { it.value } //mi monto
+    val montoRegistrado = balanceDeuda?.firstNotNullOf { it.value } //mi monto
 
     Box(
         modifier = Modifier
@@ -250,44 +250,41 @@ fun BalanceContent(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                DatosHoja(hojaDeGastos)
-
-                                LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
-                                    if (balanceDeuda?.isNotEmpty() == true) {
-                                        /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
-                                        item {
-                                            Text(text = "Deuda:")
-                                            LazyRow(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                items(
-                                                    balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
-                                                    BalanceDesing(
-                                                        participante = nombre,
-                                                        monto = monto,
-                                                        paddVert = 10
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        /** RECUADRO CON ACCIONES DE RESOLUCION **/
-                                        item {
-                                            ResolucionBox(
-                                                existeRegistrado = existeRegistrado,
-                                                balanceDeuda = balanceDeuda,
-                                                pagoRealizado = pagoRealizado,
-                                                onPagoRealizadoChanged = onPagoRealizadoChanged,
-                                                pagarDeuda = pagarDeuda,
-                                                tomarFoto = tomarFoto,
-                                                elegirImagen = elegirImagen,
-                                                imagenUri = imagenUri
+                            DatosHoja(hojaDeGastos)
+                        }
+                        LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
+                            if (balanceDeuda?.isNotEmpty() == true) {
+                                /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
+                                item {
+                                    Text(text = "Deuda:")
+                                    LazyRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        items(
+                                            balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
+                                            BalanceDesing(
+                                                participante = nombre,
+                                                monto = monto,
+                                                paddVert = 10
                                             )
                                         }
                                     }
+                                }
+
+                                /** RECUADRO CON ACCIONES DE RESOLUCION **/
+                                item {
+                                    ResolucionBox(
+                                        existeRegistrado = existeRegistrado,
+                                        balanceDeuda = balanceDeuda,
+                                        pagoRealizado = pagoRealizado,
+                                        onPagoRealizadoChanged = onPagoRealizadoChanged,
+                                        pagarDeuda = pagarDeuda,
+                                        tomarFoto = tomarFoto,
+                                        elegirImagen = elegirImagen,
+                                        imagenUri = imagenUri
+                                    )
                                 }
                             }
                         }
@@ -301,50 +298,53 @@ fun BalanceContent(
 
 @Composable
 fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
-    Row {
-        Text(
-            text =  when (hojaDeGastos?.hoja?.status) {
-                "C" -> "Activa"
-                "A" -> "Anulada"
-                "B" -> "Balanceada"
-                else ->"Finalizada"
-            },
-            fontSize = 20.sp,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
-    Row {
+    Column {
+        Row {
+            Text(
+                text = when (hojaDeGastos?.hoja?.status) {
+                    "C" -> "Activa"
+                    "A" -> "Anulada"
+                    "B" -> "Balanceada"
+                    else -> "Finalizada"
+                },
+                fontSize = 20.sp,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
+        Row {
 
-        Text(
-            text = "Fecha Cierre: ",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-    Row {
-        Text(
-            text = "Limite: ",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-    Row(modifier = Modifier.padding(bottom = 10.dp)) {
-        Text(
-            text = "Participantes: ",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = hojaDeGastos?.participantes?.size.toString(),
-            style = MaterialTheme.typography.bodyLarge
-        )
+            Text(
+                text = "Fecha Cierre: ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Row {
+            Text(
+                text = "Limite: ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = if (hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Row(modifier = Modifier.padding(bottom = 10.dp)) {
+            Text(
+                text = "Participantes: ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = hojaDeGastos?.participantes?.size.toString(),
+                style = MaterialTheme.typography.bodyLarge
+
+            )
+        }
     }
 }
 

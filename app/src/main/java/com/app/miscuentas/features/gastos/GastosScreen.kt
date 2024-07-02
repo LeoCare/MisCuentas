@@ -331,9 +331,9 @@ fun GastosContent(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                DatosHoja(hojaDeGastos)
-                            }
+
+                            DatosHoja(hojaDeGastos)
+
                             if (hojaDeGastos?.hoja?.status != "F"){
                                 Column {
                                     ImagenCierre(hojaDeGastos, { onCierreAceptado(it) })
@@ -499,50 +499,52 @@ fun GastosContent(
 
 @Composable
 fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
-    Row {
-        Text(
-            text =  when (hojaDeGastos?.hoja?.status) {
-                "C" -> "Activa"
-                "A" -> "Anulada"
-                "B" -> "Balanceada"
-                else ->"Finalizada"
-            },
-            fontSize = 20.sp,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleSmall
-        )
-    }
-    Row {
+    Column {
+        Row {
+            Text(
+                text = when (hojaDeGastos?.hoja?.status) {
+                    "C" -> "Activa"
+                    "A" -> "Anulada"
+                    "B" -> "Balanceada"
+                    else -> "Finalizada"
+                },
+                fontSize = 20.sp,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
+        Row {
 
-        Text(
-            text = "Fecha Cierre: ",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-    Row {
-        Text(
-            text = "Limite: ",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = if(hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-    Row(modifier = Modifier.padding(bottom = 10.dp)) {
-        Text(
-            text = "Participantes: ",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = hojaDeGastos?.participantes?.size.toString(),
-            style = MaterialTheme.typography.bodyLarge
-        )
+            Text(
+                text = "Fecha Cierre: ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Row {
+            Text(
+                text = "Limite: ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = if (hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Row(modifier = Modifier.padding(bottom = 10.dp)) {
+            Text(
+                text = "Participantes: ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = hojaDeGastos?.participantes?.size.toString(),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
     }
 }
 
@@ -1320,7 +1322,7 @@ fun CustomFloatButton(
     showBalance: () -> Unit,
     hojaDeGastos: HojaConParticipantes?
 ) {
-    val imagenVector = if(hojaDeGastos?.hoja?.status == "C") Icons.Filled.Balance  else  Icons.Filled.ShoppingCart
+    val imagenVector = if(hojaDeGastos?.hoja?.status == "C") Icons.Filled.ShoppingCart  else  Icons.Filled.Balance
     val navegarTo = {
         hojaDeGastos?.hoja?.idHoja?.let {
             if(hojaDeGastos.hoja.status == "C") onNavNuevoGasto(it) else onNavBalance(it)
@@ -1338,7 +1340,7 @@ fun CustomFloatButton(
             .width(80.dp)
             .padding(bottom = 54.dp, end = 14.dp), // Añade el padding al botón flotante
         shape = MaterialTheme.shapes.large,
-        containerColor = MaterialTheme.colorScheme.onPrimaryContainer ,
+        containerColor = if(hojaDeGastos?.hoja?.status == "C") MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary
     ) {
         Icon(
