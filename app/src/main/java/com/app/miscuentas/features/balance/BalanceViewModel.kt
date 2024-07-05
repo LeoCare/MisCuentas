@@ -59,9 +59,6 @@ class BalanceViewModel @Inject constructor(
     fun onListaPagosConParticipantesChanged(listaPagosConParticipantes: List<PagoConParticipantes>){
         _balanceState.value = _balanceState.value.copy(listaPagosConParticipantes = listaPagosConParticipantes)
     }
-    fun onImageAbsolutePathChanged(imageAbsolutePath: String?){
-        _balanceState.value = _balanceState.value.copy(imageAbsolutePath = imageAbsolutePath)
-    }
     fun onImageUriChanged(imageUri: Uri?){
         _balanceState.value = _balanceState.value.copy(imagenUri = imageUri)
     }
@@ -167,7 +164,7 @@ class BalanceViewModel @Inject constructor(
         val participantes = balanceState.value.hojaAMostrar?.participantes ?: return null
         val hojaConBalances = balanceState.value.hojaConBalances ?: return null
         val idRegistrado = balanceState.value.idRegistrado
-        val fotoPago = balanceState.value.imageAbsolutePath
+        val fotoPago = balanceState.value.imagenUri
 
         val idPagador = participantes.firstOrNull {
             it.participante.idRegistroParti == idRegistrado
@@ -182,7 +179,7 @@ class BalanceViewModel @Inject constructor(
 
         val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
 
-        val idFotoPago = insertFoto(fotoPago)
+        val idFotoPago = insertFoto(fotoPago.toString())
         val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
 
         return if (actualizado) {
@@ -262,44 +259,46 @@ class BalanceViewModel @Inject constructor(
             withContext(Dispatchers.IO){
                 balanceState.value.hojaConBalances?.balances?.forEach{
                     listaPagos = listaPagos + pagoRepository.getPagosByDeuda(it.idBalance)
+                    pagosConParticipantes(listaPagos)
                 }
-                pagosConParticipantes(listaPagos)
             }
         }
     }
 
 
     /** METODO QUE CREA UNA LISTA DE PAGOS CON PARTICIPANTES, SU MONTO Y FECHA **/
-    fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
+    suspend fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var nombreAcreedor = ""
+        var imagenUri: String? = null
         val hoja = balanceState.value.hojaAMostrar
         val hojaConBalances = balanceState.value.hojaConBalances
 
         listaPagos.forEach { pago ->
             hojaConBalances?.balances?.forEach { balance ->
-                if (pago.idBalance == balance.idBalance) {
+                if (pago.idBalance == balance.idBalance) { //Obtengo Deudor
                     hoja?.participantes?.forEach { participantes ->
                         if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
                             nombreDeudor = participantes.participante.nombre
                         }
                     }
                 }
-                if (pago.idBalancePagado == balance.idBalance) {
+                if (pago.idBalancePagado == balance.idBalance) { //Obtengo Acreedor
                     hoja?.participantes?.forEach { participantes ->
                         if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
                             nombreAcreedor = participantes.participante.nombre
                         }
                     }
                 }
+                imagenUri = getFotoPago(pago.idFotoPago!!)
             }
             val pagoConParticipantes = PagoConParticipantes(
                 nombreDeudor,
                 nombreAcreedor,
                 pago.monto,
                 pago.fechaPago,
-                pago.idFotoPago,
+                Uri.parse(imagenUri),
                 (pago.fechaConfirmacion.isNotEmpty())
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
@@ -319,98 +318,10 @@ class BalanceViewModel @Inject constructor(
         return fotoRepository.getFoto(idFoto).firstOrNull()?.rutaFoto
     }
 
-    fun obtenerFotoPago(idFoto: Long) {
-        viewModelScope.launch {
-            val rutaFoto = getFotoPago(idFoto)
-            onImageAbsolutePathChanged(rutaFoto)
-
-        }
-    }
 
     @OptIn(ExperimentalPermissionsApi::class)
     fun solicitaPermisos(statePermisosAlmacenamiento: MultiplePermissionsState)  {
         statePermisosAlmacenamiento.launchMultiplePermissionRequest()
-    }
-
-
-    fun getPathFromUri(context: Context, uri: Uri): String? {
-        val isKitKat = true
-
-        // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            when {
-                isExternalStorageDocument(uri) -> {
-                    val docId = DocumentsContract.getDocumentId(uri)
-                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    val type = split[0]
-                    if ("primary".equals(type, ignoreCase = true)) {
-                        return "${Environment.getExternalStorageDirectory()}/${split[1]}"
-                    }
-                    // Handle non-primary volumes
-                }
-                isDownloadsDocument(uri) -> {
-                    val id = DocumentsContract.getDocumentId(uri)
-                    val contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id)
-                    )
-                    return getDataColumn(context, contentUri, null, null)
-                }
-                isMediaDocument(uri) -> {
-                    val docId = DocumentsContract.getDocumentId(uri)
-                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    val type = split[0]
-                    var contentUri: Uri? = null
-                    when (type) {
-                        "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                        "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                        "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                    }
-                    val selection = "_id=?"
-                    val selectionArgs = arrayOf(split[1])
-                    return getDataColumn(context, contentUri, selection, selectionArgs)
-                }
-            }
-        } else if ("content".equals(uri.scheme, ignoreCase = true)) {
-            return getDataColumn(context, uri, null, null)
-        } else if ("file".equals(uri.scheme, ignoreCase = true)) {
-            return uri.path
-        }
-
-        return null
-    }
-
-    private fun getDataColumn(context: Context, uri: Uri?, selection: String?,
-                              selectionArgs: Array<String>?): String? {
-
-        var cursor: Cursor? = null
-        val column = "_data"
-        val projection = arrayOf(column)
-
-        try {
-            cursor = uri?.let {
-                context.contentResolver.query(it, projection, selection, selectionArgs,
-                    null)
-            }
-            if (cursor != null && cursor.moveToFirst()) {
-                val columnIndex: Int = cursor.getColumnIndexOrThrow(column)
-                return cursor.getString(columnIndex)
-            }
-        } finally {
-            cursor?.close()
-        }
-        return null
-    }
-
-    private fun isExternalStorageDocument(uri: Uri): Boolean {
-        return "com.android.externalstorage.documents" == uri.authority
-    }
-
-    private fun isDownloadsDocument(uri: Uri): Boolean {
-        return "com.android.providers.downloads.documents" == uri.authority
-    }
-
-    private fun isMediaDocument(uri: Uri): Boolean {
-        return "com.android.providers.media.documents" == uri.authority
     }
 
 }

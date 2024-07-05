@@ -47,7 +47,7 @@ import com.app.miscuentas.features.nueva_hoja.nuevaHojaScreen
 import com.app.miscuentas.features.nuevo_gasto.nuevoGastoScreen
 import com.app.miscuentas.features.splash.SPLASH_ROUTE
 import com.app.miscuentas.features.splash.splashScreen
-import com.app.miscuentas.util.Captura
+import com.app.miscuentas.util.Imagen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -185,7 +185,7 @@ fun MiTopBar(
             },
             actions = {
                 IconButton(
-                    onClick = { Captura.capturarYEnviar(activity) }
+                    onClick = { Imagen.capturarYEnviar(activity) }
                 ) {
                     Icon(Icons.Filled.Share, contentDescription = "Compartir")
                 }

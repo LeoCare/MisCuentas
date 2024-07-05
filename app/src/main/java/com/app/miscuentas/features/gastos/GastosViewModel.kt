@@ -150,7 +150,6 @@ class GastosViewModel @Inject constructor(
             }
         }
         onBalanceDeudaChanged(balances)
-        getPagos()
     }
 
 
@@ -330,58 +329,6 @@ class GastosViewModel @Inject constructor(
         )
     }
 
-    /** METODO QUE OBTIENE UNA LISTA DE LOS PAGOS PARA UN BALANCE **/
-    fun getPagos(){
-        var listaPagos: List<DbPagoEntity> = listOf()
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                gastosState.value.hojaConBalances?.balances?.forEach{
-                    listaPagos = listaPagos + pagoRepository.getPagosByDeuda(it.idBalance)
-                }
-                pagosConParticipantes(listaPagos)
-            }
-        }
-    }
-
-
-    /** METODO QUE CREA UNA LISTA DE PAGOS CON PARTICIPANTES, SU MONTO Y FECHA **/
-    fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
-        var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
-        var nombreDeudor = ""
-        var nombreAcreedor = ""
-        val hoja = gastosState.value.hojaAMostrar
-        val hojaConBalances = gastosState.value.hojaConBalances
-
-        listaPagos.forEach { pago ->
-            hojaConBalances?.balances?.forEach { balance ->
-                if (pago.idBalance == balance.idBalance) {
-                    hoja?.participantes?.forEach { participantes ->
-                        if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
-                            nombreDeudor = participantes.participante.nombre
-                        }
-                    }
-                }
-                if (pago.idBalancePagado == balance.idBalance) {
-                    hoja?.participantes?.forEach { participantes ->
-                        if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
-                            nombreAcreedor = participantes.participante.nombre
-                        }
-                    }
-                }
-            }
-            val pagoConParticipantes = PagoConParticipantes(
-                nombreDeudor,
-                nombreAcreedor,
-                pago.monto,
-                pago.fechaPago,
-                pago.idFotoPago,
-                (pago.fechaConfirmacion.isNotEmpty())
-            )
-            listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
-
-        }
-        onListaPagosConParticipantesChanged(listPagosConParticipantes)
-    }
 
     /** INSERTAR IMAGEN EN LA BBDD **/
     suspend fun insertFoto(foto: String?): Long?{

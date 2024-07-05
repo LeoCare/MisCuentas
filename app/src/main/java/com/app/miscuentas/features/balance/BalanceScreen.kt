@@ -1,10 +1,12 @@
 package com.app.miscuentas.features.balance
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -68,15 +70,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
-import com.app.miscuentas.features.gastos.PagoDesing
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
 import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
+import com.app.miscuentas.util.Imagen
+import com.app.miscuentas.util.Imagen.Companion.createTempPictureUri
+import com.app.miscuentas.util.Imagen.Companion.saveImageToGallery
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import java.text.NumberFormat
 import kotlin.math.abs
 
@@ -129,27 +135,12 @@ fun BalanceScreen(
     )
     /**************************/
 
-    /** GALERIA DE IMAGENES **/
-    val singleImagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            viewModel.onImageUriChanged(uri)
-            val ruta = viewModel.getPathFromUri(context, uri)
-            viewModel.onImageAbsolutePathChanged(ruta)
-        }
-    }
+    /** IMAGENES **/
 
-    val elegirImagen = {
-        singleImagePickerLauncher.launch(
-            PickVisualMediaRequest(
-                ActivityResultContracts.PickVisualMedia.ImageOnly
-            )
-        ) }
-    /**************************/
-
-    /** CAMARA DE FOTOS **/
     var tempPhotoUri by remember { mutableStateOf(value = Uri.EMPTY) }
 
-    //LANZA LA CAMARA
+    /** Lanzadores **/
+    //Lanza la camara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
@@ -158,22 +149,19 @@ fun BalanceScreen(
             }
         }
     )
-
-    //CREAR ARCHIVO URI
-    fun Context.createTempPictureUri(
-        fileName: String = "IMG_${System.currentTimeMillis()}",
-        fileExtension: String = ".jpg"
-    ): Uri {
-        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera")
-        if (!storageDir.exists()) {
-            storageDir.mkdirs()
+    //Lanza la galeria
+    val singleImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                saveImageToGallery(context,uri)
+                viewModel.onImageUriChanged(uri)
+            }
         }
-        val tempFile = File(storageDir, "$fileName$fileExtension")
-        viewModel.onImageAbsolutePathChanged(tempFile.absolutePath)
-        return FileProvider.getUriForFile(this, "${packageName}.provider", tempFile)
-    }
+    )
 
-    //AL PRESIONAR EL BOTON DE LA CAMARA:
+    /** Funciones para llamar a los lanzadores **/
+    //Al presionar el boton de la camara:
     val tomarFoto = {
         viewModel.solicitaPermisos(statePermisoAlmacenamiento)
         if(statePermisoAlmacenamiento.allPermissionsGranted) {
@@ -188,22 +176,27 @@ fun BalanceScreen(
             showDialog = true
         }
     }
+    //Al presionar el boton de la galeria:
+    val elegirImagen = {
+        singleImagePickerLauncher.launch(
+            PickVisualMediaRequest(
+                ActivityResultContracts.PickVisualMedia.ImageOnly
+            )
+        )
+    }
     /******************************************************/
 
     BalanceContent(
         innerPadding = innerPadding,
         hojaDeGastos = balanceState.hojaAMostrar,
         balanceDeuda = balanceState.balanceDeuda,
-        existeRegistrado = balanceState.existeRegistrado,
         pagoRealizado = balanceState.pagoRealizado,
         onPagoRealizadoChanged = viewModel::onPagoRealizadoChanged,
         pagarDeuda = viewModel::pagarDeuda,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
         imagenUri = balanceState.imagenUri,
-        listPagos = balanceState.listaPagosConParticipantes,
-        imagenPago = balanceState.imageAbsolutePath,
-        obtenerFotoPago = viewModel::obtenerFotoPago
+        listPagos = balanceState.listaPagosConParticipantes
     )
 }
 
@@ -213,19 +206,14 @@ fun BalanceContent(
     innerPadding: PaddingValues?,
     hojaDeGastos: HojaConParticipantes?,
     balanceDeuda: Map<String, Double>?,
-    existeRegistrado: Boolean,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?) -> Unit,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
     imagenUri: Uri?,
-    listPagos: List<PagoConParticipantes>?,
-    imagenPago: String?,
-    obtenerFotoPago: (Long) -> Unit
+    listPagos: List<PagoConParticipantes>?
 ){
-
-    val montoRegistrado = balanceDeuda?.firstNotNullOf { it.value } //mi monto
     var showBalance by rememberSaveable { mutableStateOf(false) }
 
     Box(
@@ -245,7 +233,7 @@ fun BalanceContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(35.dp)
-                    .padding(end = 10.dp),
+                    .padding(end = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ){
@@ -255,42 +243,22 @@ fun BalanceContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ){
-                    Text(
-                        style = MaterialTheme.typography.titleMedium,
-                        text = "Balance",
-                        color = if(showBalance) Color.Black else MaterialTheme.colorScheme.primary
-                    )
                     Icon(
                         Icons.Default.Payments,
                         contentDescription = "Iconos de pagos",
                         tint = if(showBalance) Color.Black else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(40.dp)
                     )
-
+                    Text(
+                        style = MaterialTheme.typography.titleMedium,
+                        text = "Balance",
+                        color = if(showBalance) Color.Black else MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
             LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
                 if (balanceDeuda?.isNotEmpty() == true) {
-
-                    /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
-                    item {
-
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            items(
-                                balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
-                                BalanceDesing(
-                                    participante = nombre,
-                                    monto = monto,
-                                    paddVert = 10
-                                )
-                            }
-                        }
-                    }
 
                     /** RECUADRO CON ACCIONES DE RESOLUCION **/
                     item {
@@ -305,7 +273,6 @@ fun BalanceContent(
                                     .padding(top = 15.dp)
                             ) {
                                 ResolucionBox(
-                                    existeRegistrado = existeRegistrado,
                                     balanceDeuda = balanceDeuda,
                                     pagoRealizado = pagoRealizado,
                                     onPagoRealizadoChanged = onPagoRealizadoChanged,
@@ -317,24 +284,36 @@ fun BalanceContent(
                             }
                         }
                     }
+
+                    /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
+                    item {
+                        Text(text = "Resultado:")
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            items(
+                                balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
+                                BalanceDesing(
+                                    participante = nombre,
+                                    monto = monto,
+                                    paddVert = 10
+                                )
+                            }
+                        }
+                    }
+
                     /** LISTA DE PAGOS **/
-                    if (!listPagos.isNullOrEmpty()){
+                    if (!listPagos.isNullOrEmpty()) {
                         item {
                             Spacer(modifier = Modifier.size(25.dp))
                             Text(text = "Pagos:")
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                items(listPagos) { pago ->
-                                    PagoDesing(
-                                        pago,
-                                        imagenPago,
-                                        obtenerFotoPago
-                                    )
-                                }
-                            }
+                        }
+
+                        items(listPagos, key = { it.monto }) { pago ->
+                            PagoDesing( pago )
                         }
                     }
                 }
@@ -443,7 +422,7 @@ fun BalanceDesing(
         shape = RoundedCornerShape(18.dp),
         elevation = 6.dp,
         modifier = Modifier
-            .padding(vertical = paddVert.dp)
+            .padding(vertical = paddVert.dp, horizontal = 10.dp)
             .fillMaxWidth()
     ) {
         Column(
@@ -475,8 +454,6 @@ fun BalanceDesing(
 @Composable
 fun PagoDesing(
     pago: PagoConParticipantes,
-    imagenPago: String?,
-    obtenerFotoPago: (Long) -> Unit
 ){
     val context = LocalContext.current
     //Aviso de la opcion elegida:
@@ -489,28 +466,28 @@ fun PagoDesing(
     }
 
     if (showFoto){
-        if (imagenPago != null) {
+        if (pago.fotoPago != null) {
             MiImagenDialog(
                 show = true,
-                imagen = imagenPago,
+                imagen =  pago.fotoPago,
                 cerrar = { showFoto = false }
             )
         }
+        else Toast.makeText(context, "No hay foto adjuntada al pago.", Toast.LENGTH_SHORT).show()
     }
-
 
     Surface(
         shape = RoundedCornerShape(10.dp),
         elevation = 15.dp,
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 12.dp)
+            .padding(vertical = 14.dp, horizontal = 12.dp)
             .fillMaxWidth()
 
     ) {
         Column(
             modifier = Modifier
                 .width(180.dp)
-                .padding(vertical = 4.dp, horizontal = 7.dp)
+                .padding(vertical = 14.dp, horizontal = 17.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -524,24 +501,10 @@ fun PagoDesing(
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.bodyMedium
                 )
-
             }
             Row(
                 modifier = Modifier
-                    .padding(bottom = 4.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = currencyFormatter.format(pago.monto),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
+                    .padding(bottom = 10.dp)
                     .fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -560,49 +523,53 @@ fun PagoDesing(
                         fontSize = 17.sp
                     )
                 }
+                Text(
+                    text = currencyFormatter.format(pago.monto),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
             Row(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.Start
             ) {
+                /** FOTO **/
                 Card(
-                    elevation = CardDefaults.cardElevation(12.dp),
                     shape = MaterialTheme.shapes.small,
                     colors = CardDefaults.cardColors(Color.Transparent),
-                    modifier = Modifier.clickable {
-                        pago.fotoPago?.let { fotoPago ->
-                            obtenerFotoPago(fotoPago)
-                            showFoto = true
-                        }
-
-                    },
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .clickable { showFoto = true}
                 ) {
                     Icon(
                         Icons.Default.Photo,
                         contentDescription = "Iconos de la camara",
                         tint = if (pago.fotoPago != null) MaterialTheme.colorScheme.primary else Color.DarkGray,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(35.dp)
                     )
                 }
+                /** CONFIRMACION **/
                 Card(
-                    elevation = CardDefaults.cardElevation(12.dp),
                     shape = MaterialTheme.shapes.small,
                     colors = CardDefaults.cardColors(Color.Transparent),
-                    modifier = Modifier.clickable {
-                        Toast.makeText(
-                            context,
-                            "${pago.nombreAcreedor} no ha confirmado aun.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
+                    modifier = Modifier
+                        .padding(start = 70.dp)
+                        .clickable {
+                            Toast
+                                .makeText(
+                                    context,
+                                    "${pago.nombreAcreedor} no ha confirmado aun.",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+                        },
                 ) {
                     Icon(
                         Icons.Filled.Handshake,
                         contentDescription = "Iconos de confirmacion del pago",
                         tint = if (pago.confirmado) Color.Green else Color.DarkGray,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(35.dp)
                     )
                 }
             }
@@ -612,7 +579,6 @@ fun PagoDesing(
 
 @Composable
 fun ResolucionBox(
-    existeRegistrado: Boolean,
     balanceDeuda: Map<String, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
@@ -684,7 +650,6 @@ fun ResolucionBox(
             }
         )
     }
-    Text(text = "Resolucion:")
     Card(
         shape = RoundedCornerShape(4.dp),
         colors = CardDefaults.cardColors(
@@ -705,9 +670,6 @@ fun ResolucionBox(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                if (existeRegistrado && montoRegistrado == 0.0) {
-                    Text(text = "Nada que resolver")
-                }
 
                 /** PASO 1: ELEGIR ACREEDOR **/
                 Paso1(
@@ -758,53 +720,57 @@ fun Paso1(
             .fillMaxWidth()
     ) {
         Text(
-            text = "1 - " + if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "Pagar a..." else "Saldado",
+            text = if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "1 - Pagar a..." else "Saldado",
             fontWeight = FontWeight.Black,
             style = MaterialTheme.typography.bodyMedium
         )
-        if (opcionSeleccionada != null) {
-            Text(
-                text = opcionSeleccionada.first,
-                fontSize = 25.sp,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .clickable {
-                        if (montoRegistrado > 0) Toast.makeText(
-                            context,
-                            "Se ha solicitado el pago a los deudores",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        else {
-                            onTituloChanged("PAGAR A..")
-                            onMensajeChanged("(Solo se descontará tu parte de la deuda)")
-                            mostrarDialogo(true)
-                        }
-                    },
-                color = MaterialTheme.colorScheme.primary
-            )
-        } else {
-            Icon(
-                Icons.Filled.People,
-                "Elegir Participante",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(30.dp)
-                    .clickable {
-                        if (montoRegistrado > 0) Toast
-                            .makeText(
+        if (montoRegistrado != 0.0) {
+
+
+            if (opcionSeleccionada != null) {
+                Text(
+                    text = opcionSeleccionada.first,
+                    fontSize = 25.sp,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .clickable {
+                            if (montoRegistrado > 0) Toast.makeText(
                                 context,
                                 "Se ha solicitado el pago a los deudores",
                                 Toast.LENGTH_SHORT
-                            )
-                            .show()
-                        else {
-                            onTituloChanged("PAGAR A..")
-                            onMensajeChanged("(Solo se descontará tu parte de la deuda)")
-                            mostrarDialogo(true)
+                            ).show()
+                            else {
+                                onTituloChanged("PAGAR A..")
+                                onMensajeChanged("(Solo se descontará tu parte de la deuda)")
+                                mostrarDialogo(true)
+                            }
+                        },
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Icon(
+                    Icons.Filled.People,
+                    "Elegir Participante",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable {
+                            if (montoRegistrado > 0) Toast
+                                .makeText(
+                                    context,
+                                    "Se ha solicitado el pago a los deudores",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+                            else {
+                                onTituloChanged("PAGAR A..")
+                                onMensajeChanged("(Solo se descontará tu parte de la deuda)")
+                                mostrarDialogo(true)
+                            }
                         }
-                    }
-            )
+                )
 
+            }
         }
         if (opcionSeleccionada?.second != null) {
             Text(
@@ -895,18 +861,23 @@ fun Paso3(
                     if (opcionSeleccionada != null) {
                         titulo("CONFIRMAR")
                         mensaje(
-                            "Si acepta se enviará un mensaje a ${opcionSeleccionada?.first} por el pago de ${
-                                if (opcionSeleccionada!!.second > abs(
+                            "Si acepta se enviará un mensaje a ${opcionSeleccionada.first} por el pago de ${
+                                if (opcionSeleccionada.second > abs(
                                         montoRegistrado
                                     )
-                                ) NumberFormat.getCurrencyInstance().format(
-                                    abs(
-                                        montoRegistrado
+                                ) NumberFormat
+                                    .getCurrencyInstance()
+                                    .format(
+                                        abs(
+                                            montoRegistrado
+                                        )
+                                    ) else NumberFormat
+                                    .getCurrencyInstance()
+                                    .format(
+                                        opcionSeleccionada.second
                                     )
-                                ) else NumberFormat.getCurrencyInstance().format(
-                                    opcionSeleccionada!!.second
-                                )
-                            }")
+                            }"
+                        )
                         mostrarConfirmacion(true)
                     }
                 },

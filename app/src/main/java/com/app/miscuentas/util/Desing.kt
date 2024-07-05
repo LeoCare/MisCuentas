@@ -256,7 +256,7 @@ class Desing {
 
 
         @Composable
-        fun MiImagenDialog(show:Boolean, imagen: String, cerrar: () -> Unit) {
+        fun MiImagenDialog(show:Boolean, imagen: Uri, cerrar: () -> Unit) {
             if (show) {
                 AlertDialog(
                     onDismissRequest = { cerrar() },
