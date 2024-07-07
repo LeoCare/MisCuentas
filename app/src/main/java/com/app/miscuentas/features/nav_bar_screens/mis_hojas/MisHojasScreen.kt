@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -92,7 +95,10 @@ fun MisHojasScreen(
             )
         }
     } else {
-        Column(horizontalAlignment = CenterHorizontally) {
+        Column(
+            horizontalAlignment = CenterHorizontally,
+            modifier = Modifier.padding(innerPadding!!)
+        ) {
             SeleccionFiltros(
                 filtroElegido = hojaState.filtroElegido,
                 ordenElegido = hojaState.ordenElegido,
@@ -146,7 +152,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if(filtroElegido == "C") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "C") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Activ.",
@@ -161,7 +167,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if(filtroElegido == "F") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "F") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Finali.",
@@ -176,7 +182,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if(filtroElegido == "A") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "A") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Anul.",
@@ -191,7 +197,7 @@ fun SeleccionFiltros(
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if(filtroElegido == "T") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "T") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Todos",
@@ -227,7 +233,7 @@ fun SeleccionFiltros(
                     ),
                     modifier = Modifier
                         .weight(1f)
-                        .height(if(ordenElegido == "Fecha Creacion")  37.dp else 32.dp),
+                        .height(if (ordenElegido == "Fecha Creacion") 37.dp else 32.dp),
                     content = {
                         Text(
                             text = "Fecha Creacion",
@@ -244,8 +250,9 @@ fun SeleccionFiltros(
                         backgroundColor = if (ordenElegido == "Fecha Cierre") MaterialTheme.colorScheme.primary else Color.White
                     ),
                     modifier =
-                        Modifier.weight(1f)
-                            .height(if(ordenElegido == "Fecha Cierre") 37.dp else 32.dp),
+                    Modifier
+                        .weight(1f)
+                        .height(if (ordenElegido == "Fecha Cierre") 37.dp else 32.dp),
                     content = {
                         Text(
                             text = "Fecha Cierre",

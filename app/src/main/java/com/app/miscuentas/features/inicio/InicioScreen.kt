@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.inicio
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.widget.Toast
@@ -100,6 +101,7 @@ import kotlinx.coroutines.launch
 //}
 
 /** ESTRUCTURA DE VISTA CON SCAFFOLD **/
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Inicio(
@@ -118,10 +120,12 @@ fun Inicio(
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
+
     LaunchedEffect(Unit) {
         viewModel.getIdHojaPrincipalPreference()
         viewModel.getAllHojasCalculos()
     }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -135,16 +139,17 @@ fun Inicio(
             )
         }
     ) {
+
         Scaffold(
             scaffoldState = scaffoldState,
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 MiTopBar(
-                    drawerState = drawerState,
-                    currentScreen = "INICIO",
-                    scope = scope,
+                    title = "Inicio",
                     canNavigateBack = false,
                     navigateUp = {},
+                    drawerState = drawerState,
+                    scope = scope
                     //scrollBehavior = scrollBehavior
                 )
             },

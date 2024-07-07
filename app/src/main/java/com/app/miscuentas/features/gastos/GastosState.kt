@@ -16,7 +16,8 @@ data class GastosState (
     val hojaAMostrar: HojaConParticipantes? = null,
     val listaGastosOk: Boolean = false,
     val idHojaPrincipal: Long? = null,
-    val gastoElegido: DbGastosEntity? = null,
+    val gastoABorrar: DbGastosEntity? = null,
+    val gastoNewFoto: DbGastosEntity? = null,
     val cierreAceptado: Boolean = false,
     val sumaParticipantes: Map<String, Double>? = null, //suma de gastos por participante
     val balanceDeuda: Map<String, Double>? = null, //importe que debe/recibe cada participante hasta antes del cierre

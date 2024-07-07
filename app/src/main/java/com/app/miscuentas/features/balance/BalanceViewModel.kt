@@ -9,6 +9,7 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
@@ -21,6 +22,7 @@ import com.app.miscuentas.data.local.repository.FotoRepository
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
+import com.app.miscuentas.domain.model.toEntity
 import com.app.miscuentas.util.Contabilidad
 import com.app.miscuentas.util.Validaciones
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -109,7 +111,7 @@ class BalanceViewModel @Inject constructor(
         val mapaDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<String, Double>
         onBalanceDeudaChanged(mapaDeuda)
         //si esta finalizada...
-        if (balanceState.value.hojaAMostrar?.hoja?.status == "F") {
+        if (balanceState.value.hojaAMostrar?.hoja?.status != "C") {
             getHojaConBalances() //..obtengo una HojaConBalance y modifico el mapa(nombre, monto) desde t_balance
         }
     }
@@ -153,9 +155,12 @@ class BalanceViewModel @Inject constructor(
             viewModelScope.launch{
                 calculoUpdatePago(acreedor)?.let {
                     val pagoInsertado = pagoRepository.insertPago(it)
-                    if (pagoInsertado > 0) onPagoRealizadoChanged(true)
+                    if (pagoInsertado > 0) { //si el pago se ha insertado
+                        onPagoRealizadoChanged(true)
+                    }
                 }
             }
+            updateIfHojaBalanceada()
         }
     }
 
@@ -194,7 +199,7 @@ class BalanceViewModel @Inject constructor(
     }
 
     fun Double.esMontoPequeno(): Boolean {
-        return (this.redondearADosDecimales() == -0.01 || this.redondearADosDecimales() == 0.01)
+        return (this == -0.01 || this  == 0.01)
     }
 
     fun calcularNuevosMontos(deuda: Double, acreedor: Double): Triple<Double, Double, Double> {
@@ -207,7 +212,7 @@ class BalanceViewModel @Inject constructor(
             Triple(
                 if (nuevoMontoDeudor.esMontoPequeno()) 0.0 else nuevoMontoDeudor,
                 montoPagado,
-                if (montoAcreedorActualizado.esMontoPequeno()) 0.0 else montoAcreedorActualizado
+                if (montoAcreedorActualizado.redondearADosDecimales().esMontoPequeno()) 0.0 else montoAcreedorActualizado.redondearADosDecimales()
             )
         }
     }
@@ -233,6 +238,30 @@ class BalanceViewModel @Inject constructor(
 
         return exitoDeudor && exitoAcreedor
     }
+
+
+    /** METODO QUE  COMPRUEBA Y ACTUALIZA SI LA HOJA ESTA BALANCEADA **/
+    fun updateIfHojaBalanceada(){
+        val hojaActualizada = balanceState.value.hojaConBalances?.hoja
+
+        if(hojaActualizada != null && hojaActualizada.status != "B"){
+            var todoBalanceado = true
+            balanceState.value.hojaConBalances?.balances?.forEach {
+                if (it.tipo != "B"){
+                    todoBalanceado = false
+                }
+            }
+            if(todoBalanceado){
+                hojaActualizada.status = "B"
+                viewModelScope.launch {
+                    withContext(Dispatchers.IO){
+                        hojaCalculoRepository.updateHoja(hojaActualizada)
+                    }
+                }
+            }
+        }
+    }
+
 
     /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
     fun instanciarPago(
@@ -316,12 +345,6 @@ class BalanceViewModel @Inject constructor(
     /** OBTENER IMAGEN DE LA BBDD **/
     suspend fun getFotoPago(idFoto: Long): String? {
         return fotoRepository.getFoto(idFoto).firstOrNull()?.rutaFoto
-    }
-
-
-    @OptIn(ExperimentalPermissionsApi::class)
-    fun solicitaPermisos(statePermisosAlmacenamiento: MultiplePermissionsState)  {
-        statePermisosAlmacenamiento.launchMultiplePermissionRequest()
     }
 
 }

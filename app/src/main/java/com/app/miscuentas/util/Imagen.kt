@@ -1,5 +1,6 @@
 package com.app.miscuentas.util
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -19,6 +20,32 @@ import java.io.OutputStream
 class Imagen {
 
     companion object { //SINGLETON
+
+        //TODOS LOS PERMISOS
+        val permisosRequeridos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_MEDIA_IMAGES,
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        }
+
+        //PERMISOS DE ALMACENAMIENTO
+        val permisosAlmacenamiento = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(
+                Manifest.permission.READ_MEDIA_IMAGES,
+            )
+        } else {
+            listOf(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        }
 
         /** CAPTURA DE LA IMAGEN DE LA PANTALLA **/
         fun capturarYEnviar(activity: Activity) {

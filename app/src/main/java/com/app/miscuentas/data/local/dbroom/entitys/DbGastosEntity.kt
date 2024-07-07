@@ -1,5 +1,6 @@
 package com.app.miscuentas.data.local.dbroom.entitys
 
+import android.net.Uri
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
@@ -27,16 +28,18 @@ data class DbGastosEntity (
     @ColumnInfo(name = "concepto") var concepto: String = "",
     @ColumnInfo(name = "importe") var importe: String = "0.0",
     @ColumnInfo(name = "fecha_gasto") var fechaGasto: String?,
-    @ColumnInfo(name = "idParticipanteGasto") var idParticipanteGasto: Long?
+    @ColumnInfo(name = "idParticipanteGasto") var idParticipanteGasto: Long?,
+    @ColumnInfo(name = "idFotoGasto") var idFotoGasto: Long? = null
 
 )
 
-fun DbGastosEntity.toDomain() = Gasto(
+fun DbGastosEntity.toDomain(foto: Uri?) = Gasto(
     idGasto = idGasto,
     tipo = tipo,
     concepto = concepto,
     importe = importe,
-    fechaGasto = fechaGasto
+    fechaGasto = fechaGasto,
+    fotoGastoUri = foto
 )
 
 

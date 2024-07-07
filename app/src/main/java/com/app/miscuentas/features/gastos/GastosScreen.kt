@@ -1,13 +1,13 @@
-@file:OptIn(ExperimentalPermissionsApi::class)
-
 package com.app.miscuentas.features.gastos
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,13 +39,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.ArrowDropDownCircle
 import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Handshake
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -70,16 +78,24 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
+import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.IconoGasto
+import com.app.miscuentas.features.nav_bar_screens.mis_hojas.OpcionesHoja
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
+import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
+import com.app.miscuentas.util.Imagen.Companion.createTempPictureUri
+import com.app.miscuentas.util.Imagen.Companion.permisosAlmacenamiento
+import com.app.miscuentas.util.Imagen.Companion.saveImageToGallery
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -87,7 +103,6 @@ import java.io.File
 import java.text.NumberFormat
 
 
-@OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun GastosScreen(
@@ -113,86 +128,83 @@ fun GastosScreen(
         )
     }
 
-    /** Inicio solicitud de permisos  **/
-    //Permisos a solicitar dependiendo de la version
-    val permisosRequeridos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        listOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.READ_MEDIA_AUDIO,
-            Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_MEDIA_VIDEO
-        )
-    } else {
-        listOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-    }
 
-    val statePermisoAlmacenamiento = rememberMultiplePermissionsState(
-        permissions = permisosRequeridos
-    )
-    /**************************/
-
-    /** GALERIA DE IMAGENES **/
-    val singleImagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            viewModel.onImageUriChanged(uri)
-            val ruta = viewModel.getPathFromUri(context, uri)
-            viewModel.onImageAbsolutePathChanged(ruta)
-        }
-    }
-
-    val elegirImagen = {
-        singleImagePickerLauncher.launch(
-            PickVisualMediaRequest(
-                ActivityResultContracts.PickVisualMedia.ImageOnly
-            )
-        ) }
-    /**************************/
-
-    /** CAMARA DE FOTOS **/
+    /** IMAGENES **/
     var tempPhotoUri by remember { mutableStateOf(value = Uri.EMPTY) }
 
-    //LANZA LA CAMARA
+    /** Lanzadores **/
+    //Lanza la camara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
             if (success) {
-                viewModel.onImageUriChanged(tempPhotoUri)
+                viewModel.insertaFotoGasto(tempPhotoUri)
+            }
+        }
+    )
+    //Lanza la galeria
+    val singleImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                saveImageToGallery(context,uri)
+                viewModel.insertaFotoGasto(uri)
             }
         }
     )
 
-    //CREAR ARCHIVO URI
-    fun Context.createTempPictureUri(
-        fileName: String = "IMG_${System.currentTimeMillis()}",
-        fileExtension: String = ".jpg"
-    ): Uri {
-        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera")
-        if (!storageDir.exists()) {
-            storageDir.mkdirs()
-        }
-        val tempFile = File(storageDir, "$fileName$fileExtension")
-        viewModel.onImageAbsolutePathChanged(tempFile.absolutePath)
-        return FileProvider.getUriForFile(this, "${packageName}.provider", tempFile)
-    }
-
-    //AL PRESIONAR EL BOTON DE LA CAMARA:
+    /** Funciones para llamar a los lanzadores **/
+    //Al presionar el boton de la camara:
     val tomarFoto = {
-        viewModel.solicitaPermisos(statePermisoAlmacenamiento)
-        if(statePermisoAlmacenamiento.allPermissionsGranted) {
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if(granted){
             tempPhotoUri = context.createTempPictureUri()
             cameraLauncher.launch(tempPhotoUri)
         }
-        else if(!statePermisoAlmacenamiento.permissions[0].status.isGranted) {
-            viewModel.solicitaPermisos(statePermisoAlmacenamiento)
-        }
+
         else {
-            mensaje = "Acepte los permisos a la camara e imagenes desde los ajustes del dispositivo."
+            mensaje = "Algunos permisos se han denegado. Acéptelos desde los ajustes del dispositivo."
             showDialog = true
         }
+    }
+
+    //Al presionar el boton de la galeria:
+    val elegirImagen = {
+        val granted = permisosAlmacenamiento.firstOrNull {
+            ContextCompat.checkSelfPermission(
+                context,
+                it
+            ) != PackageManager.PERMISSION_GRANTED
+        }
+        if(granted.isNullOrEmpty()) {
+            singleImagePickerLauncher.launch(
+                PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
+            )
+        }
+        else {
+            mensaje = "Algunos permisos se han denegado. Acéptelos desde los ajustes del dispositivo."
+            showDialog = true
+        }
+    }
+
+    var showFoto by rememberSaveable { mutableStateOf(false)}
+    if (showFoto){
+        MiImagenDialog(
+            show = true,
+            imagen = gastosState.imageUri!!,
+            cerrar = {
+                showFoto = false
+                viewModel.onImageUriChanged(null)
+            }
+        )
+        
+
     }
     /******************************************************/
 
@@ -203,11 +215,14 @@ fun GastosScreen(
 
     //Borrar un gasto o cerrar al hoja
     LaunchedEffect(gastosState){
-        if (gastosState.gastoElegido != null){
+        if (gastosState.gastoABorrar != null){
             viewModel.deleteGasto()
         }
         if (gastosState.cierreAceptado){
             viewModel.updateHoja()
+        }
+        if (gastosState.imageUri != null){
+            showFoto = true
         }
     }
 
@@ -218,6 +233,7 @@ fun GastosScreen(
         { onNavNuevoGasto(it) },
         { onNavBalance(it) },
         viewModel::onBorrarGastoChanged,
+        viewModel::onNewFotoGastoChanged,
         gastosState.permisoCamara,
         { tomarFoto() },
         { elegirImagen() },
@@ -246,6 +262,7 @@ fun GastosContent(
     onNavNuevoGasto: (Long) -> Unit,
     onNavBalance: (Long) -> Unit,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
+    onNewFotoGastoChanged: (DbGastosEntity?) -> Unit,
     permisoCamara: Boolean,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
@@ -263,7 +280,7 @@ fun GastosContent(
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?) -> Unit,
     listPagos: List<PagoConParticipantes>?
-){
+) {
     var showResumen by rememberSaveable { mutableStateOf(false) }
     var showBalance by rememberSaveable { mutableStateOf(false) }
 
@@ -285,50 +302,7 @@ fun GastosContent(
                 .fillMaxSize()
 
         ) {
-            Surface(
-                shape = RoundedCornerShape(1.dp),
-                elevation = 2.dp,
-                modifier = Modifier
-                    .padding(vertical = 5.dp, horizontal = 5.dp)
-                    .fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ){
-                    Column{
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 7.dp),
-                            horizontalArrangement = Arrangement.spacedBy(180.dp),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            Text(
-                                text = hojaDeGastos?.hoja?.titulo ?: "aun nada" ,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontSize = 24.sp
-                            )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-
-                            DatosHoja(hojaDeGastos)
-
-                            if (hojaDeGastos?.hoja?.status != "F"){
-                                Column {
-                                    ImagenCierre(hojaDeGastos, { onCierreAceptado(it) })
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
+            DatosHoja(hojaDeGastos, { onCierreAceptado(it) }, { onNavBalance(it) })
 
             /** BOTON PARA DESPLEGAR EL RESUMEN: **/
             Row(
@@ -352,10 +326,10 @@ fun GastosContent(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ){
                     Icon(
-                        Icons.Default.AccountBox,
-                        contentDescription = "Icono de participantes",
+                        imageVector= if(showResumen) Icons.Default.ArrowCircleUp else Icons.Default.ArrowCircleDown,
+                        contentDescription = "Flecha de apertura/cierre",
                         tint = if(showResumen) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         style = MaterialTheme.typography.bodyLarge,
@@ -379,8 +353,7 @@ fun GastosContent(
                 ) {
                     Resumen(
                         balanceDeuda = balanceDeuda,
-                        sumaParticipantes = sumaParticipantes,
-                        onParticipanteClick = {}
+                        sumaParticipantes = sumaParticipantes
                     )
                 }
             }
@@ -401,9 +374,14 @@ fun GastosContent(
                                     GastoDesing(
                                         gasto = gasto,
                                         participante = participante,
-                                        listaIconosGastos,
-                                        { onBorrarGastoChanged(it) },
-                                        hojaDeGastos.hoja.status
+                                        listaIconosGastos = listaIconosGastos,
+                                        onBorrarGastoChanged = { onBorrarGastoChanged(it) },
+                                        onNewFotoGastoChanged = { onNewFotoGastoChanged(it) },
+                                        statusHoja = hojaDeGastos.hoja.status,
+                                        tomarFoto = tomarFoto,
+                                        elegirImagen = elegirImagen,
+                                        obtenerFotoPago = obtenerFotoPago,
+                                        imagenUri = imagenUri
                                     )
                                 }
                             }
@@ -413,9 +391,9 @@ fun GastosContent(
                 }
             }
         }
+
         CustomFloatButton(
             onNavNuevoGasto =  { onNavNuevoGasto(it) } ,
-            onNavBalance = { onNavBalance(it) },
             modifier = Modifier.align(Alignment.BottomCenter), // Alinear el botón en la esquina inferior derecha
             showBalance = {
                 showBalance = false
@@ -427,59 +405,109 @@ fun GastosContent(
 }
 
 @Composable
-fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
-    Column {
+fun DatosHoja(
+    hojaDeGastos: HojaConParticipantes?,
+    onCierreAceptado: (Boolean) -> Unit,
+    onNavBalance: (Long) -> Unit
+){
+    Surface(
+        shape = RoundedCornerShape(1.dp),
+        elevation = 2.dp,
+        modifier = Modifier
+            .padding(vertical = 5.dp, horizontal = 5.dp),
+        color = MaterialTheme.colorScheme.background
+    ) {
         Row {
-            Text(
-                text = when (hojaDeGastos?.hoja?.status) {
-                    "C" -> "Activa"
-                    "A" -> "Anulada"
-                    "B" -> "Balanceada"
-                    else -> "Finalizada"
-                },
-                fontSize = 20.sp,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleSmall
-            )
-        }
-        Row {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp, vertical = 7.dp),
+                    horizontalArrangement = Arrangement.spacedBy(180.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = hojaDeGastos?.hoja?.titulo ?: "aun nada",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = 24.sp
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Row {
+                            Text(
+                                text = when (hojaDeGastos?.hoja?.status) {
+                                    "C" -> "Activa"
+                                    "A" -> "Anulada"
+                                    "B" -> "Balanceada"
+                                    else -> "Finalizada"
+                                },
+                                fontSize = 20.sp,
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                        Row {
 
-            Text(
-                text = "Fecha Cierre: ",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        Row {
-            Text(
-                text = "Limite: ",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = if (hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        Row(modifier = Modifier.padding(bottom = 10.dp)) {
-            Text(
-                text = "Participantes: ",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = hojaDeGastos?.participantes?.size.toString(),
-                style = MaterialTheme.typography.bodyLarge
-            )
+                            Text(
+                                text = "Fecha Cierre: ",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = hojaDeGastos?.hoja?.fechaCierre ?: "-",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Row {
+                            Text(
+                                text = "Limite: ",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = if (hojaDeGastos?.hoja?.limite.isNullOrEmpty()) "-" else hojaDeGastos?.hoja?.limite.toString(),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Row(modifier = Modifier.padding(bottom = 10.dp)) {
+                            Text(
+                                text = "Participantes: ",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = hojaDeGastos?.participantes?.size.toString(),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                    if (hojaDeGastos?.hoja?.status == "C"){
+                        Column {
+                            ImagenCierre({ onCierreAceptado(it) })
+                        }
+                    }
+                    else{
+                        Icon(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clickable { onNavBalance(hojaDeGastos!!.hoja.idHoja) },
+                            imageVector = Icons.Filled.Balance, //IMAGEN DEL GASTO
+                            contentDescription = "Pago o Balance",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 fun ImagenCierre(
-    hojaDeGastos: HojaConParticipantes?,
     onCierreAceptado: (Boolean) -> Unit
 ){
 
@@ -493,7 +521,7 @@ fun ImagenCierre(
     if (showDialog) MiDialogo(
         show = true,
         titulo = "ATENCION!",
-        mensaje = "Estas a punto de CERRAR la hoja. Si aceptas, ya no se podrá introcudir mas gastos y podras realizar el Balance.",
+        mensaje = "Estas a punto de CERRAR la hoja. Si aceptas, ya no se podrá introducir mas gastos y podrás realizar el Balance.",
         cerrar = { showDialog = false },
         aceptar = {
             opcionAceptada = true
@@ -502,7 +530,6 @@ fun ImagenCierre(
     )
 
     Button(
-        enabled = (hojaDeGastos?.hoja?.status == "C"),
         onClick = { showDialog = true },
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color.Transparent,
@@ -518,7 +545,7 @@ fun ImagenCierre(
         ) {
             Icon(
                 modifier = Modifier
-                    .size(50.dp),
+                    .size(40.dp),
                 tint = MaterialTheme.colorScheme.error,
                 imageVector = Icons.Default.Handshake, //IMAGEN DEL GASTO
                 contentDescription = "Cierre de la Hoja",
@@ -539,23 +566,31 @@ fun GastoDesing(
     participante: ParticipanteConGastos,
     listaIconosGastos: List<IconoGasto>,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
-    statusHoja: String
+    onNewFotoGastoChanged: (DbGastosEntity?) -> Unit,
+    statusHoja: String,
+    tomarFoto: () -> Unit,
+    elegirImagen: () -> Unit,
+    obtenerFotoPago: (Long) -> Unit,
+    imagenUri: Uri?
 ) {
-    //Aviso de la opcion elegida:
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    val context = LocalContext.current
 
+    //MENSAJE CON LA OPCION DE BORRADO
+    var titulo by rememberSaveable { mutableStateOf("") }
+    var mensaje by rememberSaveable { mutableStateOf("") }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
     if (showDialog){
-        if(statusHoja == "F"){
+        if(statusHoja != "C"){
            MiAviso(
                show = true,
-               texto = "La hoja esta finalizada, no se puede eliminar",
+               texto = "La hoja esta cerrada, no se puede eliminar",
                cerrar = { showDialog = false }
            )
         }else{
             MiDialogo(
                 show = true,
-                titulo = "ELIMINAR GASTO",
-                mensaje = "Si acepta, se eliminara y no se podrá recuperar.",
+                titulo = titulo,
+                mensaje = mensaje,
                 cerrar = { showDialog = false },
                 aceptar = {
                     onBorrarGastoChanged(gasto)
@@ -565,12 +600,16 @@ fun GastoDesing(
         }
     }
 
+    //MENSAJE CON LA IMGEN DEL GASTO
+    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+
     Surface(
         shape = RoundedCornerShape(8.dp),
         elevation = 12.dp,
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 12.dp)
             .fillMaxWidth()
+            .clickable { }
     ) {
         Row(
             modifier = Modifier
@@ -603,7 +642,7 @@ fun GastoDesing(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = NumberFormat.getCurrencyInstance().format(gasto.importe.toInt()),
+                        text = NumberFormat.getCurrencyInstance().format(gasto.importe.toDouble()),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -617,12 +656,46 @@ fun GastoDesing(
                         text = "Pagado el ${gasto.fechaGasto}",
                         style = MaterialTheme.typography.labelLarge
                     )
-                    IconButton(onClick = { showDialog = true }) {
-                        Icon(
-                            Icons.Default.DeleteForever,
-                            contentDescription = "Borrar gasto",
-                            tint = Color.Red
-                        )
+
+                    /** BORRAR GASTOS **/
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = {
+                            mensaje = "Si acepta, se eliminara y no se podrá recuperar."
+                            titulo = "ELIMINAR GASTO"
+                            showDialog = true
+                        }
+                        ) {
+                            Icon(
+                                Icons.Default.DeleteForever,
+                                contentDescription = "Borrar gasto",
+                                tint = Color.Red
+                            )
+                        }
+
+                        /** LISTA DE OPCIONES **/
+                        OpcionesGasto(gasto) { opcion ->
+                            when(opcion) {
+                                "Camara" ->  {
+                                    onNewFotoGastoChanged(gasto)
+                                    tomarFoto()
+                                }
+
+                                "Galeria" ->  {
+                                    onNewFotoGastoChanged(gasto)
+                                    elegirImagen()
+                                }
+                                "Ver" ->  {
+                                    if (gasto.idFotoGasto != null) {
+                                        obtenerFotoPago(gasto.idFotoGasto!!)
+                                    }
+                                }
+                            }
+                            opcionSeleccionada = opcion
+
+                        }
                     }
                 }
             }
@@ -630,12 +703,65 @@ fun GastoDesing(
     }
 }
 
+
+/** OPCIONES ELEGIBLES PARA CADA GASTO **/
+@Composable
+fun OpcionesGasto(
+    gasto: DbGastosEntity,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Default.Image,
+                contentDescription = "Menu de opciones",
+                tint = Color.LightGray
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            if (gasto.idFotoGasto != null) {
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onOptionSelected("Ver")
+                    }
+                ) {
+                    Text("Ver")
+                }
+            }
+
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Camara")
+                }
+            ) {
+                Text("Camara")
+            }
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Galeria")
+                }
+            ) {
+                Text("Galeria")
+            }
+        }
+    }
+}
+
+
 /** RESUMEN **/
 @Composable
 fun SumaPorParticipanteDesing(
     nombre: String,
-    sumaGastos: Double,
-    onClick: () -> Unit) {
+    sumaGastos: Double
+){
 
     val currencyFormatter = NumberFormat.getCurrencyInstance()
     Surface(
@@ -710,8 +836,7 @@ fun ResumenBalanceDesing(
 @Composable
 fun Resumen(
     balanceDeuda: Map<String, Double>?,
-    sumaParticipantes: Map<String, Double>?,
-    onParticipanteClick: (String) -> Unit
+    sumaParticipantes: Map<String, Double>?
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -733,9 +858,7 @@ fun Resumen(
                     items(sumaParticipantes.toList(), key = { it.first }) { participante ->
                         SumaPorParticipanteDesing(
                             nombre = participante.first,
-                            sumaGastos = participante.second,
-                            onClick = { onParticipanteClick(participante.first)
-                            }
+                            sumaGastos = participante.second
                         )
                     }
                 }
@@ -765,40 +888,33 @@ fun Resumen(
 @Composable
 fun CustomFloatButton(
     onNavNuevoGasto: (Long) -> Unit,
-    onNavBalance: (Long) -> Unit,
     modifier: Modifier = Modifier,
     showBalance: () -> Unit,
     hojaDeGastos: HojaConParticipantes?
 ) {
-    val imagenVector = if(hojaDeGastos?.hoja?.status == "C") Icons.Filled.ShoppingCart  else  Icons.Filled.Balance
-    val navegarTo = {
-        hojaDeGastos?.hoja?.idHoja?.let {
-            if(hojaDeGastos.hoja.status == "C") onNavNuevoGasto(it) else onNavBalance(it)
+    if(hojaDeGastos?.hoja?.status == "C"){
+        FloatingActionButton(
+            onClick = {
+                showBalance()
+                onNavNuevoGasto(hojaDeGastos.hoja.idHoja)
+            },
+            elevation = FloatingActionButtonDefaults.elevation(13.dp),
+            modifier = modifier
+                .height(120.dp)
+                .width(80.dp)
+                .padding(bottom = 54.dp, end = 14.dp), // Añade el padding al botón flotante
+            shape = MaterialTheme.shapes.large,
+            containerColor =  MaterialTheme.colorScheme.onPrimaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(50.dp),
+                imageVector = Icons.Filled.ShoppingCart, //IMAGEN DEL GASTO
+                contentDescription = "Realizar Gasto",
+            )
         }
     }
-
-    FloatingActionButton(
-        onClick = {
-            showBalance()
-            navegarTo()
-        },
-        elevation = FloatingActionButtonDefaults.elevation(13.dp),
-        modifier = modifier
-            .height(120.dp)
-            .width(80.dp)
-            .padding(bottom = 54.dp, end = 14.dp), // Añade el padding al botón flotante
-        shape = MaterialTheme.shapes.large,
-        containerColor = if(hojaDeGastos?.hoja?.status == "C") MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary
-    ) {
-        Icon(
-            modifier = Modifier
-                .size(50.dp),
-            imageVector = imagenVector, //IMAGEN DEL GASTO
-            contentDescription = "Pago o Balance",
-        )
-    }
-
 }
 /*************************/
 

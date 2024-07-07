@@ -155,6 +155,7 @@ fun NuevoGastoContent(
     val controlTeclado = LocalSoftwareKeyboardController.current
 
     LazyColumn(
+        contentPadding = innerPadding,
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()

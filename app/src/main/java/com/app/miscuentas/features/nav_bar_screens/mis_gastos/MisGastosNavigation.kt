@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.app.miscuentas.features.MainActivityViewModel
+import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
 const val MIS_GASTOS_ROUTE = "MIS GASTOS"
 
@@ -13,9 +15,11 @@ fun NavHostController.NavigateToMisGastos(){
 
 fun NavGraphBuilder.misGastosScreen(
     innerPadding: PaddingValues?,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    mainActivityViewModel: MainActivityViewModel
 ){
     composable(route = MIS_GASTOS_ROUTE){
+        mainActivityViewModel.setTitle(MIS_GASTOS_ROUTE)
         MisGastosScreen(innerPadding)
     }
 }

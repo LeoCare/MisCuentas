@@ -1,12 +1,9 @@
 package com.app.miscuentas.features.balance
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -16,10 +13,12 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,13 +34,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
-import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -58,36 +60,37 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
 import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
-import com.app.miscuentas.util.Imagen
 import com.app.miscuentas.util.Imagen.Companion.createTempPictureUri
+import com.app.miscuentas.util.Imagen.Companion.permisosAlmacenamiento
 import com.app.miscuentas.util.Imagen.Companion.saveImageToGallery
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.io.File
-import java.io.InputStream
-import java.io.OutputStream
 import java.text.NumberFormat
 import kotlin.math.abs
 
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BalanceScreen(
     innerPadding: PaddingValues?,
@@ -113,27 +116,6 @@ fun BalanceScreen(
         )
     }
 
-    /** Inicio solicitud de permisos  **/
-    //Permisos a solicitar dependiendo de la version
-    val permisosRequeridos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        listOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.READ_MEDIA_AUDIO,
-            Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_MEDIA_VIDEO
-        )
-    } else {
-        listOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-    }
-
-    val statePermisoAlmacenamiento = rememberMultiplePermissionsState(
-        permissions = permisosRequeridos
-    )
-    /**************************/
 
     /** IMAGENES **/
 
@@ -163,26 +145,41 @@ fun BalanceScreen(
     /** Funciones para llamar a los lanzadores **/
     //Al presionar el boton de la camara:
     val tomarFoto = {
-        viewModel.solicitaPermisos(statePermisoAlmacenamiento)
-        if(statePermisoAlmacenamiento.allPermissionsGranted) {
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if(granted){
             tempPhotoUri = context.createTempPictureUri()
             cameraLauncher.launch(tempPhotoUri)
         }
-        else if(!statePermisoAlmacenamiento.permissions[0].status.isGranted) {
-            viewModel.solicitaPermisos(statePermisoAlmacenamiento)
-        }
+
         else {
-            mensaje = "Acepte los permisos a la camara e imagenes desde los ajustes del dispositivo."
+            mensaje = "Algunos permisos se han denegado. Acéptelos desde los ajustes del dispositivo."
             showDialog = true
         }
     }
+
     //Al presionar el boton de la galeria:
     val elegirImagen = {
-        singleImagePickerLauncher.launch(
-            PickVisualMediaRequest(
-                ActivityResultContracts.PickVisualMedia.ImageOnly
+        val granted = permisosAlmacenamiento.firstOrNull {
+            ContextCompat.checkSelfPermission(
+                context,
+                it
+            ) != PackageManager.PERMISSION_GRANTED
+        }
+        if(granted.isNullOrEmpty()) {
+            singleImagePickerLauncher.launch(
+                PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
             )
-        )
+        }
+        else {
+            mensaje = "Algunos permisos se han denegado. Acéptelos desde los ajustes del dispositivo."
+            showDialog = true
+        }
     }
     /******************************************************/
 
@@ -196,7 +193,8 @@ fun BalanceScreen(
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
         imagenUri = balanceState.imagenUri,
-        listPagos = balanceState.listaPagosConParticipantes
+        listPagos = balanceState.listaPagosConParticipantes,
+        recargarDatos = viewModel::updateIfHojaBalanceada
     )
 }
 
@@ -212,7 +210,8 @@ fun BalanceContent(
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
     imagenUri: Uri?,
-    listPagos: List<PagoConParticipantes>?
+    listPagos: List<PagoConParticipantes>?,
+    recargarDatos: () -> Unit
 ){
     var showBalance by rememberSaveable { mutableStateOf(false) }
 
@@ -233,10 +232,18 @@ fun BalanceContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(35.dp)
-                    .padding(end = 20.dp),
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.SpaceBetween
             ){
+                Icon(
+                    imageVector= Icons.Default.Refresh ,
+                    contentDescription = "Recargar datos",
+                    tint = if(showBalance) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable { recargarDatos() }
+                )
                 Row(
                     Modifier
                         .clickable { showBalance = !showBalance },
@@ -244,10 +251,10 @@ fun BalanceContent(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ){
                     Icon(
-                        Icons.Default.Payments,
-                        contentDescription = "Iconos de pagos",
-                        tint = if(showBalance) Color.Black else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+                        imageVector= if(showBalance) Icons.Default.ArrowCircleUp else Icons.Default.ArrowCircleDown,
+                        contentDescription = "Flecha de apertura/cierre",
+                        tint = if(showBalance) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         style = MaterialTheme.typography.titleMedium,
@@ -329,16 +336,13 @@ fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
         shape = RoundedCornerShape(1.dp),
         elevation = 2.dp,
         modifier = Modifier
-            .padding(vertical = 5.dp, horizontal = 5.dp)
-            .fillMaxWidth()
+            .padding(vertical = 5.dp, horizontal = 5.dp),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Row {
             Column {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 7.dp),
                     horizontalArrangement = Arrangement.spacedBy(180.dp),
                     verticalAlignment = Alignment.Bottom
@@ -403,6 +407,15 @@ fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
 
                             )
                         }
+                    }
+                    if (hojaDeGastos?.hoja?.status == "B"){
+                        Image(
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSecondaryContainer),
+                            painter = painterResource(id = R.drawable.balanceada),
+                            modifier = Modifier
+                                .size(40.dp),
+                            contentDescription = "Hoja Balanceada",
+                        )
                     }
                 }
             }
@@ -546,7 +559,7 @@ fun PagoDesing(
                         Icons.Default.Photo,
                         contentDescription = "Iconos de la camara",
                         tint = if (pago.fotoPago != null) MaterialTheme.colorScheme.primary else Color.DarkGray,
-                        modifier = Modifier.size(35.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
                 /** CONFIRMACION **/
@@ -569,7 +582,7 @@ fun PagoDesing(
                         Icons.Filled.Handshake,
                         contentDescription = "Iconos de confirmacion del pago",
                         tint = if (pago.confirmado) Color.Green else Color.DarkGray,
-                        modifier = Modifier.size(35.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             }
@@ -650,6 +663,7 @@ fun ResolucionBox(
             }
         )
     }
+
     Card(
         shape = RoundedCornerShape(4.dp),
         colors = CardDefaults.cardColors(

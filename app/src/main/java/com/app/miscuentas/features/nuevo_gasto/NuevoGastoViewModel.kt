@@ -77,7 +77,7 @@ class NuevoGastoViewModel @Inject constructor (
     fun instanciaNuevoGasto(): Gasto {
         val tipo = _nuevoGastoState.value.idGastoElegido
         val concepto = _nuevoGastoState.value.concepto
-        val importe = _nuevoGastoState.value.importe
+        val importe = _nuevoGastoState.value.importe.replace(',','.')
         val fechaGasto = Validaciones.fechaToStringFormat(LocalDate.now())
 
         return Gasto(
@@ -85,7 +85,8 @@ class NuevoGastoViewModel @Inject constructor (
             tipo = tipo,
             concepto = concepto,
             importe = importe,
-            fechaGasto = fechaGasto
+            fechaGasto = fechaGasto,
+            fotoGastoUri = null
         )
     }
 

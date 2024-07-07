@@ -3,6 +3,7 @@ package com.app.miscuentas.features.splash
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.app.miscuentas.features.MainActivityViewModel
 import com.app.miscuentas.features.inicio.NavigateToInicio
 import com.app.miscuentas.features.login.NavigateToLogin
 
@@ -13,9 +14,11 @@ fun NavHostController.NavigateToSplash() {
 }
 
 fun NavGraphBuilder.splashScreen(
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    mainActivityViewModel: MainActivityViewModel
 ){
     composable(route = SPLASH_ROUTE) {
+        mainActivityViewModel.setTitle(SPLASH_ROUTE)
         SplashScreen(
             onLoginNavigate = { navHostController.NavigateToLogin() },
             onInicioNavigate = { navHostController.NavigateToInicio() }

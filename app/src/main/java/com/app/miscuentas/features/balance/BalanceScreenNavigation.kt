@@ -6,6 +6,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.miscuentas.features.MainActivityViewModel
+import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
 const val BALANCE_ROUTE = "BALANCE"
 const val BALANCE_ID_HOJA_A_MOSTRAR = "idHojaAMostrar"
@@ -16,7 +18,8 @@ fun NavHostController.NavigateToBalance(idHojaAMostrar: Long){
 
 fun NavGraphBuilder.balanceScreen(
     innerPadding: PaddingValues?,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    mainActivityViewModel: MainActivityViewModel
 ){
     composable(
         route = "$BALANCE_ROUTE/{$BALANCE_ID_HOJA_A_MOSTRAR}",
@@ -27,6 +30,7 @@ fun NavGraphBuilder.balanceScreen(
         )
     ) {
         it.arguments?.getLong(BALANCE_ID_HOJA_A_MOSTRAR)?.let { idHojaAMostrar ->
+            mainActivityViewModel.setTitle(BALANCE_ROUTE)
             BalanceScreen(
                 innerPadding = innerPadding,
                 idHojaAMostrar = idHojaAMostrar

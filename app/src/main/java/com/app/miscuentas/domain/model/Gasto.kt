@@ -1,5 +1,6 @@
 package com.app.miscuentas.domain.model
 
+import android.net.Uri
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 
 data class Gasto (
@@ -7,7 +8,8 @@ data class Gasto (
     var tipo: Long = 0,
     var concepto: String,
     val importe: String,
-    var fechaGasto: String?
+    var fechaGasto: String?,
+    var fotoGastoUri: Uri?
 ){
     /** Establece la fecha del gasto en el momento actual **/
 //    var fechaGasto: LocalDateTime?
@@ -23,6 +25,6 @@ fun Gasto.toEntity(idParticipante: Long) = DbGastosEntity(
     concepto = concepto,
     importe = importe,
     fechaGasto = fechaGasto,
-    idParticipanteGasto = idParticipante,
+    idParticipanteGasto = idParticipante
 )
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DATABASE_VERSION
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,9 @@ class SplashViewModel @Inject constructor(
     }
     fun onAutoInicioChanged(autoInicio: Boolean){
         _splashState.value = _splashState.value.copy(autoInicio = autoInicio)
+    }
+    fun onPermisoTratadoChanged(tratado: Boolean){
+        _splashState.value = _splashState.value.copy(permisosTratados = tratado)
     }
 
     fun checkAndClearDataStore() {

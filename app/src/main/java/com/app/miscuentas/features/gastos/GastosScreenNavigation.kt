@@ -6,8 +6,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.miscuentas.features.MainActivityViewModel
 import com.app.miscuentas.features.balance.NavigateToBalance
 import com.app.miscuentas.features.nuevo_gasto.NavigateToNuevoGasto
+import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
 const val GASTOS_ROUTE = "GASTOS"
 const val GASTOS_ID_HOJA_A_MOSTRAR = "idHojaAMostrar"
@@ -18,7 +20,8 @@ fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
 
 fun NavGraphBuilder.gastosScreen(
     innerPadding: PaddingValues?,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    mainActivityViewModel: MainActivityViewModel
 ){
     composable(
         route = "$GASTOS_ROUTE/{$GASTOS_ID_HOJA_A_MOSTRAR}",
@@ -29,6 +32,7 @@ fun NavGraphBuilder.gastosScreen(
         )
     ) {
         it.arguments?.getLong(GASTOS_ID_HOJA_A_MOSTRAR)?.let { idHojaAMostrar ->
+            mainActivityViewModel.setTitle(GASTOS_ROUTE)
             GastosScreen(
                 innerPadding = innerPadding,
                 idHojaAMostrar = idHojaAMostrar,

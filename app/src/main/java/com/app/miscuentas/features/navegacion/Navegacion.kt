@@ -3,6 +3,11 @@
 package com.app.miscuentas.features.navegacion
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -22,10 +27,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
@@ -33,6 +40,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.miscuentas.R
+import com.app.miscuentas.features.MainActivityViewModel
 import com.app.miscuentas.features.balance.balanceScreen
 import com.app.miscuentas.features.inicio.inicioScreen
 import com.app.miscuentas.features.login.loginScreen
@@ -58,23 +66,24 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavHost(
     innerPadding: PaddingValues?,
-    navController: NavHostController
+    navController: NavHostController,
+    mainActivityViewModel: MainActivityViewModel
 ) {
     NavHost(
         navController = navController,
         startDestination = SPLASH_ROUTE
     ) {
 
-        splashScreen(navController)
+        splashScreen(navController, mainActivityViewModel)
         loginScreen(navController)
-        inicioScreen(navController)
-        nuevaHojaScreen(navController)
-        nuevoGastoScreen(navController)
-        misHojasScreen(innerPadding, navController)
-        gastosScreen(innerPadding, navController)
-        misGastosScreen(innerPadding, navController)
-        participantesScreen(innerPadding, navController)
-        balanceScreen(innerPadding, navController)
+        inicioScreen(navController, mainActivityViewModel)
+        nuevaHojaScreen(navController, mainActivityViewModel)
+        nuevoGastoScreen(navController, mainActivityViewModel)
+        misHojasScreen(innerPadding, navController, mainActivityViewModel)
+        gastosScreen(innerPadding, navController, mainActivityViewModel)
+        misGastosScreen(innerPadding, navController, mainActivityViewModel)
+        participantesScreen(innerPadding, navController, mainActivityViewModel)
+        balanceScreen(innerPadding, navController, mainActivityViewModel)
     }
 }
 /** *************************FIN**************************** **/
@@ -94,14 +103,17 @@ sealed class MisHojasScreen (var route: String, val icon: ImageVector, val title
 
 //Composable de los botones a mostrar
 @Composable
-fun BottomNavigationBar(navControllerMisHojas: NavController) {
+fun BottomNavigationBar(
+    navControllerMisHojas: NavController
+) {
     val items = listOf(
         MisHojasScreen.MisHojas,
         MisHojasScreen.MisGastos,
         MisHojasScreen.Participantes
     )
     BottomNavigation(
-        backgroundColor = MaterialTheme.colorScheme.primary
+        backgroundColor = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues())
     ) {
         val currentRoute =
             navControllerMisHojas.currentBackStackEntryAsState().value?.destination?.route
@@ -125,8 +137,11 @@ fun BottomNavigationBar(navControllerMisHojas: NavController) {
                 selected = isSelected,
                 onClick = {
                         navControllerMisHojas.navigate(screen.route) {
-                            popUpTo(navControllerMisHojas.graph.startDestinationId)
+                            popUpTo(navControllerMisHojas.graph.startDestinationId){
+                                saveState = true
+                            }
                             launchSingleTop = true
+                            restoreState = true
                     }
                 },
                 selectedContentColor = MaterialTheme.colorScheme.onSecondary
@@ -141,62 +156,53 @@ fun BottomNavigationBar(navControllerMisHojas: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiTopBar(
-    drawerState: DrawerState?,
-    currentScreen: String,
-    scope: CoroutineScope?,
+    title: String,
     canNavigateBack: Boolean,
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    drawerState: DrawerState? = null,
+    scope: CoroutineScope? = null
 ) {
     val activity = LocalContext.current as FragmentActivity
 
-    if (currentScreen != "SPLASH" && currentScreen != "LOGIN"){
-        TopAppBar(
-            title = {
-                Text(
-                    text = when { //para que no pinte el nombre de la screen mas el del parametro.
-                        currentScreen.startsWith("GASTOS") -> "GASTOS"
-                        currentScreen.startsWith("NUEVO") -> "NUEVO GASTO"
-                        currentScreen.startsWith("BALANCE") -> "BALANCE"
-                        else -> {currentScreen}
-                    },
-                    fontSize = 25.sp
-                )
-            },
-            colors = TopAppBarDefaults.mediumTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            navigationIcon = {
-                if ( canNavigateBack) { //muestra la flecha para volver atras
-                    IconButton(onClick = navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_button)
-                        )
-                    }
-                } else { //si no, muestra el menu lateral
-                    IconButton(
-                        onClick = {
-                            scope!!.launch { drawerState?.open() }
-                        }
-                    ) {
-                        Icon(Icons.Filled.Menu, contentDescription = "Menu")
-                    }
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                fontSize = 25.sp
+            )
+        },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        navigationIcon = {
+            if ( canNavigateBack) { //muestra la flecha para volver atras
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_button)
+                    )
                 }
-            },
-            actions = {
+            } else { //si no, muestra el menu lateral
                 IconButton(
-                    onClick = { Imagen.capturarYEnviar(activity) }
+                    onClick = { scope?.launch { drawerState?.open() } }
                 ) {
-                    Icon(Icons.Filled.Share, contentDescription = "Compartir")
-                }
-                IconButton(
-                    onClick = {}
-                ) {
-                    Icon(Icons.Filled.Info, contentDescription = "Informacion")
+                    Icon(Icons.Filled.Menu, contentDescription = "Menu")
                 }
             }
-        )
-    }
+        },
+        actions = {
+            IconButton(
+                onClick = { Imagen.capturarYEnviar(activity) }
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = "Compartir")
+            }
+            IconButton(
+                onClick = {}
+            ) {
+                Icon(Icons.Filled.Info, contentDescription = "Informacion")
+            }
+        }
+    )
 }
 
 

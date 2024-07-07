@@ -9,6 +9,7 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
@@ -50,7 +51,10 @@ class GastosViewModel @Inject constructor(
     val gastosState: StateFlow<GastosState> = _gastosState
 
     fun onBorrarGastoChanged(gasto: DbGastosEntity?){
-        _gastosState.value = _gastosState.value.copy(gastoElegido = gasto)
+        _gastosState.value = _gastosState.value.copy(gastoABorrar = gasto)
+    }
+    fun onNewFotoGastoChanged(gasto: DbGastosEntity?){
+        _gastosState.value = _gastosState.value.copy(gastoNewFoto = gasto)
     }
     fun onSumaParticipantesChanged(sumaParticipantes: Map<String,Double>){
         _gastosState.value = _gastosState.value.copy(sumaParticipantes = sumaParticipantes)
@@ -158,11 +162,16 @@ class GastosViewModel @Inject constructor(
     suspend fun deleteGasto(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                gastoRepository.delete(gastosState.value.gastoElegido)
+                gastoRepository.delete(gastosState.value.gastoABorrar)
             }
         }
     }
 
+    /** METODO QUE ACTUALIZA LA FOTO DEL GASTO **/
+    suspend fun updateFoto(idFoto: Long){
+        gastosState.value.gastoNewFoto!!.idFotoGasto = idFoto
+        gastoRepository.updateFoto(gastosState.value.gastoNewFoto!!)
+    }
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
     //Actualizar
@@ -329,110 +338,36 @@ class GastosViewModel @Inject constructor(
         )
     }
 
+    /** METODO QUE INSERTA LA FOTO Y ACTUALIZA EL GASTO **/
+    fun insertaFotoGasto(imagen: Uri){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                val idFoto = insertFoto(imagen.toString())
+
+                if (idFoto != null){
+                    updateFoto(idFoto)
+                }
+            }
+        }
+    }
 
     /** INSERTAR IMAGEN EN LA BBDD **/
     suspend fun insertFoto(foto: String?): Long?{
-
         return foto?.let { DbFotoEntity(rutaFoto = it) }?.let { fotoRepository.insertFoto(it) }
     }
 
     /** OBTENER IMAGEN DE LA BBDD **/
-    suspend fun getFotoPago(idFoto: Long): String? {
-        return fotoRepository.getFoto(idFoto).firstOrNull()?.rutaFoto
-    }
-
-    fun obtenerFotoPago(idFoto: Long) {
+    fun getFotoPago(idFoto: Long) {
         viewModelScope.launch {
-            val rutaFoto = getFotoPago(idFoto)
-            onImageAbsolutePathChanged(rutaFoto)
-
+            withContext(Dispatchers.IO){
+                val rutaFoto = fotoRepository.getFoto(idFoto).firstOrNull()?.rutaFoto
+                if(rutaFoto != null) onImageUriChanged(Uri.parse(rutaFoto))
+            }
         }
     }
 
-    @OptIn(ExperimentalPermissionsApi::class)
-    fun solicitaPermisos(statePermisosAlmacenamiento: MultiplePermissionsState)  {
-        statePermisosAlmacenamiento.launchMultiplePermissionRequest()
-    }
-
-
-    fun getPathFromUri(context: Context, uri: Uri): String? {
-        val isKitKat = true
-
-        // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            when {
-                isExternalStorageDocument(uri) -> {
-                    val docId = DocumentsContract.getDocumentId(uri)
-                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    val type = split[0]
-                    if ("primary".equals(type, ignoreCase = true)) {
-                        return "${Environment.getExternalStorageDirectory()}/${split[1]}"
-                    }
-                    // Handle non-primary volumes
-                }
-                isDownloadsDocument(uri) -> {
-                    val id = DocumentsContract.getDocumentId(uri)
-                    val contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id)
-                    )
-                    return getDataColumn(context, contentUri, null, null)
-                }
-                isMediaDocument(uri) -> {
-                    val docId = DocumentsContract.getDocumentId(uri)
-                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    val type = split[0]
-                    var contentUri: Uri? = null
-                    when (type) {
-                        "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                        "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                        "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                    }
-                    val selection = "_id=?"
-                    val selectionArgs = arrayOf(split[1])
-                    return getDataColumn(context, contentUri, selection, selectionArgs)
-                }
-            }
-        } else if ("content".equals(uri.scheme, ignoreCase = true)) {
-            return getDataColumn(context, uri, null, null)
-        } else if ("file".equals(uri.scheme, ignoreCase = true)) {
-            return uri.path
-        }
-
-        return null
-    }
-
-    private fun getDataColumn(context: Context, uri: Uri?, selection: String?,
-                              selectionArgs: Array<String>?): String? {
-
-        var cursor: Cursor? = null
-        val column = "_data"
-        val projection = arrayOf(column)
-
-        try {
-            cursor = uri?.let {
-                context.contentResolver.query(it, projection, selection, selectionArgs,
-                    null)
-            }
-            if (cursor != null && cursor.moveToFirst()) {
-                val columnIndex: Int = cursor.getColumnIndexOrThrow(column)
-                return cursor.getString(columnIndex)
-            }
-        } finally {
-            cursor?.close()
-        }
-        return null
-    }
-
-    private fun isExternalStorageDocument(uri: Uri): Boolean {
-        return "com.android.externalstorage.documents" == uri.authority
-    }
-
-    private fun isDownloadsDocument(uri: Uri): Boolean {
-        return "com.android.providers.downloads.documents" == uri.authority
-    }
-
-    private fun isMediaDocument(uri: Uri): Boolean {
-        return "com.android.providers.media.documents" == uri.authority
+    fun obtenerFotoPago(idFoto: Long){
+         getFotoPago(idFoto)
     }
 
 }
