@@ -27,7 +27,7 @@ class GastoRepository @Inject constructor(
     suspend fun update(gasto: Gasto, idParticipante: Long) { gastoDao.update(gasto.toEntity(idParticipante))}
 
     @Update
-    suspend fun updateFoto(gasto: DbGastosEntity) { gastoDao.update(gasto)}
+    suspend fun updateGasto(gasto: DbGastosEntity) { gastoDao.update(gasto)}
 
     @Delete
     suspend fun delete(gasto: DbGastosEntity?) { gastoDao.delete(gasto) }

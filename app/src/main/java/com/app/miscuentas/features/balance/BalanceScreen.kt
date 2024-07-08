@@ -3,7 +3,6 @@ package com.app.miscuentas.features.balance
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -18,7 +17,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,7 +41,6 @@ import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -60,10 +57,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -81,12 +76,7 @@ import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
 import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
-import com.app.miscuentas.util.Imagen.Companion.createTempPictureUri
 import com.app.miscuentas.util.Imagen.Companion.permisosAlmacenamiento
-import com.app.miscuentas.util.Imagen.Companion.saveImageToGallery
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import java.text.NumberFormat
 import kotlin.math.abs
 
@@ -124,10 +114,10 @@ fun BalanceScreen(
     /** Lanzadores **/
     //Lanza la camara
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                viewModel.onImageUriChanged(tempPhotoUri)
+        contract = ActivityResultContracts.TakePicturePreview(),
+        onResult = { bitmap ->
+            if (bitmap != null) {
+                null  //viewModel.onImageUriChanged(bitmap)
             }
         }
     )
@@ -136,7 +126,6 @@ fun BalanceScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             if (uri != null) {
-                saveImageToGallery(context,uri)
                 viewModel.onImageUriChanged(uri)
             }
         }
@@ -151,8 +140,8 @@ fun BalanceScreen(
         ) == PackageManager.PERMISSION_GRANTED
 
         if(granted){
-            tempPhotoUri = context.createTempPictureUri()
-            cameraLauncher.launch(tempPhotoUri)
+
+            cameraLauncher.launch(null)
         }
 
         else {

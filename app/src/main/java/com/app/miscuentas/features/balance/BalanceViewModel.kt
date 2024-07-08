@@ -3,6 +3,7 @@ package com.app.miscuentas.features.balance
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
@@ -24,6 +25,8 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
 import com.app.miscuentas.domain.model.toEntity
 import com.app.miscuentas.util.Contabilidad
+import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
+import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
 import com.app.miscuentas.util.Validaciones
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -169,7 +172,6 @@ class BalanceViewModel @Inject constructor(
         val participantes = balanceState.value.hojaAMostrar?.participantes ?: return null
         val hojaConBalances = balanceState.value.hojaConBalances ?: return null
         val idRegistrado = balanceState.value.idRegistrado
-        val fotoPago = balanceState.value.imagenUri
 
         val idPagador = participantes.firstOrNull {
             it.participante.idRegistroParti == idRegistrado
@@ -184,7 +186,7 @@ class BalanceViewModel @Inject constructor(
 
         val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
 
-        val idFotoPago = insertFoto(fotoPago.toString())
+        val idFotoPago = 0L
         val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
 
         return if (actualizado) {
@@ -300,7 +302,7 @@ class BalanceViewModel @Inject constructor(
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var nombreAcreedor = ""
-        var imagenUri: String? = null
+        var imagenBitmap: Bitmap? = null
         val hoja = balanceState.value.hojaAMostrar
         val hojaConBalances = balanceState.value.hojaConBalances
 
@@ -320,14 +322,14 @@ class BalanceViewModel @Inject constructor(
                         }
                     }
                 }
-                imagenUri = getFotoPago(pago.idFotoPago!!)
+                imagenBitmap = obtenerFotoPago(pago.idFotoPago!!)
             }
             val pagoConParticipantes = PagoConParticipantes(
                 nombreDeudor,
                 nombreAcreedor,
                 pago.monto,
                 pago.fechaPago,
-                Uri.parse(imagenUri),
+                imagenBitmap,
                 (pago.fechaConfirmacion.isNotEmpty())
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
@@ -337,14 +339,19 @@ class BalanceViewModel @Inject constructor(
     }
 
     /** INSERTAR IMAGEN EN LA BBDD **/
-    suspend fun insertFoto(foto: String?): Long?{
-
-        return foto?.let { DbFotoEntity(rutaFoto = it) }?.let { fotoRepository.insertFoto(it) }
+    fun insertImage(bitmap: Bitmap) {
+        val byteArray = bitmapToByteArray(bitmap)
+        val imageEntity = DbFotoEntity(imagen = byteArray)
+        viewModelScope.launch {
+            fotoRepository.insertFoto(imageEntity)
+        }
     }
 
     /** OBTENER IMAGEN DE LA BBDD **/
-    suspend fun getFotoPago(idFoto: Long): String? {
-        return fotoRepository.getFoto(idFoto).firstOrNull()?.rutaFoto
+    suspend fun obtenerFotoPago(idFoto: Long): Bitmap? {
+        val imagenByteArray = fotoRepository.getFoto(idFoto).firstOrNull()?.imagen
+
+        return imagenByteArray?.let { byteArrayToBitmap(it) }
     }
 
 }

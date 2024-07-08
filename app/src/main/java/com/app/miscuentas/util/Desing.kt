@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.widget.Toast
@@ -256,7 +257,7 @@ class Desing {
 
 
         @Composable
-        fun MiImagenDialog(show:Boolean, imagen: Uri, cerrar: () -> Unit) {
+        fun MiImagenDialog(show:Boolean, imagen: Bitmap, cerrar: () -> Unit) {
             if (show) {
                 AlertDialog(
                     onDismissRequest = { cerrar() },

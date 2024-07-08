@@ -2,12 +2,7 @@ package com.app.miscuentas.features.gastos
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,16 +37,12 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.ArrowCircleUp
-import androidx.compose.material.icons.filled.ArrowDropDownCircle
 import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButton
@@ -66,7 +57,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -79,27 +69,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
-import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
-import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.IconoGasto
-import com.app.miscuentas.features.nav_bar_screens.mis_hojas.OpcionesHoja
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
-import com.app.miscuentas.util.Imagen.Companion.createTempPictureUri
 import com.app.miscuentas.util.Imagen.Companion.permisosAlmacenamiento
-import com.app.miscuentas.util.Imagen.Companion.saveImageToGallery
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.io.File
+import com.app.miscuentas.util.Imagen.Companion.uriToBitmap
 import java.text.NumberFormat
 
 
@@ -130,25 +110,29 @@ fun GastosScreen(
 
 
     /** IMAGENES **/
-    var tempPhotoUri by remember { mutableStateOf(value = Uri.EMPTY) }
-
     /** Lanzadores **/
     //Lanza la camara
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success) {
-                viewModel.insertaFotoGasto(tempPhotoUri)
+        contract = ActivityResultContracts.TakePicturePreview(),
+        onResult = { bitmap ->
+            if (bitmap != null) {
+                viewModel.insertImage(bitmap)
+            }
+            else {
+                mensaje = "Algunos permisos se han denegado. Acéptelos desde los ajustes del dispositivo."
+                showDialog = true
             }
         }
     )
-    //Lanza la galeria
+//    //Lanza la galeria
     val singleImagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            if (uri != null) {
-                saveImageToGallery(context,uri)
-                viewModel.insertaFotoGasto(uri)
+            uri?.let {
+                val bitmap = uriToBitmap(context, uri)
+                if (bitmap != null) {
+                    viewModel.insertImage(bitmap)
+                }
             }
         }
     )
@@ -162,8 +146,7 @@ fun GastosScreen(
         ) == PackageManager.PERMISSION_GRANTED
 
         if(granted){
-            tempPhotoUri = context.createTempPictureUri()
-            cameraLauncher.launch(tempPhotoUri)
+            cameraLauncher.launch(null)
         }
 
         else {
@@ -197,10 +180,10 @@ fun GastosScreen(
     if (showFoto){
         MiImagenDialog(
             show = true,
-            imagen = gastosState.imageUri!!,
+            imagen = gastosState.imagenBitmap!!,
             cerrar = {
                 showFoto = false
-                viewModel.onImageUriChanged(null)
+                viewModel.onImagenBitmapChanged(null)
             }
         )
         
@@ -221,7 +204,7 @@ fun GastosScreen(
         if (gastosState.cierreAceptado){
             viewModel.updateHoja()
         }
-        if (gastosState.imageUri != null){
+        if (gastosState.imagenBitmap != null){
             showFoto = true
         }
     }
@@ -234,23 +217,14 @@ fun GastosScreen(
         { onNavBalance(it) },
         viewModel::onBorrarGastoChanged,
         viewModel::onNewFotoGastoChanged,
-        gastosState.permisoCamara,
         { tomarFoto() },
         { elegirImagen() },
-        viewModel::onImageUriChanged,
-        gastosState.pagoRealizado,
-        gastosState.existeRegistrado,
         gastosState.sumaParticipantes,
         gastosState.balanceDeuda,
-        gastosState.imageUri,
-        gastosState.imageAbsolutePath,
-        viewModel::obtenerFotoPago,
+        viewModel::obtenerFotoGasto,
         viewModel::obtenerParticipantesYSumaGastos,
         viewModel::calcularBalance,
-        viewModel::onCierreAceptado,
-        viewModel::onPagoRealizadoChanged,
-        viewModel::pagarDeuda,
-        gastosState.listaPagosConParticipantes
+        viewModel::onCierreAceptado
     )
 }
 
@@ -263,23 +237,14 @@ fun GastosContent(
     onNavBalance: (Long) -> Unit,
     onBorrarGastoChanged: (DbGastosEntity?) -> Unit,
     onNewFotoGastoChanged: (DbGastosEntity?) -> Unit,
-    permisoCamara: Boolean,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
-    onImageUriChanged: (Uri?) -> Unit,
-    pagoRealizado: Boolean,
-    existeRegistrado: Boolean,
     sumaParticipantes: Map<String, Double>?,
     balanceDeuda: Map<String, Double>?,
-    imagenUri: Uri?,
-    imagenPago: String?,
-    obtenerFotoPago: (Long) -> Unit,
+    obtenerFotoGasto: (Long) -> Unit,
     obtenerParticipantesYSumaGastos: () -> Unit,
     calcularBalance: () -> Unit,
-    onCierreAceptado: (Boolean) -> Unit,
-    onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?) -> Unit,
-    listPagos: List<PagoConParticipantes>?
+    onCierreAceptado: (Boolean) -> Unit
 ) {
     var showResumen by rememberSaveable { mutableStateOf(false) }
     var showBalance by rememberSaveable { mutableStateOf(false) }
@@ -380,8 +345,7 @@ fun GastosContent(
                                         statusHoja = hojaDeGastos.hoja.status,
                                         tomarFoto = tomarFoto,
                                         elegirImagen = elegirImagen,
-                                        obtenerFotoPago = obtenerFotoPago,
-                                        imagenUri = imagenUri
+                                        obtenerFotoGasto = obtenerFotoGasto
                                     )
                                 }
                             }
@@ -570,10 +534,8 @@ fun GastoDesing(
     statusHoja: String,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
-    obtenerFotoPago: (Long) -> Unit,
-    imagenUri: Uri?
+    obtenerFotoGasto: (Long) -> Unit
 ) {
-    val context = LocalContext.current
 
     //MENSAJE CON LA OPCION DE BORRADO
     var titulo by rememberSaveable { mutableStateOf("") }
@@ -689,7 +651,7 @@ fun GastoDesing(
                                 }
                                 "Ver" ->  {
                                     if (gasto.idFotoGasto != null) {
-                                        obtenerFotoPago(gasto.idFotoGasto!!)
+                                        obtenerFotoGasto(gasto.idFotoGasto!!)
                                     }
                                 }
                             }

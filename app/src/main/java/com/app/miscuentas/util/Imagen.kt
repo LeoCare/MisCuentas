@@ -6,12 +6,14 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -89,59 +91,25 @@ class Imagen {
         }
         /*******************************************************/
 
-
         /** IMAGENES DE LA CAMARA Y GALERIA **/
-        /** Guardar imagen **/
-        //Buffer para la imagen de la galeria al almacenamiento
-        fun copyStream(input: InputStream, output: OutputStream) {
-            val buffer = ByteArray(1024)
-            var length: Int
-            while (input.read(buffer).also { length = it } > 0) {
-                output.write(buffer, 0, length)
+        /** Convertir de Bitmap a ByteArray y viceversa **/
+        fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            return stream.toByteArray()
+        }
+        fun byteArrayToBitmap(byteArray: ByteArray): Bitmap {
+            return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        }
+        /** Convertir de Uri a Bitmap **/
+        fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+            return try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                BitmapFactory.decodeStream(inputStream)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
         }
-
-        // Función para guardar la imagen en la galería
-        fun saveImageToGallery(context: Context, imageUri: Uri) {
-            val contentResolver = context.contentResolver
-            val imageCollection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-            } else {
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            }
-
-            val newImageDetails = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
-                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-            }
-            val newImageUri = contentResolver.insert(imageCollection, newImageDetails)
-
-            newImageUri?.let { uri ->
-                val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
-                val outputStream: OutputStream? = contentResolver.openOutputStream(uri)
-
-                if (inputStream != null && outputStream != null) {
-                    copyStream(inputStream, outputStream)
-                    inputStream.close()
-                    outputStream.close()
-                }
-            }
-        }
-
-        /** Crear archivo para la imagen de la camara **/
-        fun Context.createTempPictureUri(
-            fileName: String = "IMG_${System.currentTimeMillis()}",
-            fileExtension: String = ".jpg"
-        ): Uri {
-            val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera")
-            if (!storageDir.exists()) {
-                storageDir.mkdirs()
-            }
-            val tempFile = File(storageDir, "$fileName$fileExtension")
-            return FileProvider.getUriForFile(this, "${packageName}.provider", tempFile)
-        }
-        /**************************************/
-
     }
 }
