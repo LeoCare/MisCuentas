@@ -25,7 +25,8 @@ data class GastosState (
     val permisoCamara: Boolean = false,
     val imagenBitmap: Bitmap? = null,
     val permisoDenegadoPermanente: Boolean = false,
-    val permisoState: PermissionState? = null
+    val permisoState: PermissionState? = null,
+    val mostrarFoto: Boolean = false
 ){
     sealed class PermissionState {
         object Concedido : PermissionState()

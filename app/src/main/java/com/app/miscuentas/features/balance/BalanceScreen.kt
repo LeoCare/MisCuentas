@@ -52,7 +52,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -108,8 +107,6 @@ fun BalanceScreen(
 
 
     /** IMAGENES **/
-
-    var tempPhotoUri by remember { mutableStateOf(value = Uri.EMPTY) }
 
     /** Lanzadores **/
     //Lanza la camara
@@ -181,7 +178,6 @@ fun BalanceScreen(
         pagarDeuda = viewModel::pagarDeuda,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
-        imagenUri = balanceState.imagenUri,
         listPagos = balanceState.listaPagosConParticipantes,
         recargarDatos = viewModel::updateIfHojaBalanceada
     )
@@ -198,12 +194,13 @@ fun BalanceContent(
     pagarDeuda: (Pair<String, Double>?) -> Unit,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
-    imagenUri: Uri?,
     listPagos: List<PagoConParticipantes>?,
     recargarDatos: () -> Unit
 ){
     var showBalance by rememberSaveable { mutableStateOf(false) }
-
+    val showResolution = {
+        showBalance = !showBalance
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -256,30 +253,29 @@ fun BalanceContent(
             LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
                 if (balanceDeuda?.isNotEmpty() == true) {
 
-                    /** RECUADRO CON ACCIONES DE RESOLUCION **/
-                    item {
-                        AnimatedVisibility(
-                            visible = showBalance,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically()
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 15.dp)
-                            ) {
-                                ResolucionBox(
-                                    balanceDeuda = balanceDeuda,
-                                    pagoRealizado = pagoRealizado,
-                                    onPagoRealizadoChanged = onPagoRealizadoChanged,
-                                    pagarDeuda = pagarDeuda,
-                                    tomarFoto = tomarFoto,
-                                    elegirImagen = elegirImagen,
-                                    imagenUri = imagenUri
-                                )
-                            }
-                        }
-                    }
+//                    /** RECUADRO CON ACCIONES DE RESOLUCION **/
+//                    item {
+//                        AnimatedVisibility(
+//                            visible = showBalance,
+//                            enter = fadeIn() + expandVertically(),
+//                            exit = fadeOut() + shrinkVertically()
+//                        ) {
+//                            Column(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(top = 15.dp)
+//                            ) {
+//                                ResolucionBox(
+//                                    balanceDeuda = balanceDeuda,
+//                                    pagoRealizado = pagoRealizado,
+//                                    onPagoRealizadoChanged = onPagoRealizadoChanged,
+//                                    pagarDeuda = pagarDeuda,
+//                                    tomarFoto = tomarFoto,
+//                                    elegirImagen = elegirImagen
+//                                )
+//                            }
+//                        }
+//                    }
 
                     /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
                     item {
@@ -295,7 +291,13 @@ fun BalanceContent(
                                 BalanceDesing(
                                     participante = nombre,
                                     monto = monto,
-                                    paddVert = 10
+                                    paddVert = 10,
+                                    balanceDeuda = balanceDeuda,
+                                    pagoRealizado = pagoRealizado,
+                                    onPagoRealizadoChanged = onPagoRealizadoChanged,
+                                    pagarDeuda = pagarDeuda,
+                                    tomarFoto = tomarFoto,
+                                    elegirImagen = elegirImagen
                                 )
                             }
                         }
@@ -416,9 +418,16 @@ fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
 fun BalanceDesing(
     participante: String,
     monto: Double,
-    paddVert: Int
+    paddVert: Int,
+    balanceDeuda: Map<String, Double>?,
+    pagoRealizado: Boolean,
+    onPagoRealizadoChanged: (Boolean) -> Unit,
+    pagarDeuda: (Pair<String, Double>?) -> Unit,
+    tomarFoto: () -> Unit,
+    elegirImagen: () -> Unit,
 ) {
     val currencyFormatter = NumberFormat.getCurrencyInstance()
+    var showBalance by rememberSaveable { mutableStateOf(false) }
 
     Surface(
         shape = RoundedCornerShape(18.dp),
@@ -426,6 +435,7 @@ fun BalanceDesing(
         modifier = Modifier
             .padding(vertical = paddVert.dp, horizontal = 10.dp)
             .fillMaxWidth()
+            .clickable { showBalance = !showBalance }
     ) {
         Column(
             modifier = Modifier
@@ -448,7 +458,29 @@ fun BalanceDesing(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
+            AnimatedVisibility(
+                visible = showBalance,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 15.dp)
+                ) {
+                    ResolucionBox(
+                        participante = participante,
+                        balanceDeuda = balanceDeuda,
+                        pagoRealizado = pagoRealizado,
+                        onPagoRealizadoChanged = onPagoRealizadoChanged,
+                        pagarDeuda = pagarDeuda,
+                        tomarFoto = tomarFoto,
+                        elegirImagen = elegirImagen
+                    )
+                }
+            }
         }
+
     }
 }
 
@@ -581,15 +613,15 @@ fun PagoDesing(
 
 @Composable
 fun ResolucionBox(
+    participante: String,
     balanceDeuda: Map<String, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?) -> Unit,
     tomarFoto: () -> Unit,
-    elegirImagen: () -> Unit,
-    imagenUri: Uri?
+    elegirImagen: () -> Unit
 ) {
-    val montoRegistrado = balanceDeuda!!.firstNotNullOf { it.value } //mi monto
+    val montoRegistrado = balanceDeuda!![participante] // monto
     val context = LocalContext.current
     var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
@@ -688,8 +720,7 @@ fun ResolucionBox(
                 /** PASO 2: COMPROBANTE **/
                 Paso2(
                     tomarFoto,
-                    elegirImagen,
-                    imagenUri
+                    elegirImagen
                 )
 
                 /** PASO 3: ENVIAR **/
@@ -708,7 +739,7 @@ fun ResolucionBox(
 
 @Composable
 fun Paso1(
-    montoRegistrado: Double,
+    montoRegistrado: Double?,
     opcionSeleccionada: Pair<String, Double>?,
     onTituloChanged: (String) -> Unit,
     onMensajeChanged: (String) -> Unit,
@@ -789,8 +820,7 @@ fun Paso1(
 @Composable
 fun Paso2(
     tomarFoto: () -> Unit,
-    elegirImagen: () -> Unit,
-    imagenUri: Uri?
+    elegirImagen: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -822,14 +852,6 @@ fun Paso2(
                 )
             }
         }
-        AsyncImage(
-            model = imagenUri,
-            contentDescription = "Foto del comprobante de pago",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(70.dp)
-                .padding(top = 16.dp)
-        )
     }
 }
 

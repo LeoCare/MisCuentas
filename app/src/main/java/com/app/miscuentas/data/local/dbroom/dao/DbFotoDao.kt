@@ -14,9 +14,9 @@ interface DbFotoDao {
     suspend fun insertFoto(foto: DbFotoEntity): Long
 
     @Query("SELECT * FROM t_fotos")
-    fun getAllFotos(): Flow<List<DbFotoEntity>>
+    fun getAllFotos(): List<DbFotoEntity>
 
     @Query("SELECT * FROM t_fotos WHERE idFoto = :idFoto")
-    fun getFoto(idFoto: Long): Flow<DbFotoEntity>
+    fun getFoto(idFoto: Long): DbFotoEntity
 
 }

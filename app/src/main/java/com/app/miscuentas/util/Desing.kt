@@ -277,10 +277,7 @@ class Desing {
                                 .size(coil.size.Size.ORIGINAL) // Set the target size to load the image at.
                                 .build()),
                             contentDescription = "Gasto Imagen",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
+                            contentScale = ContentScale.Fit
                         )
                     }
                 )

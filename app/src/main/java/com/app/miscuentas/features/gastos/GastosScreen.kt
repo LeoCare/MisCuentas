@@ -3,6 +3,7 @@ package com.app.miscuentas.features.gastos
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -118,13 +119,9 @@ fun GastosScreen(
             if (bitmap != null) {
                 viewModel.insertImage(bitmap)
             }
-            else {
-                mensaje = "Algunos permisos se han denegado. Acéptelos desde los ajustes del dispositivo."
-                showDialog = true
-            }
         }
     )
-//    //Lanza la galeria
+    //Lanza la galeria
     val singleImagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
@@ -183,11 +180,9 @@ fun GastosScreen(
             imagen = gastosState.imagenBitmap!!,
             cerrar = {
                 showFoto = false
-                viewModel.onImagenBitmapChanged(null)
+                viewModel.onMostrarFotoChanged(false)
             }
         )
-        
-
     }
     /******************************************************/
 
@@ -204,7 +199,7 @@ fun GastosScreen(
         if (gastosState.cierreAceptado){
             viewModel.updateHoja()
         }
-        if (gastosState.imagenBitmap != null){
+        if (gastosState.mostrarFoto){
             showFoto = true
         }
     }
@@ -461,7 +456,7 @@ fun DatosHoja(
                                 .clickable { onNavBalance(hojaDeGastos!!.hoja.idHoja) },
                             imageVector = Icons.Filled.Balance, //IMAGEN DEL GASTO
                             contentDescription = "Pago o Balance",
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -562,9 +557,6 @@ fun GastoDesing(
         }
     }
 
-    //MENSAJE CON LA IMGEN DEL GASTO
-    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
-
     Surface(
         shape = RoundedCornerShape(8.dp),
         elevation = 12.dp,
@@ -655,7 +647,7 @@ fun GastoDesing(
                                     }
                                 }
                             }
-                            opcionSeleccionada = opcion
+                           // opcionSeleccionada = opcion
 
                         }
                     }

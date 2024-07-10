@@ -14,7 +14,7 @@ class FotoRepository @Inject constructor(
         return fotoDao.insertFoto(foto)
     }
 
-    fun getAllFotos(): Flow<List<DbFotoEntity>> = fotoDao.getAllFotos()
+    fun getAllFotos(): List<DbFotoEntity> = fotoDao.getAllFotos()
 
-    fun getFoto(idFoto: Long): Flow<DbFotoEntity> = fotoDao.getFoto(idFoto)
+    fun getFoto(idFoto: Long): DbFotoEntity = fotoDao.getFoto(idFoto)
 }

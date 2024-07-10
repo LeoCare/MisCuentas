@@ -298,7 +298,7 @@ class BalanceViewModel @Inject constructor(
 
 
     /** METODO QUE CREA UNA LISTA DE PAGOS CON PARTICIPANTES, SU MONTO Y FECHA **/
-    suspend fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
+    fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var nombreAcreedor = ""
@@ -348,10 +348,9 @@ class BalanceViewModel @Inject constructor(
     }
 
     /** OBTENER IMAGEN DE LA BBDD **/
-    suspend fun obtenerFotoPago(idFoto: Long): Bitmap? {
-        val imagenByteArray = fotoRepository.getFoto(idFoto).firstOrNull()?.imagen
-
-        return imagenByteArray?.let { byteArrayToBitmap(it) }
+    fun obtenerFotoPago(idFoto: Long): Bitmap {
+        val imagenByteArray = fotoRepository.getFoto(idFoto).imagen
+        return byteArrayToBitmap(imagenByteArray)
     }
 
 }

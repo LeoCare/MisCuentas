@@ -75,6 +75,9 @@ class GastosViewModel @Inject constructor(
     fun onImagenBitmapChanged(imagenBitmap: Bitmap?){
         _gastosState.value =_gastosState.value.copy(imagenBitmap = imagenBitmap)
     }
+    fun onMostrarFotoChanged(mostrar: Boolean){
+        _gastosState.value = _gastosState.value.copy(mostrarFoto = mostrar)
+    }
 
 
 
@@ -233,10 +236,6 @@ class GastosViewModel @Inject constructor(
     }
 
 
-
-
-
-
     /** METODO QUE INSERTA LA FOTO Y ACTUALIZA EL GASTO **/
     fun insertImage(bitmap: Bitmap) {
         val byteArray = bitmapToByteArray(bitmap)
@@ -250,11 +249,12 @@ class GastosViewModel @Inject constructor(
     fun obtenerFotoGasto(id: Long) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                fotoRepository.getFoto(id).collect{
-                    onImagenBitmapChanged(byteArrayToBitmap(it.imagen))
-                }
+                val imagen = fotoRepository.getFoto(id)
+                onImagenBitmapChanged(byteArrayToBitmap(imagen.imagen))
+                onMostrarFotoChanged(true)
             }
         }
     }
+
 
 }

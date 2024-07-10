@@ -95,7 +95,7 @@ class Imagen {
         /** Convertir de Bitmap a ByteArray y viceversa **/
         fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
             val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream)
             return stream.toByteArray()
         }
         fun byteArrayToBitmap(byteArray: ByteArray): Bitmap {
@@ -107,7 +107,6 @@ class Imagen {
                 val inputStream = context.contentResolver.openInputStream(uri)
                 BitmapFactory.decodeStream(inputStream)
             } catch (e: Exception) {
-                e.printStackTrace()
                 null
             }
         }
