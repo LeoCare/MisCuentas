@@ -175,7 +175,7 @@ fun BalanceScreen(
         balanceDeuda = balanceState.balanceDeuda,
         pagoRealizado = balanceState.pagoRealizado,
         onPagoRealizadoChanged = viewModel::onPagoRealizadoChanged,
-        pagarDeuda = viewModel::pagarDeuda,
+        pagarDeuda = viewModel::pagarDeuda2,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
         listPagos = balanceState.listaPagosConParticipantes,
@@ -191,7 +191,7 @@ fun BalanceContent(
     balanceDeuda: Map<String, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?) -> Unit,
+    pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
     listPagos: List<PagoConParticipantes>?,
@@ -287,10 +287,10 @@ fun BalanceContent(
                         ) {
 
                             items(
-                                balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
+                                balanceDeuda.toList(), key = { it.first }) {
                                 BalanceDesing(
-                                    participante = nombre,
-                                    monto = monto,
+                                    participante = it.first,
+                                    monto = it.second,
                                     paddVert = 10,
                                     balanceDeuda = balanceDeuda,
                                     pagoRealizado = pagoRealizado,
@@ -422,7 +422,7 @@ fun BalanceDesing(
     balanceDeuda: Map<String, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?) -> Unit,
+    pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
 ) {
@@ -574,7 +574,7 @@ fun PagoDesing(
                     colors = CardDefaults.cardColors(Color.Transparent),
                     modifier = Modifier
                         .padding(start = 10.dp)
-                        .clickable { showFoto = true}
+                        .clickable { showFoto = true }
                 ) {
                     Icon(
                         Icons.Default.Photo,
@@ -617,7 +617,7 @@ fun ResolucionBox(
     balanceDeuda: Map<String, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?) -> Unit,
+    pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit
 ) {
@@ -656,13 +656,18 @@ fun ResolucionBox(
 
     //AVISO CUANDO SE PAGA LA DEUDA:
     var showConfirm by rememberSaveable { mutableStateOf(false) }
+    var deudor by rememberSaveable { mutableStateOf<Pair<String, Double>?>(null) }
+    deudor = balanceDeuda.entries
+        .find { it.key == participante }
+        ?.let { Pair(it.key, it.value) }
+
     if (showConfirm) {
         MiDialogo(show = true,
             titulo = titulo,
             mensaje = mensaje,
             cerrar = { showConfirm = false },
             aceptar = {
-                pagarDeuda(opcionSeleccionada)
+                pagarDeuda(deudor, opcionSeleccionada)
                 showConfirm = false
                 Toast.makeText(
                     context,
@@ -714,23 +719,24 @@ fun ResolucionBox(
                     { nuevoMensaje -> mensaje = nuevoMensaje },
                     { mostrarDialogo -> showDialogWhitOptions = mostrarDialogo}
                 )
-
             }
-            if (montoRegistrado < 0) {
-                /** PASO 2: COMPROBANTE **/
-                Paso2(
-                    tomarFoto,
-                    elegirImagen
-                )
+            if (montoRegistrado != null) {
+                if (montoRegistrado < 0) {
+                    /** PASO 2: COMPROBANTE **/
+                    Paso2(
+                        tomarFoto,
+                        elegirImagen
+                    )
 
-                /** PASO 3: ENVIAR **/
-                Paso3(
-                    opcionSeleccionada,
-                    { nuevoTitulo -> titulo = nuevoTitulo },
-                    { nuevoMensaje -> mensaje = nuevoMensaje },
-                    montoRegistrado,
-                    { mostrarConfirmacion -> showConfirm = mostrarConfirmacion  }
-                )
+                    /** PASO 3: ENVIAR **/
+                    Paso3(
+                        opcionSeleccionada,
+                        { nuevoTitulo -> titulo = nuevoTitulo },
+                        { nuevoMensaje -> mensaje = nuevoMensaje },
+                        montoRegistrado,
+                        { mostrarConfirmacion -> showConfirm = mostrarConfirmacion  }
+                    )
+                }
             }
         }
     }
@@ -753,14 +759,14 @@ fun Paso1(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Text(
-            text = if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "1 - Pagar a..." else "Saldado",
-            fontWeight = FontWeight.Black,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        if (montoRegistrado != null) {
+            Text(
+                text = if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "1 - Pagar a..." else "Saldado",
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
         if (montoRegistrado != 0.0) {
-
-
             if (opcionSeleccionada != null) {
                 Text(
                     text = opcionSeleccionada.first,
@@ -768,15 +774,17 @@ fun Paso1(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .clickable {
-                            if (montoRegistrado > 0) Toast.makeText(
-                                context,
-                                "Se ha solicitado el pago a los deudores",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            else {
-                                onTituloChanged("PAGAR A..")
-                                onMensajeChanged("(Solo se descontará tu parte de la deuda)")
-                                mostrarDialogo(true)
+                            if (montoRegistrado != null) {
+                                if (montoRegistrado > 0) Toast.makeText(
+                                    context,
+                                    "Se ha solicitado el pago a los deudores",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                else {
+                                    onTituloChanged("PAGAR A..")
+                                    onMensajeChanged("(Solo se descontará tu parte de la deuda)")
+                                    mostrarDialogo(true)
+                                }
                             }
                         },
                     color = MaterialTheme.colorScheme.primary
@@ -789,17 +797,19 @@ fun Paso1(
                     modifier = Modifier
                         .size(30.dp)
                         .clickable {
-                            if (montoRegistrado > 0) Toast
-                                .makeText(
-                                    context,
-                                    "Se ha solicitado el pago a los deudores",
-                                    Toast.LENGTH_SHORT
-                                )
-                                .show()
-                            else {
-                                onTituloChanged("PAGAR A..")
-                                onMensajeChanged("(Solo se descontará tu parte de la deuda)")
-                                mostrarDialogo(true)
+                            if (montoRegistrado != null) {
+                                if (montoRegistrado > 0) Toast
+                                    .makeText(
+                                        context,
+                                        "Se ha solicitado el pago a los deudores",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                                else {
+                                    onTituloChanged("PAGAR A..")
+                                    onMensajeChanged("(Solo se descontará tu parte de la deuda)")
+                                    mostrarDialogo(true)
+                                }
                             }
                         }
                 )
@@ -807,12 +817,15 @@ fun Paso1(
             }
         }
         if (opcionSeleccionada?.second != null) {
-            Text(
-                text = if (opcionSeleccionada.second > abs(montoRegistrado)) NumberFormat.getCurrencyInstance().format(
-                    abs(montoRegistrado)
-                ) else NumberFormat.getCurrencyInstance().format(opcionSeleccionada.second),
-                fontSize = 14.sp
-            )
+            if (montoRegistrado != null) {
+                Text(
+                    text = if (opcionSeleccionada.second > abs(montoRegistrado)) NumberFormat.getCurrencyInstance().format(
+                        abs(montoRegistrado)
+                    ) else NumberFormat.getCurrencyInstance().format(opcionSeleccionada.second),
+                    fontSize = 14.sp
+                )
+            }
+
         } else Spacer(Modifier.width(30.dp))
     }
 }
