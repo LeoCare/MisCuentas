@@ -58,6 +58,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -326,7 +327,11 @@ fun GastosContent(
                 contentPadding = innerPadding,
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(horizontal = 8.dp)
             ) {
+                item {
+                    Text(text = "Gastos:")
+                }
                 if (hojaDeGastos != null) {
                     itemsIndexed(hojaDeGastos.participantes) { index, participante ->
                         if (participante.gastos.isNotEmpty()){
@@ -563,6 +568,7 @@ fun GastoDesing(
 ) {
 
     //MENSAJE CON LA OPCION DE BORRADO
+    val idImagenGastoState by remember { mutableStateOf(gasto?.idFotoGasto) }
     var titulo by rememberSaveable { mutableStateOf("") }
     var mensaje by rememberSaveable { mutableStateOf("") }
     var showDialog by rememberSaveable { mutableStateOf(false) }
@@ -660,7 +666,7 @@ fun GastoDesing(
                         }
 
                         /** LISTA DE OPCIONES **/
-                        OpcionesGasto(gasto) { opcion ->
+                        OpcionesGasto(idImagenGastoState, gasto) { opcion ->
                             when(opcion) {
                                 "Camara" ->  {
                                     onNewFotoGastoChanged(gasto)
@@ -689,6 +695,7 @@ fun GastoDesing(
 /** OPCIONES ELEGIBLES PARA CADA GASTO **/
 @Composable
 fun OpcionesGasto(
+    idImagenGastoState: Long?,
     gasto: DbGastosEntity,
     onOptionSelected: (String) -> Unit
 ) {
@@ -699,7 +706,7 @@ fun OpcionesGasto(
             Icon(
                 Icons.Default.Image,
                 contentDescription = "Menu de opciones",
-                tint = Color.LightGray
+                tint = if(idImagenGastoState != null) MaterialTheme.colorScheme.primary else Color.LightGray
             )
         }
         DropdownMenu(

@@ -10,6 +10,6 @@ data class PagoConParticipantes(
     val nombreAcreedor: String,
     val monto: Double,
     val fechaPago: String,
-    val fotoPago: Bitmap?,
+    var fotoPago: Bitmap?,
     val confirmado: Boolean = false
 )

@@ -3,7 +3,6 @@ package com.app.miscuentas.features.balance
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -34,10 +33,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowCircleDown
-import androidx.compose.material.icons.filled.ArrowCircleUp
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Image
@@ -45,9 +40,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.WavingHand
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -60,13 +54,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -75,13 +69,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.app.miscuentas.R
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
-import com.app.miscuentas.features.gastos.OpcionesGasto
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
@@ -105,6 +96,7 @@ fun BalanceScreen(
         viewModel.onHojaAMostrar(idHojaAMostrar)
     }
 
+
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var mensaje by rememberSaveable { mutableStateOf("") }
     if (showDialog) {
@@ -126,6 +118,10 @@ fun BalanceScreen(
         onResult = { bitmap ->
             if (bitmap != null) {
                 viewModel.onImagenBitmapChanged(bitmap)
+                if (balanceState.pagoNewFoto != null) {
+                    viewModel.insertNewImage(bitmap)
+                    viewModel.updateListaPagoConParticipantes(bitmap)
+                }
             }
         }
     )
@@ -137,6 +133,7 @@ fun BalanceScreen(
                 val bitmap = uriToBitmap(context, uri)
                 if (bitmap != null) {
                     viewModel.onImagenBitmapChanged(bitmap)
+                    if (balanceState.pagoNewFoto != null) viewModel.insertNewImage(bitmap)
                 }
             }
         }
@@ -181,6 +178,23 @@ fun BalanceScreen(
             showDialog = true
         }
     }
+
+    var showFoto by rememberSaveable { mutableStateOf(false)}
+    if (showFoto){
+        MiImagenDialog(
+            show = true,
+            imagen = balanceState.imagenBitmap!!,
+            cerrar = {
+                showFoto = false
+            }
+        )
+    }
+
+    LaunchedEffect(key1 = balanceState.imagenBitmap) {
+        if (balanceState.imagenBitmap != null) {
+            showFoto = true
+        }
+    }
     /******************************************************/
 
     BalanceContent(
@@ -193,6 +207,7 @@ fun BalanceScreen(
         imagenBitmapState = balanceState.imagenBitmap,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
+        onNewFotoPagoChanged = viewModel::onNewFotoPagoChanged,
         listPagos = balanceState.listaPagosConParticipantes,
         recargarDatos = viewModel::updateIfHojaBalanceada
     )
@@ -210,6 +225,7 @@ fun BalanceContent(
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
+    onNewFotoPagoChanged: (PagoConParticipantes) -> Unit,
     listPagos: List<PagoConParticipantes>?,
     recargarDatos: () -> Unit
 ){
@@ -278,7 +294,12 @@ fun BalanceContent(
                         }
 
                         items(listPagos, key = { it.idPago }) { pago ->
-                            PagoDesing( pago )
+                            PagoDesing(
+                                pago ,
+                                tomarFoto,
+                                elegirImagen,
+                                { onNewFotoPagoChanged(it) }
+                            )
                         }
                     }
                 }
@@ -429,36 +450,38 @@ fun BalanceDesing(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
-                AnimatedVisibility(
-                    visible = showBalance,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 5.dp)
+                if(monto != 0.0) {
+                    AnimatedVisibility(
+                        visible = showBalance,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
                     ) {
-                        ResolucionBox(
-                            participante = participante,
-                            balanceDeuda = balanceDeuda,
-                            pagoRealizado = pagoRealizado,
-                            onPagoRealizadoChanged = onPagoRealizadoChanged,
-                            pagarDeuda = pagarDeuda,
-                            imagenBitmapState = imagenBitmapState,
-                            tomarFoto = tomarFoto,
-                            elegirImagen = elegirImagen
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 5.dp)
+                        ) {
+                            ResolucionBox(
+                                participante = participante,
+                                balanceDeuda = balanceDeuda,
+                                pagoRealizado = pagoRealizado,
+                                onPagoRealizadoChanged = onPagoRealizadoChanged,
+                                pagarDeuda = pagarDeuda,
+                                imagenBitmapState = imagenBitmapState,
+                                tomarFoto = tomarFoto,
+                                elegirImagen = elegirImagen
+                            )
+                        }
                     }
+                    Spacer(Modifier.height(10.dp))
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        imageVector = if (showBalance) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = "Pago o Balance",
+                    )
                 }
-                Spacer(Modifier.height(10.dp))
-                Icon(
-                    modifier = Modifier
-                        .size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                    imageVector = if (showBalance) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = "Pago o Balance",
-                )
             }
         }
     }
@@ -468,6 +491,9 @@ fun BalanceDesing(
 @Composable
 fun PagoDesing(
     pago: PagoConParticipantes,
+    tomarFoto: () -> Unit,
+    elegirImagen: () -> Unit,
+    onNewFotoPagoChanged: (PagoConParticipantes) -> Unit
 ){
     val context = LocalContext.current
     //Aviso de la opcion elegida:
@@ -475,33 +501,33 @@ fun PagoDesing(
     var showFoto by rememberSaveable { mutableStateOf(false)}
     val currencyFormatter = NumberFormat.getCurrencyInstance()
 
+    val imagenBitmapState by remember { mutableStateOf(pago.fotoPago) }
+
+
     if (showDialog){
         Toast.makeText(context, "${pago.nombreAcreedor} no ha confirmado aun.", Toast.LENGTH_SHORT).show()
     }
 
     if (showFoto){
-        if (pago.fotoPago != null) {
-            MiImagenDialog(
-                show = true,
-                imagen =  pago.fotoPago,
-                cerrar = { showFoto = false }
-            )
-        }
-        else Toast.makeText(context, "No hay foto adjuntada al pago.", Toast.LENGTH_SHORT).show()
+        MiImagenDialog(
+            show = true,
+            imagen = pago.fotoPago!!,
+            cerrar = { showFoto = false }
+        )
     }
 
     Surface(
         shape = RoundedCornerShape(10.dp),
         elevation = 15.dp,
         modifier = Modifier
-            .padding(vertical = 14.dp, horizontal = 12.dp)
+            .padding(vertical = 4.dp, horizontal = 12.dp)
             .fillMaxWidth()
 
     ) {
         Column(
             modifier = Modifier
                 .width(180.dp)
-                .padding(vertical = 14.dp, horizontal = 17.dp)
+                .padding(top = 7.dp, start = 17.dp, end = 17.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -515,10 +541,31 @@ fun PagoDesing(
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.bodyMedium
                 )
+                /** CONFIRMACION **/
+                Card(
+                    shape = MaterialTheme.shapes.small,
+                    colors = CardDefaults.cardColors(Color.Transparent),
+                    modifier = Modifier
+                        .clickable {
+                            Toast
+                                .makeText(
+                                    context,
+                                    "${pago.nombreAcreedor} no ha confirmado aun.",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+                        },
+                ) {
+                    Icon(
+                        Icons.Filled.Handshake,
+                        contentDescription = "Iconos de confirmacion del pago",
+                        tint = if (pago.confirmado) Color.Green else Color.DarkGray,
+                        modifier = Modifier.size(25.dp)
+                    )
+                }
             }
             Row(
                 modifier = Modifier
-                    .padding(bottom = 10.dp)
                     .fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -542,49 +589,22 @@ fun PagoDesing(
                     style = MaterialTheme.typography.titleMedium
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                /** FOTO **/
-                Card(
-                    shape = MaterialTheme.shapes.small,
-                    colors = CardDefaults.cardColors(Color.Transparent),
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                        .clickable { showFoto = true }
-                ) {
-                    Icon(
-                        Icons.Default.Photo,
-                        contentDescription = "Iconos de la camara",
-                        tint = if (pago.fotoPago != null) MaterialTheme.colorScheme.primary else Color.DarkGray,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-                /** CONFIRMACION **/
-                Card(
-                    shape = MaterialTheme.shapes.small,
-                    colors = CardDefaults.cardColors(Color.Transparent),
-                    modifier = Modifier
-                        .padding(start = 70.dp)
-                        .clickable {
-                            Toast
-                                .makeText(
-                                    context,
-                                    "${pago.nombreAcreedor} no ha confirmado aun.",
-                                    Toast.LENGTH_SHORT
-                                )
-                                .show()
-                        },
-                ) {
-                    Icon(
-                        Icons.Filled.Handshake,
-                        contentDescription = "Iconos de confirmacion del pago",
-                        tint = if (pago.confirmado) Color.Green else Color.DarkGray,
-                        modifier = Modifier.size(30.dp)
-                    )
+            /** LISTA DE OPCIONES **/
+            OpcionesPago(imagenBitmapState,pago) { opcion ->
+                when(opcion) {
+                    "Camara" ->  {
+                        onNewFotoPagoChanged(pago)
+                        tomarFoto()
+                    }
+
+                    "Galeria" ->  {
+                        elegirImagen()
+                    }
+                    "Ver" ->  {
+                        if (pago.fotoPago != null) {
+                            showFoto = true
+                        }
+                    }
                 }
             }
         }
@@ -740,15 +760,15 @@ fun Paso1(
                 text = if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "1 - Pagar a..." else "Saldado",
                 style = MaterialTheme.typography.bodyLarge
             )
-        }
-        if (montoRegistrado != 0.0) {
-            if (opcionSeleccionada != null) {
-                Text(
-                    text = opcionSeleccionada.first,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier
-                        .clickable {
-                            if (montoRegistrado != null) {
+
+            if (montoRegistrado != 0.0) {
+                if (opcionSeleccionada != null) {
+                    Text(
+                        text = opcionSeleccionada.first,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .clickable {
+
                                 if (montoRegistrado > 0) Toast.makeText(
                                     context,
                                     "Se ha solicitado el pago a los deudores",
@@ -759,19 +779,19 @@ fun Paso1(
                                     onMensajeChanged("(Solo se descontará tu parte de la deuda)")
                                     mostrarDialogo(true)
                                 }
-                            }
-                        },
-                    color = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                Icon(
-                    Icons.Filled.People,
-                    "Elegir Participante",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            if (montoRegistrado != null) {
+
+                            },
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Icon(
+                        imageVector = if (montoRegistrado > 0) Icons.Filled.WavingHand else Icons.Filled.People,
+                        "Solicitar el pago",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clickable {
+
                                 if (montoRegistrado > 0) Toast
                                     .makeText(
                                         context,
@@ -785,22 +805,23 @@ fun Paso1(
                                     mostrarDialogo(true)
                                 }
                             }
-                        }
-                )
 
+                    )
+
+                }
             }
-        }
-        if (opcionSeleccionada?.second != null) {
-            if (montoRegistrado != null) {
+            if (opcionSeleccionada?.second != null) {
+
                 Text(
                     text = if (opcionSeleccionada.second > abs(montoRegistrado)) NumberFormat.getCurrencyInstance().format(
                         abs(montoRegistrado)
                     ) else NumberFormat.getCurrencyInstance().format(opcionSeleccionada.second),
                     style = MaterialTheme.typography.bodyLarge
                 )
-            }
 
-        } else Spacer(Modifier.width(30.dp))
+
+            } else Spacer(Modifier.width(30.dp))
+        }
     }
 }
 
@@ -896,7 +917,7 @@ fun Paso3(
 @Composable
 fun OpcionesPago(
     imagenBitmapState: Bitmap?,
-    pago: DbPagoEntity?,
+    pago: PagoConParticipantes?,
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }

@@ -15,6 +15,14 @@ class PagoRepository @Inject constructor(
         return pagoDao.getPagosByDeuda(idDeuda)
     }
 
+    suspend fun getPagosById(idPago: Long): DbPagoEntity {
+        return pagoDao.getPagosById(idPago)
+    }
+
+    suspend fun updatePago(pago: DbPagoEntity) {
+        pagoDao.updatePago(pago)
+    }
+
     suspend fun deletePago(pago: DbPagoEntity) {
         pagoDao.deletePago(pago)
     }

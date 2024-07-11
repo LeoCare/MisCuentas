@@ -184,7 +184,7 @@ class GastosViewModel @Inject constructor(
     }
 
     /** METODO QUE ACTUALIZA LA FOTO DEL GASTO **/
-    suspend fun updateFoto(idFoto: Long){
+    suspend fun updateGastoWithFoto(idFoto: Long){
         gastosState.value.gastoNewFoto!!.idFotoGasto = idFoto
         gastoRepository.updateGasto(gastosState.value.gastoNewFoto!!)
     }
@@ -243,7 +243,7 @@ class GastosViewModel @Inject constructor(
         val imageEntity = DbFotoEntity(imagen = byteArray)
         viewModelScope.launch {
             val idFoto = fotoRepository.insertFoto(imageEntity)
-            updateFoto(idFoto)
+            updateGastoWithFoto(idFoto)
         }
     }
     /** METODO QUE OBTIENE LA FOTO DEL GASTO **/

@@ -8,12 +8,14 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
@@ -75,6 +77,11 @@ class BalanceViewModel @Inject constructor(
     fun onHojaConBalanceChanged(hojaConBalances: HojaConBalances?){
         _balanceState.value = _balanceState.value.copy(hojaConBalances = hojaConBalances)
     }
+    fun onNewFotoPagoChanged(pago: PagoConParticipantes?){
+        _balanceState.value = _balanceState.value.copy(pagoNewFoto = pago)
+    }
+
+
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
      * Posteriormetne comprueba si existe un usuario que sea el registrado.
@@ -186,7 +193,7 @@ class BalanceViewModel @Inject constructor(
 
         val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
 
-        val idFotoPago = if(imagenPago != null) insertImage(imagenPago) else 0L
+        val idFotoPago = if(imagenPago != null) insertImage(imagenPago) else null
         val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
 
         return if (actualizado) {
@@ -264,6 +271,24 @@ class BalanceViewModel @Inject constructor(
         }
     }
 
+    /** METODO QUE ACTUALIZA LA FOTO DEL  PAGO **/
+    suspend fun updatePagoWithFoto(idFoto: Long){
+        val idPago = balanceState.value.pagoNewFoto?.idPago
+        val pagoEntity = idPago?.let { pagoRepository.getPagosById(it) }
+        if (pagoEntity != null) {
+            pagoEntity.idFotoPago = idFoto
+            pagoRepository.updatePago(pagoEntity)
+        }
+    }
+
+    /** METODO QUE ACTUALIZA LA LISTA DE PAGOSCONPARTICIPANTES AL CAMBIAR DE FOTO **/
+    fun updateListaPagoConParticipantes(foto: Bitmap?){
+        val idPagoConParticipante = balanceState.value.pagoNewFoto?.idPago
+
+        balanceState.value.listaPagosConParticipantes?.firstOrNull {
+            it.idPago == idPagoConParticipante
+        }?.fotoPago = foto
+    }
 
     /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
     fun instanciarPago(
@@ -298,11 +323,12 @@ class BalanceViewModel @Inject constructor(
 
 
     /** METODO QUE CREA UNA LISTA DE PAGOS CON PARTICIPANTES, SU MONTO Y FECHA **/
+    /** esto se hace para tener una lista con los nombres y la foto **/
     fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var nombreAcreedor = ""
-        val imagenBitmap: Bitmap? = null
+        var imagenBitmap: Bitmap? = null
         val hoja = balanceState.value.hojaAMostrar
         val hojaConBalances = balanceState.value.hojaConBalances
 
@@ -322,7 +348,7 @@ class BalanceViewModel @Inject constructor(
                         }
                     }
                 }
-                //imagenBitmap = obtenerFotoPago(pago.idFotoPago!!)
+                imagenBitmap = obtenerFotoPago(pago.idFotoPago!!)
             }
             val pagoConParticipantes = PagoConParticipantes(
                 pago.idPago,
@@ -344,6 +370,16 @@ class BalanceViewModel @Inject constructor(
         val byteArray = bitmapToByteArray(bitmap)
         val imageEntity = DbFotoEntity(imagen = byteArray)
         return fotoRepository.insertFoto(imageEntity)
+    }
+
+    /** METODO QUE INSERTA LA FOTO Y ACTUALIZA EL GASTO **/
+    fun insertNewImage(bitmap: Bitmap) {
+        val byteArray = bitmapToByteArray(bitmap)
+        val imageEntity = DbFotoEntity(imagen = byteArray)
+        viewModelScope.launch {
+            val idFoto = fotoRepository.insertFoto(imageEntity)
+            updatePagoWithFoto(idFoto)
+        }
     }
 
     /** OBTENER IMAGEN DE LA BBDD **/
