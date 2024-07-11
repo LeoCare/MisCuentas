@@ -2,6 +2,7 @@ package com.app.miscuentas.features.balance
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -30,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
@@ -38,6 +40,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.People
@@ -47,6 +50,7 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,8 +77,11 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.app.miscuentas.R
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
+import com.app.miscuentas.features.gastos.OpcionesGasto
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
@@ -183,6 +190,7 @@ fun BalanceScreen(
         pagoRealizado = balanceState.pagoRealizado,
         onPagoRealizadoChanged = viewModel::onPagoRealizadoChanged,
         pagarDeuda = viewModel::pagarDeuda,
+        imagenBitmapState = balanceState.imagenBitmap,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
         listPagos = balanceState.listaPagosConParticipantes,
@@ -199,6 +207,7 @@ fun BalanceContent(
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
+    imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
     listPagos: List<PagoConParticipantes>?,
@@ -253,6 +262,7 @@ fun BalanceContent(
                                     pagoRealizado = pagoRealizado,
                                     onPagoRealizadoChanged = onPagoRealizadoChanged,
                                     pagarDeuda = pagarDeuda,
+                                    imagenBitmapState = imagenBitmapState,
                                     tomarFoto = tomarFoto,
                                     elegirImagen = elegirImagen
                                 )
@@ -379,6 +389,7 @@ fun BalanceDesing(
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
+    imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
 ) {
@@ -434,6 +445,7 @@ fun BalanceDesing(
                             pagoRealizado = pagoRealizado,
                             onPagoRealizadoChanged = onPagoRealizadoChanged,
                             pagarDeuda = pagarDeuda,
+                            imagenBitmapState = imagenBitmapState,
                             tomarFoto = tomarFoto,
                             elegirImagen = elegirImagen
                         )
@@ -586,6 +598,7 @@ fun ResolucionBox(
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
+    imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit
 ) {
@@ -687,6 +700,7 @@ fun ResolucionBox(
                 if (montoRegistrado < 0) {
                     /** PASO 2: COMPROBANTE **/
                     Paso2(
+                        imagenBitmapState,
                         tomarFoto,
                         elegirImagen
                     )
@@ -792,6 +806,7 @@ fun Paso1(
 
 @Composable
 fun Paso2(
+    imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit
 ) {
@@ -807,19 +822,17 @@ fun Paso2(
         }
 
         Row {
-            IconButton(onClick = { tomarFoto() }) {
-                Icon(
-                    Icons.Default.PhotoCamera,
-                    contentDescription = "Tomar foto",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            IconButton(onClick = { elegirImagen() }) {
-                Icon(
-                    Icons.Default.PhotoLibrary,
-                    contentDescription = "Galeria",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            /** LISTA DE OPCIONES **/
+            OpcionesPago(imagenBitmapState,null) { opcion ->
+                when(opcion) {
+                    "Camara" ->  {
+                        tomarFoto()
+                    }
+
+                    "Galeria" ->  {
+                        elegirImagen()
+                    }
+                }
             }
         }
     }
@@ -876,5 +889,57 @@ fun Paso3(
             tint = if (opcionSeleccionada != null) MaterialTheme.colorScheme.primary else Color.LightGray
         )
         Spacer(Modifier.width(10.dp))
+    }
+}
+
+/** OPCIONES ELEGIBLES PARA CADA PAGO **/
+@Composable
+fun OpcionesPago(
+    imagenBitmapState: Bitmap?,
+    pago: DbPagoEntity?,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Default.Image,
+                contentDescription = "Menu de opciones",
+                tint = if(imagenBitmapState != null) MaterialTheme.colorScheme.primary else Color.LightGray
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            if (pago != null) {
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onOptionSelected("Ver")
+                    }
+                ) {
+                    Text("Ver")
+                }
+            }
+
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Camara")
+                }
+            ) {
+                Text("Camara")
+            }
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Galeria")
+                }
+            ) {
+                Text("Galeria")
+            }
+        }
     }
 }
