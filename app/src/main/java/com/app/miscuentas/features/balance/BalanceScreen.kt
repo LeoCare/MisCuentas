@@ -34,8 +34,12 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.ArrowCircleUp
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
@@ -76,6 +80,7 @@ import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
 import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
 import com.app.miscuentas.util.Imagen.Companion.permisosAlmacenamiento
+import com.app.miscuentas.util.Imagen.Companion.uriToBitmap
 import java.text.NumberFormat
 import kotlin.math.abs
 
@@ -107,14 +112,13 @@ fun BalanceScreen(
 
 
     /** IMAGENES **/
-
     /** Lanzadores **/
     //Lanza la camara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview(),
         onResult = { bitmap ->
             if (bitmap != null) {
-                null  //viewModel.onImageUriChanged(bitmap)
+                viewModel.onImagenBitmapChanged(bitmap)
             }
         }
     )
@@ -122,8 +126,11 @@ fun BalanceScreen(
     val singleImagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            if (uri != null) {
-                viewModel.onImageUriChanged(uri)
+            uri?.let {
+                val bitmap = uriToBitmap(context, uri)
+                if (bitmap != null) {
+                    viewModel.onImagenBitmapChanged(bitmap)
+                }
             }
         }
     )
@@ -175,7 +182,7 @@ fun BalanceScreen(
         balanceDeuda = balanceState.balanceDeuda,
         pagoRealizado = balanceState.pagoRealizado,
         onPagoRealizadoChanged = viewModel::onPagoRealizadoChanged,
-        pagarDeuda = viewModel::pagarDeuda2,
+        pagarDeuda = viewModel::pagarDeuda,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
         listPagos = balanceState.listaPagosConParticipantes,
@@ -197,10 +204,6 @@ fun BalanceContent(
     listPagos: List<PagoConParticipantes>?,
     recargarDatos: () -> Unit
 ){
-    var showBalance by rememberSaveable { mutableStateOf(false) }
-    val showResolution = {
-        showBalance = !showBalance
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -213,70 +216,26 @@ fun BalanceContent(
 
             DatosHoja(hojaDeGastos)
 
-            /** BOTON PARA DESPLEGAR RESOLUCION **/
+            /** BOTON PARA RECARGAR LA HOJA **/
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(35.dp)
                     .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.End
             ){
                 Icon(
                     imageVector= Icons.Default.Refresh ,
                     contentDescription = "Recargar datos",
-                    tint = if(showBalance) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier
                         .size(20.dp)
                         .clickable { recargarDatos() }
                 )
-                Row(
-                    Modifier
-                        .clickable { showBalance = !showBalance },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ){
-                    Icon(
-                        imageVector= if(showBalance) Icons.Default.ArrowCircleUp else Icons.Default.ArrowCircleDown,
-                        contentDescription = "Flecha de apertura/cierre",
-                        tint = if(showBalance) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        style = MaterialTheme.typography.titleMedium,
-                        text = "Balance",
-                        color = if(showBalance) Color.Black else MaterialTheme.colorScheme.primary
-                    )
-                }
             }
-
             LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
                 if (balanceDeuda?.isNotEmpty() == true) {
-
-//                    /** RECUADRO CON ACCIONES DE RESOLUCION **/
-//                    item {
-//                        AnimatedVisibility(
-//                            visible = showBalance,
-//                            enter = fadeIn() + expandVertically(),
-//                            exit = fadeOut() + shrinkVertically()
-//                        ) {
-//                            Column(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(top = 15.dp)
-//                            ) {
-//                                ResolucionBox(
-//                                    balanceDeuda = balanceDeuda,
-//                                    pagoRealizado = pagoRealizado,
-//                                    onPagoRealizadoChanged = onPagoRealizadoChanged,
-//                                    pagarDeuda = pagarDeuda,
-//                                    tomarFoto = tomarFoto,
-//                                    elegirImagen = elegirImagen
-//                                )
-//                            }
-//                        }
-//                    }
-
                     /** LISTA CON LOS PARTICIPANTES Y SU BALANCE **/
                     item {
                         Text(text = "Resultado:")
@@ -285,13 +244,11 @@ fun BalanceContent(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-
                             items(
                                 balanceDeuda.toList(), key = { it.first }) {
                                 BalanceDesing(
                                     participante = it.first,
                                     monto = it.second,
-                                    paddVert = 10,
                                     balanceDeuda = balanceDeuda,
                                     pagoRealizado = pagoRealizado,
                                     onPagoRealizadoChanged = onPagoRealizadoChanged,
@@ -310,7 +267,7 @@ fun BalanceContent(
                             Text(text = "Pagos:")
                         }
 
-                        items(listPagos, key = { it.monto }) { pago ->
+                        items(listPagos, key = { it.idPago }) { pago ->
                             PagoDesing( pago )
                         }
                     }
@@ -418,7 +375,6 @@ fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
 fun BalanceDesing(
     participante: String,
     monto: Double,
-    paddVert: Int,
     balanceDeuda: Map<String, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
@@ -433,54 +389,66 @@ fun BalanceDesing(
         shape = RoundedCornerShape(18.dp),
         elevation = 6.dp,
         modifier = Modifier
-            .padding(vertical = paddVert.dp, horizontal = 10.dp)
+            .padding(vertical = 10.dp, horizontal = 5.dp)
             .fillMaxWidth()
             .clickable { showBalance = !showBalance }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(18.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = participante,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = if (monto > 0) "Recibe" else if (monto < 0) "Debe" else "Saldado",
-                fontSize = 14.sp,
-                color = if (monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if (monto < 0) Color.Red else Color.Black
-            )
-            Text(
-                text = currencyFormatter.format(monto),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
-            )
-            AnimatedVisibility(
-                visible = showBalance,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+        Row (
+            modifier = Modifier.fillMaxSize()
+        ){
+            Column(
+                modifier = Modifier
+                    .padding(25.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 15.dp)
+
+                Text(
+                    text = participante,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = if (monto > 0) "Recibe" else if (monto < 0) "Debe" else "Saldado",
+                    fontSize = 14.sp,
+                    color = if (monto > 0) MaterialTheme.colorScheme.onSecondaryContainer else if (monto < 0) Color.Red else Color.Black
+                )
+                Text(
+                    text = currencyFormatter.format(monto),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                AnimatedVisibility(
+                    visible = showBalance,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
                 ) {
-                    ResolucionBox(
-                        participante = participante,
-                        balanceDeuda = balanceDeuda,
-                        pagoRealizado = pagoRealizado,
-                        onPagoRealizadoChanged = onPagoRealizadoChanged,
-                        pagarDeuda = pagarDeuda,
-                        tomarFoto = tomarFoto,
-                        elegirImagen = elegirImagen
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 5.dp)
+                    ) {
+                        ResolucionBox(
+                            participante = participante,
+                            balanceDeuda = balanceDeuda,
+                            pagoRealizado = pagoRealizado,
+                            onPagoRealizadoChanged = onPagoRealizadoChanged,
+                            pagarDeuda = pagarDeuda,
+                            tomarFoto = tomarFoto,
+                            elegirImagen = elegirImagen
+                        )
+                    }
                 }
+                Spacer(Modifier.height(10.dp))
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                    imageVector = if (showBalance) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "Pago o Balance",
+                )
             }
         }
-
     }
 }
 
@@ -690,6 +658,8 @@ fun ResolucionBox(
         )
     }
 
+
+
     Card(
         shape = RoundedCornerShape(4.dp),
         colors = CardDefaults.cardColors(
@@ -704,22 +674,15 @@ fun ResolucionBox(
         Column(
             modifier = Modifier.padding(6.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
+            /** PASO 1: ELEGIR ACREEDOR **/
+            Paso1(
+                montoRegistrado,
+                opcionSeleccionada,
+                { nuevoTitulo -> titulo = nuevoTitulo },
+                { nuevoMensaje -> mensaje = nuevoMensaje },
+                { mostrarDialogo -> showDialogWhitOptions = mostrarDialogo}
+            )
 
-                /** PASO 1: ELEGIR ACREEDOR **/
-                Paso1(
-                    montoRegistrado,
-                    opcionSeleccionada,
-                    { nuevoTitulo -> titulo = nuevoTitulo },
-                    { nuevoMensaje -> mensaje = nuevoMensaje },
-                    { mostrarDialogo -> showDialogWhitOptions = mostrarDialogo}
-                )
-            }
             if (montoRegistrado != null) {
                 if (montoRegistrado < 0) {
                     /** PASO 2: COMPROBANTE **/
@@ -755,23 +718,20 @@ fun Paso1(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
+        horizontalArrangement = Arrangement.spacedBy(25.dp),
+
     ) {
         if (montoRegistrado != null) {
             Text(
                 text = if (montoRegistrado > 0) "Solicitar el pago.." else if (montoRegistrado < 0) "1 - Pagar a..." else "Saldado",
-                fontWeight = FontWeight.Black,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyLarge
             )
         }
         if (montoRegistrado != 0.0) {
             if (opcionSeleccionada != null) {
                 Text(
                     text = opcionSeleccionada.first,
-                    fontSize = 25.sp,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier
                         .clickable {
                             if (montoRegistrado != null) {
@@ -822,7 +782,7 @@ fun Paso1(
                     text = if (opcionSeleccionada.second > abs(montoRegistrado)) NumberFormat.getCurrencyInstance().format(
                         abs(montoRegistrado)
                     ) else NumberFormat.getCurrencyInstance().format(opcionSeleccionada.second),
-                    fontSize = 14.sp
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
 
@@ -837,15 +797,12 @@ fun Paso2(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row {
             Text(
                 text = "2 - Adjuntar comprobante..",
-                fontWeight = FontWeight.Black,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyLarge
             )
         }
 
@@ -879,15 +836,12 @@ fun Paso3(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row {
             Text(
                 text = "3 - Enviar",
-                fontWeight = FontWeight.Black,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyLarge
             )
         }
         Icon(

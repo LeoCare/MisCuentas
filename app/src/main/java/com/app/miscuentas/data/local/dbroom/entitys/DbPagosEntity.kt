@@ -18,12 +18,6 @@ import androidx.room.PrimaryKey
             parentColumns = ["idBalance"],
             childColumns = ["idBalancePagado"],
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = DbFotoEntity::class,
-            parentColumns = ["idFoto"],
-            childColumns = ["idFotoPago"],
-            onDelete = ForeignKey.CASCADE
         )
     ]
 )

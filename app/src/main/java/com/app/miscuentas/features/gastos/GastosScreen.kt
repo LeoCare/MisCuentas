@@ -197,6 +197,7 @@ fun GastosScreen(
             viewModel.deleteGasto()
         }
         if (gastosState.cierreAceptado){
+            viewModel.calcularBalance()
             viewModel.updateHoja()
         }
         if (gastosState.mostrarFoto){
@@ -444,21 +445,21 @@ fun DatosHoja(
                             )
                         }
                     }
-                    if (hojaDeGastos?.hoja?.status == "C"){
-                        Column {
-                            ImagenCierre({ onCierreAceptado(it) })
+
+                    /** BOTONES DE CIERRE Y NAVEGACION A BALANCE **/
+                    if (hojaDeGastos != null) {
+                        if (hojaDeGastos.hoja.status == "C"){
+                            Column {
+                                ImagenCierre({ onCierreAceptado(it) })
+                            }
+                        }
+                        else{
+                            Column {
+                                ImagenBalance (hojaDeGastos, { onNavBalance(it) })
+                            }
                         }
                     }
-                    else{
-                        Icon(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clickable { onNavBalance(hojaDeGastos!!.hoja.idHoja) },
-                            imageVector = Icons.Filled.Balance, //IMAGEN DEL GASTO
-                            contentDescription = "Pago o Balance",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
+
                 }
             }
         }
@@ -470,12 +471,6 @@ fun ImagenCierre(
     onCierreAceptado: (Boolean) -> Unit
 ){
 
-    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
-    if(opcionAceptada) {
-        onCierreAceptado(true)
-        opcionAceptada = false
-    }
-
     var showDialog by rememberSaveable { mutableStateOf(false) }
     if (showDialog) MiDialogo(
         show = true,
@@ -483,7 +478,7 @@ fun ImagenCierre(
         mensaje = "Estas a punto de CERRAR la hoja. Si aceptas, ya no se podrá introducir mas gastos y podrás realizar el Balance.",
         cerrar = { showDialog = false },
         aceptar = {
-            opcionAceptada = true
+            onCierreAceptado(true)
             showDialog = false
         }
     )
@@ -518,6 +513,41 @@ fun ImagenCierre(
     }
 }
 
+@Composable
+fun ImagenBalance(
+    hojaDeGastos: HojaConParticipantes,
+    onNavBalance: (Long) -> Unit
+){
+
+    Button(
+        onClick = { onNavBalance(hojaDeGastos.hoja.idHoja) },
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            disabledBackgroundColor = Color.Transparent,
+            disabledContentColor = Color.Transparent
+        ),
+        elevation = ButtonDefaults.elevation(0.dp),
+        shape = MaterialTheme.shapes.small)
+    {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(40.dp),
+                tint = if (hojaDeGastos.hoja.status != "B") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSecondaryContainer,
+                imageVector = Icons.Filled.Balance,
+                contentDescription = "Pago o Balance",
+            )
+            Text(
+                text= "Balancear",
+                style = MaterialTheme.typography.labelLarge,
+                fontSize = 14.sp
+            )
+        }
+    }
+}
 
 @Composable
 fun GastoDesing(
@@ -647,8 +677,6 @@ fun GastoDesing(
                                     }
                                 }
                             }
-                           // opcionSeleccionada = opcion
-
                         }
                     }
                 }

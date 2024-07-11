@@ -1,14 +1,13 @@
 package com.app.miscuentas.features.balance
 
+import android.graphics.Bitmap
 import android.net.Uri
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 
 data class BalanceState (
-    val imagenPago: String? = null,
-    val imagenUri: Uri? = null,
-    val imagenAbsolutePath: String? = null,
+    val imagenBitmap: Bitmap? = null,
     val hojaAMostrar: HojaConParticipantes? = null,
     val hojaConBalances: HojaConBalances? = null,
     val idRegistrado: Long = 0,

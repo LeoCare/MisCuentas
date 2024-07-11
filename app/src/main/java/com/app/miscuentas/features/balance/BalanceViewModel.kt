@@ -47,7 +47,6 @@ class BalanceViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,
     private val hojaCalculoRepository: HojaCalculoRepository,
     private val balanceRepository: BalanceRepository,
-    private val gastoRepository: GastoRepository,
     private val pagoRepository: PagoRepository,
     private val fotoRepository: FotoRepository
 ): ViewModel() {
@@ -64,8 +63,8 @@ class BalanceViewModel @Inject constructor(
     fun onListaPagosConParticipantesChanged(listaPagosConParticipantes: List<PagoConParticipantes>){
         _balanceState.value = _balanceState.value.copy(listaPagosConParticipantes = listaPagosConParticipantes)
     }
-    fun onImageUriChanged(imageUri: Uri?){
-        _balanceState.value = _balanceState.value.copy(imagenUri = imageUri)
+    fun onImagenBitmapChanged(imagenBitmap: Bitmap?){
+        _balanceState.value = _balanceState.value.copy(imagenBitmap = imagenBitmap)
     }
     fun onHojaAMostrarChanged(hoja: HojaConParticipantes?){
         _balanceState.value = _balanceState.value.copy(hojaAMostrar = hoja)
@@ -153,66 +152,26 @@ class BalanceViewModel @Inject constructor(
     }
 
     /** INSERTAR PAGO DE LA DEUDA **/
-    fun pagarDeuda(acreedor: Pair<String, Double>?){
+    fun pagarDeuda(deudor: Pair<String, Double>?, acreedor: Pair<String, Double>?){
         if (acreedor != null) {
             viewModelScope.launch{
-                calculoUpdatePago(acreedor)?.let {
+                calculoUpdatePago(deudor, acreedor)?.let {
                     val pagoInsertado = pagoRepository.insertPago(it)
                     if (pagoInsertado > 0) { //si el pago se ha insertado
                         onPagoRealizadoChanged(true)
+                        updateIfHojaBalanceada() //compruebo si esta balanciado en su totalidad
                     }
                 }
             }
-            updateIfHojaBalanceada()
-        }
-    }
 
-    fun pagarDeuda2(deudor: Pair<String, Double>?, acreedor: Pair<String, Double>?){
-        if (acreedor != null) {
-            viewModelScope.launch{
-                calculoUpdatePago2(deudor, acreedor)?.let {
-                    val pagoInsertado = pagoRepository.insertPago(it)
-                    if (pagoInsertado > 0) { //si el pago se ha insertado
-                        onPagoRealizadoChanged(true)
-                    }
-                }
-            }
-            updateIfHojaBalanceada()
         }
     }
 
     /** INSTANCIA UNA ENTIDAD DE T_PAGOS **/
-    suspend fun calculoUpdatePago(acreedor: Pair<String, Double>): DbPagoEntity? {
+    suspend fun calculoUpdatePago(deudor: Pair<String, Double>?, acreedor: Pair<String, Double>): DbPagoEntity? {
         val participantes = balanceState.value.hojaAMostrar?.participantes ?: return null
         val hojaConBalances = balanceState.value.hojaConBalances ?: return null
-        val idRegistrado = balanceState.value.idRegistrado
-
-        val idPagador = participantes.firstOrNull {
-            it.participante.idRegistroParti == idRegistrado
-        }?.participante?.idParticipante ?: return null
-
-        val montoAcreedorRedondeado = acreedor.second.redondearADosDecimales()
-        val miDeuda = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }?.monto ?: return null
-        val montoDeudaRedondeado = miDeuda.redondearADosDecimales()
-
-        val balanceDeudor = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }
-        val balanceAcreedor = hojaConBalances.balances.firstOrNull { it.monto == montoAcreedorRedondeado }
-
-        val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
-
-        val idFotoPago = 0L
-        val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
-
-        return if (actualizado) {
-            instanciarPago(balanceDeudor, balanceAcreedor, montoPagado, idFotoPago)
-        } else {
-            null
-        }
-    }
-
-    suspend fun calculoUpdatePago2(deudor: Pair<String, Double>?, acreedor: Pair<String, Double>): DbPagoEntity? {
-        val participantes = balanceState.value.hojaAMostrar?.participantes ?: return null
-        val hojaConBalances = balanceState.value.hojaConBalances ?: return null
+        val imagenPago = balanceState.value.imagenBitmap
 
         val idPagador = participantes.firstOrNull {
             it.participante.nombre == deudor?.first
@@ -227,7 +186,7 @@ class BalanceViewModel @Inject constructor(
 
         val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
 
-        val idFotoPago = 0L
+        val idFotoPago = if(imagenPago != null) insertImage(imagenPago) else 0L
         val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
 
         return if (actualizado) {
@@ -343,7 +302,7 @@ class BalanceViewModel @Inject constructor(
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var nombreAcreedor = ""
-        var imagenBitmap: Bitmap? = null
+        val imagenBitmap: Bitmap? = null
         val hoja = balanceState.value.hojaAMostrar
         val hojaConBalances = balanceState.value.hojaConBalances
 
@@ -363,9 +322,10 @@ class BalanceViewModel @Inject constructor(
                         }
                     }
                 }
-                imagenBitmap = obtenerFotoPago(pago.idFotoPago!!)
+                //imagenBitmap = obtenerFotoPago(pago.idFotoPago!!)
             }
             val pagoConParticipantes = PagoConParticipantes(
+                pago.idPago,
                 nombreDeudor,
                 nombreAcreedor,
                 pago.monto,
@@ -380,12 +340,10 @@ class BalanceViewModel @Inject constructor(
     }
 
     /** INSERTAR IMAGEN EN LA BBDD **/
-    fun insertImage(bitmap: Bitmap) {
+    suspend fun insertImage(bitmap: Bitmap): Long {
         val byteArray = bitmapToByteArray(bitmap)
         val imageEntity = DbFotoEntity(imagen = byteArray)
-        viewModelScope.launch {
-            fotoRepository.insertFoto(imageEntity)
-        }
+        return fotoRepository.insertFoto(imageEntity)
     }
 
     /** OBTENER IMAGEN DE LA BBDD **/

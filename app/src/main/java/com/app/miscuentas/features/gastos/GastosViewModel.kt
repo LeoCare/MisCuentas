@@ -197,6 +197,7 @@ class GastosViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             hojaCalculoRepository.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
             instanciarInsertarBalance()
+
         }
     }
 
@@ -209,7 +210,7 @@ class GastosViewModel @Inject constructor(
     /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
     suspend fun instanciarInsertarBalance(){
         var balances : List<DbBalanceEntity> = listOf()
-        calcularBalance()
+//        calcularBalance()
         gastosState.value.balanceDeuda?.forEach { (nombre, monto) ->
             val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
             val idParticipante =
