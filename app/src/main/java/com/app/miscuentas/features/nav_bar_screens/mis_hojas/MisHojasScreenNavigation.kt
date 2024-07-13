@@ -18,7 +18,7 @@ fun NavHostController.NavigateToMisHojas(){
 }
 
 fun NavGraphBuilder.misHojasScreen(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
     navHostController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ){

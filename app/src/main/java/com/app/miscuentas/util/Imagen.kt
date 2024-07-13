@@ -93,9 +93,9 @@ class Imagen {
 
         /** IMAGENES DE LA CAMARA Y GALERIA **/
         /** Convertir de Bitmap a ByteArray y viceversa **/
-        fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+        fun bitmapToByteArray(bitmap: Bitmap, quality: Int): ByteArray {
             val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
             return stream.toByteArray()
         }
         fun byteArrayToBitmap(byteArray: ByteArray): Bitmap {

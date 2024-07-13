@@ -57,6 +57,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -324,7 +325,6 @@ fun GastosContent(
             /**  LISTA DE GASTOS **/
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
-                contentPadding = innerPadding,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp)
@@ -336,7 +336,7 @@ fun GastosContent(
                     itemsIndexed(hojaDeGastos.participantes) { index, participante ->
                         if (participante.gastos.isNotEmpty()){
                             for (gasto in participante.gastos) {
-                                key(gasto.idGasto){
+                                key(index){
                                     GastoDesing(
                                         gasto = gasto,
                                         participante = participante,
@@ -568,7 +568,6 @@ fun GastoDesing(
 ) {
 
     //MENSAJE CON LA OPCION DE BORRADO
-    val idImagenGastoState by remember { mutableStateOf(gasto?.idFotoGasto) }
     var titulo by rememberSaveable { mutableStateOf("") }
     var mensaje by rememberSaveable { mutableStateOf("") }
     var showDialog by rememberSaveable { mutableStateOf(false) }
@@ -666,7 +665,7 @@ fun GastoDesing(
                         }
 
                         /** LISTA DE OPCIONES **/
-                        OpcionesGasto(idImagenGastoState, gasto) { opcion ->
+                        OpcionesGasto(statusHoja, gasto) { opcion ->
                             when(opcion) {
                                 "Camara" ->  {
                                     onNewFotoGastoChanged(gasto)
@@ -695,7 +694,7 @@ fun GastoDesing(
 /** OPCIONES ELEGIBLES PARA CADA GASTO **/
 @Composable
 fun OpcionesGasto(
-    idImagenGastoState: Long?,
+    statusHoja: String,
     gasto: DbGastosEntity,
     onOptionSelected: (String) -> Unit
 ) {
@@ -704,9 +703,9 @@ fun OpcionesGasto(
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
-                Icons.Default.Image,
+                imageVector = Icons.Default.Image,
                 contentDescription = "Menu de opciones",
-                tint = if(idImagenGastoState != null) MaterialTheme.colorScheme.primary else Color.LightGray
+                tint = if(gasto.idFotoGasto != null) MaterialTheme.colorScheme.primary else Color.LightGray
             )
         }
         DropdownMenu(
@@ -724,21 +723,23 @@ fun OpcionesGasto(
                 }
             }
 
-            DropdownMenuItem(
-                onClick = {
-                    expanded = false
-                    onOptionSelected("Camara")
+            if (statusHoja == "C"){
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onOptionSelected("Camara")
+                    }
+                ) {
+                    Text("Camara")
                 }
-            ) {
-                Text("Camara")
-            }
-            DropdownMenuItem(
-                onClick = {
-                    expanded = false
-                    onOptionSelected("Galeria")
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        onOptionSelected("Galeria")
+                    }
+                ) {
+                    Text("Galeria")
                 }
-            ) {
-                Text("Galeria")
             }
         }
     }

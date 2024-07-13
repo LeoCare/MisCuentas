@@ -14,7 +14,7 @@ fun NavHostController.NavigateToParticipantes(){
 }
 
 fun NavGraphBuilder.participantesScreen(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
     navHostController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ){

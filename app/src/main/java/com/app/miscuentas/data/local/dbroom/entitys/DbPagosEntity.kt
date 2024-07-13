@@ -26,7 +26,7 @@ data class DbPagoEntity(
     val idBalance: Long,
     val idBalancePagado: Long,
     val monto: Double,
-    var idFotoPago: Long? = 0,
+    var idFotoPago: Long? = null,
     val fechaPago: String,
     val fechaConfirmacion: String,
 )

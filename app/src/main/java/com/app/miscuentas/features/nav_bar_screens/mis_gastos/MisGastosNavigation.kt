@@ -14,7 +14,7 @@ fun NavHostController.NavigateToMisGastos(){
 }
 
 fun NavGraphBuilder.misGastosScreen(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
     navHostController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ){

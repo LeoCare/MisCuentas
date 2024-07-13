@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.nuevo_gasto
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -17,6 +18,7 @@ fun NavHostController.NavigateToNuevoGasto(idHojaPrincipal: Long){
 }
 
 fun NavGraphBuilder.nuevoGastoScreen(
+    innerPadding: PaddingValues,
     navHostController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ){
@@ -32,6 +34,7 @@ fun NavGraphBuilder.nuevoGastoScreen(
         // idHoja es la clave utilizada para pasar los datos
         it.arguments?.getLong(NUEVO_GASTO_ID_HOJA_PRINCIPAL)?.let { idHoja ->
             NuevoGasto(
+                innerPadding,
                 idHoja,
                 { navHostController.popBackStack() }
             )

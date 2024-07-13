@@ -90,25 +90,12 @@ class GastosViewModel @Inject constructor(
                 if (idHoja != null) {
                     hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
-                        _gastosState.value = _gastosState.value.copy(idRegistrado = dataStoreConfig.getIdRegistroPreference()!!)
-                        comprobarExisteRegistrado()
                         //Actualizo DataStore con idhoja si esta Activa
                         if (hojaCalculo?.hoja?.status == "C") {
                             dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.hoja.idHoja)
                         }
                     }
                 }
-            }
-        }
-    }
-
-    /** METODO QUE COMPRUEBA SI EN LA HOJA EXISTE UN PARTICIPANTE PARA EL REGISTRADO **/
-    fun comprobarExisteRegistrado(){
-        val hoja = gastosState.value.hojaAMostrar
-        hoja?.participantes?.forEach {
-            if(it.participante.idRegistroParti == gastosState.value.idRegistrado ){
-                _gastosState.value = _gastosState.value.copy(existeRegistrado = true)
-                return
             }
         }
     }
@@ -185,8 +172,8 @@ class GastosViewModel @Inject constructor(
 
     /** METODO QUE ACTUALIZA LA FOTO DEL GASTO **/
     suspend fun updateGastoWithFoto(idFoto: Long){
-        gastosState.value.gastoNewFoto!!.idFotoGasto = idFoto
-        gastoRepository.updateGasto(gastosState.value.gastoNewFoto!!)
+        gastosState.value.gastoNewFoto?.idFotoGasto = idFoto
+        gastosState.value.gastoNewFoto?.let { gastoRepository.updateGasto(it) }
     }
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
@@ -239,19 +226,22 @@ class GastosViewModel @Inject constructor(
 
     /** METODO QUE INSERTA LA FOTO Y ACTUALIZA EL GASTO **/
     fun insertImage(bitmap: Bitmap) {
-        val byteArray = bitmapToByteArray(bitmap)
+        onImagenBitmapChanged(bitmap)
+        val byteArray = bitmapToByteArray(bitmap, 50)
         val imageEntity = DbFotoEntity(imagen = byteArray)
         viewModelScope.launch {
             val idFoto = fotoRepository.insertFoto(imageEntity)
             updateGastoWithFoto(idFoto)
+            onMostrarFotoChanged(true)
         }
     }
+
     /** METODO QUE OBTIENE LA FOTO DEL GASTO **/
     fun obtenerFotoGasto(id: Long) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val imagen = fotoRepository.getFoto(id)
-                onImagenBitmapChanged(byteArrayToBitmap(imagen.imagen))
+                val imagen = fotoRepository.getFoto(id).imagen
+                onImagenBitmapChanged(byteArrayToBitmap(imagen))
                 onMostrarFotoChanged(true)
             }
         }

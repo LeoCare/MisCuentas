@@ -17,7 +17,7 @@ fun NavHostController.NavigateToBalance(idHojaAMostrar: Long){
 }
 
 fun NavGraphBuilder.balanceScreen(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
     navHostController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ){

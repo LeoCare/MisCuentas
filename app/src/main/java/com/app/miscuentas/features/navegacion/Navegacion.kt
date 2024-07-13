@@ -2,12 +2,15 @@
 
 package com.app.miscuentas.features.navegacion
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -65,7 +68,7 @@ import kotlinx.coroutines.launch
 /** ******************************************************** **/
 @Composable
 fun AppNavHost(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
     navController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ) {
@@ -78,7 +81,7 @@ fun AppNavHost(
         loginScreen(navController)
         inicioScreen(navController, mainActivityViewModel)
         nuevaHojaScreen(navController, mainActivityViewModel)
-        nuevoGastoScreen(navController, mainActivityViewModel)
+        nuevoGastoScreen(innerPadding, navController, mainActivityViewModel)
         misHojasScreen(innerPadding, navController, mainActivityViewModel)
         gastosScreen(innerPadding, navController, mainActivityViewModel)
         misGastosScreen(innerPadding, navController, mainActivityViewModel)

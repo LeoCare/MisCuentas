@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
@@ -97,7 +98,7 @@ fun MisHojasScreen(
     } else {
         Column(
             horizontalAlignment = CenterHorizontally,
-            modifier = Modifier.padding(innerPadding!!)
+            modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues())
         ) {
             SeleccionFiltros(
                 filtroElegido = hojaState.filtroElegido,
@@ -366,7 +367,7 @@ fun HojaDesing(
         shape = RoundedCornerShape(8.dp),
         elevation = 12.dp,
         modifier = Modifier
-            .padding(vertical = 3.dp, horizontal = 5.dp)
+            .padding(vertical = 4.dp, horizontal = 5.dp)
             .fillMaxWidth()
             .clickable { onNavGastos(hojaConParticipantes.hoja.idHoja) },
     ) {

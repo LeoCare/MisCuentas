@@ -117,14 +117,13 @@ fun BalanceScreen(
         contract = ActivityResultContracts.TakePicturePreview(),
         onResult = { bitmap ->
             if (bitmap != null) {
-                viewModel.onImagenBitmapChanged(bitmap)
                 if (balanceState.pagoNewFoto != null) {
                     viewModel.insertNewImage(bitmap)
-                    viewModel.updateListaPagoConParticipantes(bitmap)
                 }
             }
         }
     )
+
     //Lanza la galeria
     val singleImagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -132,8 +131,9 @@ fun BalanceScreen(
             uri?.let {
                 val bitmap = uriToBitmap(context, uri)
                 if (bitmap != null) {
-                    viewModel.onImagenBitmapChanged(bitmap)
-                    if (balanceState.pagoNewFoto != null) viewModel.insertNewImage(bitmap)
+                    if (balanceState.pagoNewFoto != null) {
+                        viewModel.insertNewImage(bitmap)
+                    }
                 }
             }
         }
@@ -148,7 +148,6 @@ fun BalanceScreen(
         ) == PackageManager.PERMISSION_GRANTED
 
         if(granted){
-
             cameraLauncher.launch(null)
         }
 
@@ -186,12 +185,13 @@ fun BalanceScreen(
             imagen = balanceState.imagenBitmap!!,
             cerrar = {
                 showFoto = false
+                viewModel.onMostrarFotoChanged(false)
             }
         )
     }
 
-    LaunchedEffect(key1 = balanceState.imagenBitmap) {
-        if (balanceState.imagenBitmap != null) {
+    LaunchedEffect(key1 = balanceState) {
+        if (balanceState.mostrarFoto) {
             showFoto = true
         }
     }
@@ -501,8 +501,6 @@ fun PagoDesing(
     var showFoto by rememberSaveable { mutableStateOf(false)}
     val currencyFormatter = NumberFormat.getCurrencyInstance()
 
-    val imagenBitmapState by remember { mutableStateOf(pago.fotoPago) }
-
 
     if (showDialog){
         Toast.makeText(context, "${pago.nombreAcreedor} no ha confirmado aun.", Toast.LENGTH_SHORT).show()
@@ -590,7 +588,9 @@ fun PagoDesing(
                 )
             }
             /** LISTA DE OPCIONES **/
-            OpcionesPago(imagenBitmapState,pago) { opcion ->
+            OpcionesPago(
+                pago.fotoPago
+            ) { opcion ->
                 when(opcion) {
                     "Camara" ->  {
                         onNewFotoPagoChanged(pago)
@@ -598,8 +598,10 @@ fun PagoDesing(
                     }
 
                     "Galeria" ->  {
+                        onNewFotoPagoChanged(pago)
                         elegirImagen()
                     }
+
                     "Ver" ->  {
                         if (pago.fotoPago != null) {
                             showFoto = true
@@ -690,8 +692,6 @@ fun ResolucionBox(
             }
         )
     }
-
-
 
     Card(
         shape = RoundedCornerShape(4.dp),
@@ -844,7 +844,7 @@ fun Paso2(
 
         Row {
             /** LISTA DE OPCIONES **/
-            OpcionesPago(imagenBitmapState,null) { opcion ->
+            OpcionesPago(imagenBitmapState) { opcion ->
                 when(opcion) {
                     "Camara" ->  {
                         tomarFoto()
@@ -916,8 +916,7 @@ fun Paso3(
 /** OPCIONES ELEGIBLES PARA CADA PAGO **/
 @Composable
 fun OpcionesPago(
-    imagenBitmapState: Bitmap?,
-    pago: PagoConParticipantes?,
+    fotoPago: Bitmap?,
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -925,16 +924,16 @@ fun OpcionesPago(
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
-                Icons.Default.Image,
+                imageVector = Icons.Default.Image,
                 contentDescription = "Menu de opciones",
-                tint = if(imagenBitmapState != null) MaterialTheme.colorScheme.primary else Color.LightGray
+                tint = if(fotoPago != null) MaterialTheme.colorScheme.primary else Color.LightGray
             )
         }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            if (pago != null) {
+            if (fotoPago != null) {
                 DropdownMenuItem(
                     onClick = {
                         expanded = false

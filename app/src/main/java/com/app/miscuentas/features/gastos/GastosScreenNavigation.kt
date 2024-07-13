@@ -19,7 +19,7 @@ fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
 }
 
 fun NavGraphBuilder.gastosScreen(
-    innerPadding: PaddingValues?,
+    innerPadding: PaddingValues,
     navHostController: NavHostController,
     mainActivityViewModel: MainActivityViewModel
 ){

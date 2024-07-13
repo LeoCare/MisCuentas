@@ -11,11 +11,9 @@ data class BalanceState (
     val imagenBitmap: Bitmap? = null,
     val hojaAMostrar: HojaConParticipantes? = null,
     val hojaConBalances: HojaConBalances? = null,
-    val idRegistrado: Long = 0,
     val balanceDeuda: Map<String, Double>? = null, //importe que debe/recibe cada participante hasta antes del cierre
-    val existeRegistrado: Boolean = false,
     val pagoRealizado: Boolean = false,
     val pagoNewFoto: PagoConParticipantes? = null,
-    val mostrarFotoPago: Boolean = false,
     val listaPagosConParticipantes: List<PagoConParticipantes>? = listOf(),
+    val mostrarFoto: Boolean = false
 )
