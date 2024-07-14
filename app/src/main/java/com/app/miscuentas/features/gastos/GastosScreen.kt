@@ -210,6 +210,7 @@ fun GastosScreen(
     GastosContent(
         innerPadding,
         gastosState.hojaAMostrar,
+        gastosState.totalGastosActual,
         listaIconosGastos,
         { onNavNuevoGasto(it) },
         { onNavBalance(it) },
@@ -230,6 +231,7 @@ fun GastosScreen(
 fun GastosContent(
     innerPadding: PaddingValues?,
     hojaDeGastos: HojaConParticipantes?,
+    totalGastosActual: Double,
     listaIconosGastos: List<IconoGasto>,
     onNavNuevoGasto: (Long) -> Unit,
     onNavBalance: (Long) -> Unit,
@@ -330,7 +332,7 @@ fun GastosContent(
                     .padding(horizontal = 8.dp)
             ) {
                 item {
-                    Text(text = "Gastos:")
+                    Text(text = "Total Gastos: $totalGastosActual")
                 }
                 if (hojaDeGastos != null) {
                     itemsIndexed(hojaDeGastos.participantes) { index, participante ->
@@ -575,7 +577,7 @@ fun GastoDesing(
         if(statusHoja != "C"){
            MiAviso(
                show = true,
-               texto = "La hoja esta cerrada, no se puede eliminar",
+               texto = mensaje, //"La hoja esta cerrada, no se puede eliminar",
                cerrar = { showDialog = false }
            )
         }else{
@@ -652,7 +654,8 @@ fun GastoDesing(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         IconButton(onClick = {
-                            mensaje = "Si acepta, se eliminara y no se podrá recuperar."
+                            mensaje = if(statusHoja != "C") "La hoja esta cerrada, no se puede eliminar"
+                            else "Si acepta, se eliminara y no se podrá recuperar."
                             titulo = "ELIMINAR GASTO"
                             showDialog = true
                         }
@@ -699,9 +702,24 @@ fun OpcionesGasto(
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var mensaje by rememberSaveable { mutableStateOf("") }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    if (showDialog){
+        MiAviso(
+            show = true,
+            texto = mensaje,
+            cerrar = { showDialog = false }
+        )
+    }
 
     Box {
-        IconButton(onClick = { expanded = true }) {
+        IconButton(onClick = {
+            if(statusHoja != "C" && gasto.idFotoGasto == null){
+                mensaje = "No se puede adjuntar imagenes una vez finalizada la hoja."
+                showDialog = true
+            }
+            else expanded = true
+        }) {
             Icon(
                 imageVector = Icons.Default.Image,
                 contentDescription = "Menu de opciones",
@@ -838,7 +856,7 @@ fun Resumen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Spacer(modifier = Modifier.size(10.dp))
-            Text(text = "Total gastado:")
+            Text(text = "Gastos:")
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth(),

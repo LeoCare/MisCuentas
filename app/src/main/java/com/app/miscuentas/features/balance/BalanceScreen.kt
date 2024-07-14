@@ -844,7 +844,9 @@ fun Paso2(
 
         Row {
             /** LISTA DE OPCIONES **/
-            OpcionesPago(imagenBitmapState) { opcion ->
+            OpcionesPago(
+                imagenBitmapState
+            ) { opcion ->
                 when(opcion) {
                     "Camara" ->  {
                         tomarFoto()
@@ -922,7 +924,9 @@ fun OpcionesPago(
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { expanded = true }) {
+        IconButton(onClick = {
+           expanded = true
+        }) {
             Icon(
                 imageVector = Icons.Default.Image,
                 contentDescription = "Menu de opciones",

@@ -12,6 +12,7 @@ import com.app.miscuentas.domain.model.HojaCalculo
 data class GastosState (
     val hojaConBalances: HojaConBalances? = null,
     val hojaAMostrar: HojaConParticipantes? = null,
+    val totalGastosActual: Double = 0.0,
     val gastoABorrar: DbGastosEntity? = null,
     val gastoNewFoto: DbGastosEntity? = null,
     val cierreAceptado: Boolean = false,

@@ -26,6 +26,7 @@ import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
 import com.app.miscuentas.util.Contabilidad
+import com.app.miscuentas.util.Contabilidad.Contable.totalGastosHoja
 import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
 import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
 import com.app.miscuentas.util.Validaciones
@@ -78,7 +79,9 @@ class GastosViewModel @Inject constructor(
     fun onMostrarFotoChanged(mostrar: Boolean){
         _gastosState.value = _gastosState.value.copy(mostrarFoto = mostrar)
     }
-
+    fun onTotalGastosActualChanged(total: Double){
+        _gastosState.value = _gastosState.value.copy(totalGastosActual = total)
+    }
 
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
@@ -90,6 +93,7 @@ class GastosViewModel @Inject constructor(
                 if (idHoja != null) {
                     hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
+                        totalGastosHojaActual()
                         //Actualizo DataStore con idhoja si esta Activa
                         if (hojaCalculo?.hoja?.status == "C") {
                             dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo.hoja.idHoja)
@@ -107,6 +111,11 @@ class GastosViewModel @Inject constructor(
         onSumaParticipantesChanged(mapaSumaParticipantes)
     }
 
+    fun totalGastosHojaActual(){
+        val hoja = gastosState.value.hojaAMostrar
+        val totalGastos = totalGastosHoja(hoja)
+        onTotalGastosActualChanged(totalGastos)
+    }
 
     /** METODO QUE CALCULA EL BALANCE:
      * Si la hoja esta finalizada el balance se obtiene de la BBDD
@@ -125,7 +134,7 @@ class GastosViewModel @Inject constructor(
 
     /** METODO QUE OBTIENE UNA HOJACONBALANCE DE LA BBDD Y CARGA AL INFO EN UNO DE LOS STATE **/
     /** Tiene en cuenta los pagos **/
-    fun getHojaConBalanceFinal() {
+    private fun getHojaConBalanceFinal() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 hojaCalculoRepository.getHojaConBalances(gastosState.value.hojaAMostrar?.hoja!!.idHoja).collect{
@@ -139,7 +148,7 @@ class GastosViewModel @Inject constructor(
 
     /** METODO QUE PINTA UN MAPA CON EL PARTICIPANTE Y SU DEUDA **/
     /** Tiene en cuenta los pagos **/
-    fun calcularBalanceFinal(){
+    private fun calcularBalanceFinal(){
         val hoja = gastosState.value.hojaAMostrar
         val hojaConBalances = gastosState.value.hojaConBalances
         val balanceActual = Contabilidad.calcularBalance(hoja!!) as MutableMap<String, Double>
@@ -166,12 +175,13 @@ class GastosViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 gastoRepository.delete(gastosState.value.gastoABorrar)
+                totalGastosHojaActual()
             }
         }
     }
 
     /** METODO QUE ACTUALIZA LA FOTO DEL GASTO **/
-    suspend fun updateGastoWithFoto(idFoto: Long){
+    private suspend fun updateGastoWithFoto(idFoto: Long){
         gastosState.value.gastoNewFoto?.idFotoGasto = idFoto
         gastosState.value.gastoNewFoto?.let { gastoRepository.updateGasto(it) }
     }
@@ -189,13 +199,13 @@ class GastosViewModel @Inject constructor(
     }
 
     /** METODO QUE ACTUALIZA EL PREFERENCE DE IDHOJA A O PARA AQUELLA QUE NO ESTE ACTIVA **/
-    suspend fun updatePreferenceIdHojaPrincipal() {
+    private suspend fun updatePreferenceIdHojaPrincipal() {
         dataStoreConfig.putIdHojaPrincipalPreference(0)
     }
 
 
     /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
-    suspend fun instanciarInsertarBalance(){
+    private suspend fun instanciarInsertarBalance(){
         var balances : List<DbBalanceEntity> = listOf()
 //        calcularBalance()
         gastosState.value.balanceDeuda?.forEach { (nombre, monto) ->

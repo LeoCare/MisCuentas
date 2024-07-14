@@ -8,6 +8,7 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.domain.model.Gasto
 import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.util.Contabilidad.Contable.superaLimite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,9 @@ class NuevoGastoViewModel @Inject constructor (
         _nuevoGastoState.value = _nuevoGastoState.value.copy(idPagador = pagador.participante.idParticipante)
         _nuevoGastoState.value = _nuevoGastoState.value.copy(participanteConGasto = pagador)
     }
-
+    fun onSuperaLimiteChanged(supera: Boolean){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(superaLimite = supera)
+    }
     fun onInsertOKChanged(insert: Boolean){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(insertOk = insert)
     }
@@ -61,15 +64,26 @@ class NuevoGastoViewModel @Inject constructor (
         }
     }
 
-    fun insertaGasto(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val idParticipante = _nuevoGastoState.value.idPagador
-                val gasto = instanciaNuevoGasto().toEntity(idParticipante)
 
-                repositoryGasto.insertaGasto(gasto)
-                vaciarTextFields()
-                onInsertOKChanged(true)
+
+
+    /** METODO QUE INSERTA EL GASTO **/
+    fun insertaGasto(){
+        val imprtGasto = nuevoGastoState.value.importe
+        val hoja = nuevoGastoState.value.hojaActual
+        if(superaLimite(hoja, imprtGasto)){
+            onSuperaLimiteChanged(true)
+        }
+        else {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    val idParticipante = _nuevoGastoState.value.idPagador
+                    val gasto = instanciaNuevoGasto().toEntity(idParticipante)
+
+                    repositoryGasto.insertaGasto(gasto)
+                    vaciarTextFields()
+                    onInsertOKChanged(true)
+                }
             }
         }
     }

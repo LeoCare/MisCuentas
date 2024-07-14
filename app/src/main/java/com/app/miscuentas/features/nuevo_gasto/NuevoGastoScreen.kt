@@ -44,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +75,8 @@ fun NuevoGasto(
 
     val nuevoGastoState by viewModel.nuevoGastoState.collectAsState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
-    var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
+    var showDialog by remember { mutableStateOf(false) }
+    var mensaje by rememberSaveable { mutableStateOf("") }
 
     //paso el id de la hoja para registrar el gasto sobre esta misma.
     LaunchedEffect(idHojaPrincipal) {
@@ -82,15 +84,22 @@ fun NuevoGasto(
     }
 
     LaunchedEffect(nuevoGastoState.insertOk) {
+        when { (nuevoGastoState.insertOk) -> navigateUp() }
+    }
+    LaunchedEffect(nuevoGastoState.superaLimite) {
         when {
-            (nuevoGastoState.insertOk) -> navigateUp()
+            (nuevoGastoState.superaLimite) -> {
+                mensaje = "Este gasto susperará el límite establecido para esta hoja."
+                showDialog = true
+                viewModel.onSuperaLimiteChanged(false)
+            }
         }
     }
 
     if (showDialog) {
         MiAviso(
             true,
-            "No has indicado el IMPORTE.",
+            mensaje,
             { showDialog = false }
         )
     }
@@ -99,10 +108,12 @@ fun NuevoGasto(
     val onBotonGuardarClick = {
         when {
             nuevoGastoState.importe.isNotEmpty() -> {
-                //METODO PARA GUARDAR EL GASTO
                 viewModel.insertaGasto()
             }
-            else -> showDialog = true
+            else -> {
+                mensaje = "No has indicado el IMPORTE."
+                showDialog = true
+            }
         }
     }
 
@@ -152,17 +163,30 @@ fun NuevoGastoContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
-            /**  TITULO **/
+            /** DATOS HOJA **/
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = 20.dp, end = 20.dp, top = 10.dp),
-                horizontalArrangement = Arrangement.Start
+                    .padding(vertical = 15.dp, horizontal = 20.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = hojaActual?.hoja?.titulo ?: "Buscando...",
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.titleLarge,
                 )
+                Row(
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = "Limite de gastos: ",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = hojaActual?.hoja?.limite ?: "sin limite de gastos",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
             }
 
             /** CONCEPTO **/
@@ -205,33 +229,17 @@ fun ConceptoDesing(
             elevation = 2.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp, start = 15.dp , end = 15.dp),
+                .padding(top = 8.dp, bottom = 8.dp, start = 15.dp, end = 15.dp),
             color = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(18.dp),
+                    .padding(vertical = 10.dp, horizontal = 18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
 
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Concepto:",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    CustomTextfiel(
-                        placeholder = "Varios",
-                        value = concepto,
-                        onTextFieldChange = { onConceptoTextFieldChanged(it) }
-                    )
-                }
-
-                //Pintamos imagenes
                 // Iconos de gastos en filas desplazables horizontalmente
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -259,6 +267,21 @@ fun ConceptoDesing(
                         }
                     }
                 }
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Concepto:",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    CustomTextfiel(
+                        placeholder = "Varios",
+                        value = concepto,
+                        onTextFieldChange = { onConceptoTextFieldChanged(it) },
+                        padding = 30
+                    )
+                }
             }
         }
     }
@@ -276,12 +299,12 @@ fun ImporteDesing(
         elevation = 2.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp, start = 15.dp , end = 15.dp),
+            .padding(top = 4.dp, bottom = 8.dp, start = 15.dp, end = 15.dp),
         color = MaterialTheme.colorScheme.background
     ) {
         Row(
             modifier = Modifier
-                .padding(vertical = 15.dp, horizontal = 18.dp),
+                .padding(vertical = 7.dp, horizontal = 18.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -299,7 +322,8 @@ fun ImporteDesing(
                     } else if (isValid(newValue, 2)) {
                         onImporteTextFieldChanged(newValue)
                     }
-                }
+                },
+                padding = 70
             )
         }
     }
@@ -318,12 +342,12 @@ fun PagadorDesing(
         elevation = 2.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp, start = 15.dp , end = 15.dp),
+            .padding(top = 4.dp, bottom = 8.dp, start = 15.dp, end = 15.dp),
         color = MaterialTheme.colorScheme.background
     ) {
         Row(
             modifier = Modifier
-                .padding(vertical = 15.dp, horizontal = 18.dp),
+                .padding(vertical = 7.dp, horizontal = 18.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -352,15 +376,16 @@ fun PagadorDesing(
 fun CustomTextfiel(
     placeholder: String,
     value: String,
-    onTextFieldChange: (String) -> Unit
+    onTextFieldChange: (String) -> Unit,
+    padding: Int
 ){
     TextField(
         modifier = Modifier
-            .padding(horizontal = 40.dp),
+            .padding(horizontal = padding.dp),
         value = value,
         onValueChange = { onTextFieldChange(it) },
         placeholder = { Text( text = placeholder) },
-        textStyle = MaterialTheme.typography.titleMedium,
+        textStyle = MaterialTheme.typography.titleLarge,
         keyboardOptions = when (placeholder) {
             "0" -> KeyboardOptions(keyboardType = KeyboardType.Number)
             else -> KeyboardOptions(keyboardType = KeyboardType.Text)
@@ -368,8 +393,8 @@ fun CustomTextfiel(
         singleLine = true,
         maxLines = 1,
         colors = TextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedTextColor = MaterialTheme.colorScheme.primary,
+            focusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            unfocusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
             focusedContainerColor = Color(0xFFD5E8F7),
             unfocusedContainerColor =  Color(0xFFF4F6F8)
         )
@@ -402,7 +427,12 @@ fun CustomRadioButton(
                 indication = null//Quito el efecto de sombra al clickar
 
             ) { onPagadorChosen(pagador!!) }
-            .padding(start = 10.dp, bottom = 10.dp, end = 5.dp, top = if (!isSelected) 5.dp else 0.dp)
+            .padding(
+                start = 10.dp,
+                bottom = 10.dp,
+                end = 5.dp,
+                top = if (!isSelected) 5.dp else 0.dp
+            )
     ) {
 
         RadioButton(

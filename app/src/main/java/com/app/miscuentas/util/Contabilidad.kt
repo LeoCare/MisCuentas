@@ -3,6 +3,8 @@ package com.app.miscuentas.util
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class Contabilidad {
 
@@ -55,5 +57,40 @@ class Contabilidad {
             return balances
         }
 
+        /** METODO QUE COMPRUEBA SI EL GASTO SUPERA EL LIMITE **/
+        fun superaLimite(hojaConParticipantes: HojaConParticipantes?, importeGasto: String): Boolean{
+            val gasto = importeGasto.stringToDouble()
+            val limite = hojaConParticipantes?.hoja?.limite?.stringToDouble()
+            val totalGastos = totalGastosHoja(hojaConParticipantes)
+
+            return if (limite != null) (gasto + totalGastos) > limite
+            else false
+        }
+
+        /** METODO QUE DEVUELVE EL TOTAL DE GASTOS EN ESE MOMENTO **/
+        fun totalGastosHoja(hojaConParticipantes: HojaConParticipantes?): Double{
+            var totalGastos = 0.0
+            hojaConParticipantes?.participantes?.forEach { participanteConGastos ->
+                participanteConGastos.participante.nombre
+                val sumaGastos = participanteConGastos.gastos.sumOf {
+                    it.importe.stringToDouble()
+                }
+                totalGastos += sumaGastos
+            }
+            return totalGastos
+        }
+
+        /** METODO QUE REEMPLAZA LA COMA Y PARSEA DOUBLE **/
+        fun String.stringToDouble(): Double{
+            return this.replace(",", ".").toDoubleOrNull() ?: 0.0
+        }
+        /** METOD PARA REDONDEAR A DOS DECIMALES **/
+        fun Double.redondearADosDecimales(): Double {
+            return BigDecimal(this).setScale(2, RoundingMode.HALF_UP).toDouble()
+        }
+        /** METODO QUE COMPRUEBA SI EL MONTO ES IGUAL A 0,01 **/
+        fun Double.esMontoPequeno(): Boolean {
+            return (this == -0.01 || this  == 0.01)
+        }
     }
 }

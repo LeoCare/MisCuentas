@@ -27,6 +27,8 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
 import com.app.miscuentas.domain.model.toEntity
 import com.app.miscuentas.util.Contabilidad
+import com.app.miscuentas.util.Contabilidad.Contable.esMontoPequeno
+import com.app.miscuentas.util.Contabilidad.Contable.redondearADosDecimales
 import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
 import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
 import com.app.miscuentas.util.Validaciones
@@ -189,14 +191,6 @@ class BalanceViewModel @Inject constructor(
         } else {
             null
         }
-    }
-
-    fun Double.redondearADosDecimales(): Double {
-        return BigDecimal(this).setScale(2, RoundingMode.HALF_UP).toDouble()
-    }
-
-    fun Double.esMontoPequeno(): Boolean {
-        return (this == -0.01 || this  == 0.01)
     }
 
     fun calcularNuevosMontos(deuda: Double, acreedor: Double): Triple<Double, Double, Double> {
