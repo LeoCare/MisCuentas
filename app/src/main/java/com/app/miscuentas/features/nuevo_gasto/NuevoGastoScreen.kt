@@ -13,15 +13,25 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imeAnimationSource
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -53,8 +63,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
@@ -63,6 +75,7 @@ import com.app.miscuentas.domain.model.IconoGasto
 import com.app.miscuentas.features.gastos.CustomFloatButton
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Validaciones.Companion.isValid
+import java.text.NumberFormat
 
 
 @Composable
@@ -72,6 +85,8 @@ fun NuevoGasto(
     navigateUp: () -> Unit,
     viewModel: NuevoGastoViewModel = hiltViewModel()
 ) {
+    //Oculta Teclado
+    val controlTeclado = LocalSoftwareKeyboardController.current
 
     val nuevoGastoState by viewModel.nuevoGastoState.collectAsState()
     val listaIconosGastos = IconoGastoProvider.getListIconoGasto()
@@ -117,25 +132,36 @@ fun NuevoGasto(
         }
     }
 
-
-    NuevoGastoContent(
-        innerPadding,
-        onBotonGuardarClick,
-        nuevoGastoState.importe,
-        nuevoGastoState.hojaActual,
-        nuevoGastoState.idPagador,
-        nuevoGastoState.concepto,
-        listaIconosGastos,
-        { viewModel.onImporteTextFieldChanged(it) },
-        { viewModel.onIdGastoFieldChanged(it) },
-        { viewModel.onConceptoTextFieldChanged(it) },
-        { viewModel.onPagadorChosen(it) }
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .background(Color(color = 0xFFF5EFEF))
+            .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
+                detectTapGestures(onPress = {
+                    controlTeclado?.hide()
+                    awaitRelease()
+                })
+            }
+    ) {
+        NuevoGastoContent(
+            onBotonGuardarClick,
+            nuevoGastoState.importe,
+            nuevoGastoState.hojaActual,
+            nuevoGastoState.idPagador,
+            nuevoGastoState.concepto,
+            listaIconosGastos,
+            { viewModel.onImporteTextFieldChanged(it) },
+            { viewModel.onIdGastoFieldChanged(it) },
+            { viewModel.onConceptoTextFieldChanged(it) },
+            { viewModel.onPagadorChosen(it) }
+        )
+    }
 }
+
 
 @Composable
 fun NuevoGastoContent(
-    innerPadding: PaddingValues,
     onBotonGuardarClick: () -> Unit,
     importe: String,
     hojaActual: HojaConParticipantes?,
@@ -147,45 +173,47 @@ fun NuevoGastoContent(
     onConceptoTextFieldChanged: (String) -> Unit,
     onPagadorChosen: (ParticipanteConGastos) -> Unit
 ){
-    //Oculta Teclado
-    val controlTeclado = LocalSoftwareKeyboardController.current
+    val currencyFormatter = NumberFormat.getCurrencyInstance()
+    var limite = "sin limite"
+    if(!hojaActual?.hoja?.limite.isNullOrEmpty()){
+        limite = currencyFormatter.format(hojaActual?.hoja?.limite?.toDouble())
+    }
 
-    LazyColumn(
-        contentPadding = innerPadding,
+    LazyColumn (
         modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
-                detectTapGestures(onPress = {
-                    controlTeclado?.hide()
-                    awaitRelease()
-                })
-            },
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    ){
         item {
             /** DATOS HOJA **/
-            Row(
+            LazyRow(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = 15.dp, horizontal = 20.dp),
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = hojaActual?.hoja?.titulo ?: "Buscando...",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Row(
-                    verticalAlignment = Alignment.Bottom
-                ) {
+                item {
                     Text(
-                        text = "Limite de gastos: ",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = hojaActual?.hoja?.titulo ?: "Buscando...",
+                        style = MaterialTheme.typography.titleLarge,
                     )
-                    Text(
-                        text = hojaActual?.hoja?.limite ?: "sin limite de gastos",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
+                }
+                item {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 5.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Text(
+                            text = "Limite: ",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            text = limite,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
                 }
             }
 
@@ -225,7 +253,7 @@ fun ConceptoDesing(
 ){
     Column {
         Surface(
-            shape = RoundedCornerShape(1.dp),
+            shape = RoundedCornerShape(10.dp),
             elevation = 2.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -241,29 +269,30 @@ fun ConceptoDesing(
 
             ) {
                 // Iconos de gastos en filas desplazables horizontalmente
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    items(listaIconosGastos) { icono ->
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(end = 15.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = icono.imagen),
-                                contentDescription = "imagen gasto",
+                listaIconosGastos.chunked(4).forEach { filaIconos ->
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        items(filaIconos) { icono ->
+                            Box(
                                 modifier = Modifier
-                                    .width(65.dp)
-                                    .height(65.dp)
-                                    .padding(bottom = 1.dp)
-                                    .clickable {
-                                        onConceptoTextFieldChanged(icono.nombre)
-                                        onIdGastoFieldChanged(icono.id.toLong())
-                                    }
-                            )
+                                    .clip(MaterialTheme.shapes.small)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = icono.imagen),
+                                    contentDescription = "imagen gasto",
+                                    modifier = Modifier
+                                        .width(55.dp)
+                                        .height(55.dp)
+                                        .padding(bottom = 1.dp)
+                                        .clickable {
+                                            onConceptoTextFieldChanged(icono.nombre)
+                                            onIdGastoFieldChanged(icono.id.toLong())
+                                        }
+                                )
+                            }
                         }
                     }
                 }
@@ -295,7 +324,7 @@ fun ImporteDesing(
     onImporteTextFieldChanged: (String) -> Unit
 ){
     Surface(
-        shape = RoundedCornerShape(1.dp),
+        shape = RoundedCornerShape(10.dp),
         elevation = 2.dp,
         modifier = Modifier
             .fillMaxWidth()
@@ -338,7 +367,7 @@ fun PagadorDesing(
 ){
 
     Surface(
-        shape = RoundedCornerShape(1.dp),
+        shape = RoundedCornerShape(10.dp),
         elevation = 2.dp,
         modifier = Modifier
             .fillMaxWidth()

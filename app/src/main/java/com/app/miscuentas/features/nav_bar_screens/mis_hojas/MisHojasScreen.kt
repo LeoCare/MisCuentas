@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -80,7 +81,7 @@ fun MisHojasScreen(
 
     LaunchedEffect(hojaState.opcionSelected){
         when(hojaState.opcionSelected) {
-            "Finalizar","Anular" -> { viewModel.updateHoja() }
+            "Finalizar","Anular" -> { viewModel.updateStatusHoja() }
             "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
         }
     }
@@ -97,7 +98,6 @@ fun MisHojasScreen(
         }
     } else {
         Column(
-            horizontalAlignment = CenterHorizontally,
             modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues())
         ) {
             SeleccionFiltros(
@@ -315,8 +315,8 @@ fun HojasList(
     onStatusChanged: (HojaCalculo, String) -> Unit
 ) {
     LazyColumn(contentPadding = innerPadding!!) {
-        listaHojasAMostrar?.let {
-            itemsIndexed(it) { _, hojaConParticipantes ->
+        listaHojasAMostrar?.let { list ->
+            itemsIndexed(list) { _, hojaConParticipantes ->
                 HojaDesing(
                     onNavGastos = { onNavGastos(it) },
                     hojaConParticipantes = hojaConParticipantes,
@@ -367,8 +367,8 @@ fun HojaDesing(
         shape = RoundedCornerShape(8.dp),
         elevation = 12.dp,
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 5.dp)
             .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 5.dp)
             .clickable { onNavGastos(hojaConParticipantes.hoja.idHoja) },
     ) {
         Column(
@@ -379,135 +379,146 @@ fun HojaDesing(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.Start
             ) {
-                Row(
+                Image(
+                    painter = painterResource(id = R.drawable.hoja),
+                    contentDescription = "Logo Hoja",
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(80.dp)
+                )
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.hoja),
-                        contentDescription = "Logo Hoja",
-                        modifier = Modifier
-                            .width(80.dp)
-                            .height(80.dp)
-                    )
-                    Text(
-                        text = hojaConParticipantes.hoja.titulo,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-
-                /** API **/
-                /** API **/  //   Text(text = hoja.type)
-
-                /** LISTA DE OPCIONES **/
-                Row(
-                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    OpcionesHoja(hojaConParticipantes) { opcion ->
-                        when(opcion) {
-                            "Finalizar" ->  {
-                                onStatusChanged("F")
-                                titulo = "FINALIZAR LA HOJA"
-                                mensaje = "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
-                            }
+                    item{
+                        Text(
+                            text = hojaConParticipantes.hoja.titulo,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        /** LISTA DE OPCIONES **/
 
-                            "Anular" ->  {
-                                onStatusChanged("A")
-                                titulo = "ANULAR LA HOJA"
-                                mensaje = "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
+                    }
+                    /** LISTA DE OPCIONES **/
+                    item{
+                        OpcionesHoja(hojaConParticipantes) { opcion ->
+                            when(opcion) {
+                                "Finalizar" ->  {
+                                    onStatusChanged("F")
+                                    titulo = "FINALIZAR LA HOJA"
+                                    mensaje = "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
+                                }
+
+                                "Anular" ->  {
+                                    onStatusChanged("A")
+                                    titulo = "ANULAR LA HOJA"
+                                    mensaje = "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
+                                }
+                                "Eliminar" ->  {
+                                    onStatusChanged("E")
+                                    titulo = "ELIMINAR LA HOJA"
+                                    mensaje = "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
+                                }
                             }
-                            "Eliminar" ->  {
-                                onStatusChanged("E")
-                                titulo = "ELIMINAR LA HOJA"
-                                mensaje = "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
-                            }
+                            opcionSeleccionada = opcion
+                            showDialog = true
                         }
-                        opcionSeleccionada = opcion
-                        showDialog = true
                     }
                 }
-            }
+                /** API **/  //   Text(text = hoja.type)
 
+
+            }
             /** DATOS **/
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column{
-                    Text(
-                        text =  when (hojaConParticipantes.hoja.status) {
-                            "C" -> "Activa"
-                            "A" -> "Anulada"
-                            "B" -> "Balanceada"
-                            else ->"Finalizada"
-                        },
-                        fontSize = 20.sp,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
-                    {
-                        Text(
-                            text = "Participantes:",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = hojaConParticipantes.participantes.size.toString(),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        /** API **/
-                        /** API **/  //   Text(text = hoja.price.toString())
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
-                    {
-                        Text(
-                            text = "Fecha Cierre:",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = hojaConParticipantes.hoja.fechaCierre ?: "-",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        /** API **/
-                        /** API **/  //  Text(text = hoja.id)
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
-                    {
-                        Text(
-                            text = "Limite:",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = if(hojaConParticipantes.hoja.limite.isNullOrEmpty()) "-" else hojaConParticipantes.hoja.limite.toString(),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        /** API **/
-                        /** API **/  //  Text(text = hoja.id)
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
-                    {
-                        Text(
-                            text = "Creada el:",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = hojaConParticipantes.hoja.fechaCreacion!!,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        /** API **/
-                        /** API **/  //   Text(text = hoja.type)
-                    }
-
-                }
-            }
+            Datoshojas(hojaConParticipantes)
         }
     }
 }
 
+/** DATOS DE LAS HOJAS **/
+@Composable
+fun Datoshojas(
+    hojaConParticipantes: HojaConParticipantes,
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column{
+            Text(
+                text =  when (hojaConParticipantes.hoja.status) {
+                    "C" -> "Activa"
+                    "A" -> "Anulada"
+                    "B" -> "Balanceada"
+                    else ->"Finalizada"
+                },
+                fontSize = 20.sp,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
+            {
+                Text(
+                    text = "Participantes:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = hojaConParticipantes.participantes.size.toString(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                /** API **/
+                /** API **/  //   Text(text = hoja.price.toString())
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
+            {
+                Text(
+                    text = "Fecha Cierre:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = hojaConParticipantes.hoja.fechaCierre ?: "-",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                /** API **/
+                /** API **/  //  Text(text = hoja.id)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
+            {
+                Text(
+                    text = "Limite:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = if(hojaConParticipantes.hoja.limite.isNullOrEmpty()) "-" else hojaConParticipantes.hoja.limite.toString(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                /** API **/
+                /** API **/  //  Text(text = hoja.id)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
+            {
+                Text(
+                    text = "Creada el:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = hojaConParticipantes.hoja.fechaCreacion!!,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                /** API **/
+                /** API **/  //   Text(text = hoja.type)
+            }
 
-/** Composable para las opciones de la hoja **/
+        }
+    }
+}
+
+/** LISTA DE OPCIONES DE LAS HOJAS **/
 @Composable
 fun OpcionesHoja(
     hoja: HojaConParticipantes,
@@ -516,7 +527,7 @@ fun OpcionesHoja(
     var expanded by rememberSaveable { mutableStateOf(false) }
     val statusHoja = hoja.hoja.status
 
-    Box {
+    Column {
         IconButton(onClick = { expanded = true }) {
             Icon(
                 Icons.Default.MoreHoriz,

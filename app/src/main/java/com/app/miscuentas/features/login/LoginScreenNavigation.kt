@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.login
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -14,10 +15,12 @@ fun NavHostController.NavigateToLogin() {
 }
 
 fun NavGraphBuilder.loginScreen(
+    innerPadding: PaddingValues,
     navHostController: NavHostController
 ){
     composable(route = LOGIN_ROUTE) {
         Login(
+            innerPadding,
             { navHostController.NavigateToInicio()  }
         )
     }

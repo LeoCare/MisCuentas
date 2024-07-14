@@ -233,11 +233,13 @@ fun NuevaHojaScreen(
                 ) {
                     LimiteGasto(
                         tieneLimite,
-                        eventoState.limiteGasto) { onLimiteGastoFieldChanged(it) }
+                        eventoState.limiteGasto
+                    ) { onLimiteGastoFieldChanged(it) }
 
                     LimiteFecha(
                         eventoState.fechaCierre,
-                        tieneFecha) { onFechaCierreFieldChanged(it) }
+                        tieneFecha
+                    ) { onFechaCierreFieldChanged(it) }
 
                 }
             }

@@ -770,8 +770,8 @@ fun SumaPorParticipanteDesing(
     nombre: String,
     sumaGastos: Double
 ){
-
     val currencyFormatter = NumberFormat.getCurrencyInstance()
+
     Surface(
         shape = RoundedCornerShape(4.dp),
         elevation = 3.dp,

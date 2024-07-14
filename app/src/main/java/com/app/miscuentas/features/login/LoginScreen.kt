@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,6 +76,7 @@ import com.app.miscuentas.util.BiometricAuthenticator
 /** Composable principal de la Screen **/
 @Composable
 fun Login(
+    innerPadding: PaddingValues,
     onNavigate: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ){
@@ -85,6 +87,7 @@ fun Login(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .background(Color(color = 0xFFF5EFEF))
             .pointerInput(Unit) { //Oculta el teclado al colocar el foco en la caja
                 detectTapGestures(onPress = {
@@ -101,7 +104,6 @@ fun Login(
             { viewModel.onBiometricAuthenticationFailed() },
             { viewModel.contrasennaOk(it) },
             { viewModel.emailOk(it) },
-            { viewModel.onLoginOkChanged(it) },
             { viewModel.onMensajeChanged(it) },
             { viewModel.onUsuarioFieldChanged(it) },
             { viewModel.onContrasennaFieldChanged(it) },
@@ -123,7 +125,6 @@ private fun LoginContent(
     bioAuthFailed: () -> Unit,
     contrasennaOk: (String) -> Boolean,
     emailOk: (String) -> Boolean,
-    onLoginOkChanged: (Boolean) -> Unit,
     mensajeChanged: (String) -> Unit,
     onUsuarioFieldChanged: (String) -> Unit,
     onContrasennaFieldChanged: (String) -> Unit,

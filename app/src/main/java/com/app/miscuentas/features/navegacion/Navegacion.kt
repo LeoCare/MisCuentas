@@ -78,7 +78,7 @@ fun AppNavHost(
     ) {
 
         splashScreen(navController, mainActivityViewModel)
-        loginScreen(navController)
+        loginScreen(innerPadding, navController)
         inicioScreen(navController, mainActivityViewModel)
         nuevaHojaScreen(navController, mainActivityViewModel)
         nuevoGastoScreen(innerPadding, navController, mainActivityViewModel)

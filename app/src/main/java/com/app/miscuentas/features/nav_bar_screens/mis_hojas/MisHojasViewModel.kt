@@ -3,6 +3,8 @@ package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
+import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
@@ -16,12 +18,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class MisHojasViewModel @Inject constructor(
     private val repositoryHojaCalculo: HojaCalculoRepository,
-    private val repositoryParticipante: ParticipanteRepository,
     private val dataStoreConfig: DataStoreConfig
     /** API **/ // private val getMisHojas: GetMisHojas
 ): ViewModel(){
@@ -93,29 +95,52 @@ class MisHojasViewModel @Inject constructor(
         _misHojasState.value = _misHojasState.value.copy(hojaAModificar = hojaCalculo, nuevoStatusHoja = status)
     }
 
-    //Actualizar
-    suspend fun updateHoja() = viewModelScope.launch{
+    //Actualizar status segun eleccion usuario
+    fun updateStatusHoja() = viewModelScope.launch{
         _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
         withContext(Dispatchers.IO) {
             repositoryHojaCalculo.updateHoja(misHojasState.value.hojaAModificar!!.toEntity())
-            updatePreferenceIdHojaPrincipal()
+            updatePreferenceIdHojaPrincipal(misHojasState.value.hojaAModificar!!.toEntity())
         }
+    }
 
+    //Actualizar status segun fecha cierre
+    suspend fun updateStatusHojaForFechaCierre(hoja: DbHojaCalculoEntity) {
+        hoja.status = "F"
+        repositoryHojaCalculo.updateHoja(hoja)
+        withContext(Dispatchers.IO){
+            updatePreferenceIdHojaPrincipal(hoja)
+        }
+    }
+
+    /** METODO QUE COMPRUEBA LA FECHA Y PROVOCA LA FINALIZACION SEGUN CORRESPONDA **/
+    suspend fun compruebaFechaCierre(listaHojasConParticipantes: List<HojaConParticipantes>){
+        listaHojasConParticipantes.forEach { hojaConParticipantes ->
+            if(hojaConParticipantes.hoja.status == "C" && !hojaConParticipantes.hoja.fechaCierre.isNullOrEmpty()){
+                val fechaCierreHoja = Validaciones.fechaToDateFormat(hojaConParticipantes.hoja.fechaCierre!!)
+                val fechaActual = LocalDate.now()
+                fechaCierreHoja?.let{
+                    if (fechaCierreHoja < fechaActual){
+                        updateStatusHojaForFechaCierre(hojaConParticipantes.hoja)
+                    }
+                }
+            }
+        }
     }
 
     //Eliminar
-    suspend fun deleteHojaConParticipantes() = viewModelScope.launch{
+    fun deleteHojaConParticipantes() = viewModelScope.launch{
         withContext(Dispatchers.IO) {
-            repositoryHojaCalculo.deleteHojaConParticipantes(_misHojasState.value.hojaAModificar!!.toEntity())
-            updatePreferenceIdHojaPrincipal()
+            repositoryHojaCalculo.deleteHojaConParticipantes(misHojasState.value.hojaAModificar!!.toEntity())
+            updatePreferenceIdHojaPrincipal(misHojasState.value.hojaAModificar!!.toEntity())
         }
     }
     /************************/
 
     //Metodo que actualiza el preference del idHoja a 0 si no esta Activa.
-    fun updatePreferenceIdHojaPrincipal() = viewModelScope.launch{
+    suspend fun updatePreferenceIdHojaPrincipal(hoja: DbHojaCalculoEntity) = viewModelScope.launch{
         withContext(Dispatchers.IO){
-            if(misHojasState.value.hojaAModificar!!.status != "C") dataStoreConfig.putIdHojaPrincipalPreference(0)
+            if(hoja.status != "C") dataStoreConfig.putIdHojaPrincipalPreference(0)
             onOpcionSelectedChanged("")
         }
     }
@@ -124,6 +149,8 @@ class MisHojasViewModel @Inject constructor(
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             repositoryHojaCalculo.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
+                //Comprueba la fecha de cierre y la finaliza si corresponde
+                compruebaFechaCierre(listaHojasConParticipantes)
                 //guardo la lista de hojas
                 _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
 
@@ -133,6 +160,8 @@ class MisHojasViewModel @Inject constructor(
             }
         }
     }
+
+
 
     //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
     fun getIdRegistroPreference() = viewModelScope.launch {

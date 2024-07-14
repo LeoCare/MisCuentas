@@ -23,7 +23,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
-    private val participanteRepository: ParticipanteRepository,
     private val hojaCalculoRepository: HojaCalculoRepository,
     private val registroRepository: RegistroRepository,
     private val dataStoreConfig: DataStoreConfig
@@ -100,17 +99,13 @@ class NuevaHojaViewModel @Inject constructor(
 
     /** METODOS PARA LA NUEVA HOJA EN ROOM **/
     fun instanceNuevaHoja(): DbHojaCalculoEntity {
-        val fechaCreacion: String? = Validaciones.fechaToStringFormat(LocalDate.now())
-        val fechaCierre: String? = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
-        val idRegistro = _nuevaHojaState.value.idRegistro
-
         return  DbHojaCalculoEntity(
             titulo = _nuevaHojaState.value.titulo,
-            fechaCreacion = fechaCreacion,
-            fechaCierre = fechaCierre,
-            limite = _nuevaHojaState.value.limiteGasto,
+            fechaCreacion = Validaciones.fechaToStringFormat(LocalDate.now()),
+            fechaCierre = _nuevaHojaState.value.fechaCierre.ifEmpty { null },
+            limite = _nuevaHojaState.value.limiteGasto.ifEmpty { null },
             status = _nuevaHojaState.value.status,
-            idRegistroHoja = idRegistro
+            idRegistroHoja = _nuevaHojaState.value.idRegistro
         )
     }
 
@@ -127,97 +122,6 @@ class NuevaHojaViewModel @Inject constructor(
         _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
     }
 
-
-    fun getHojaConParticipantes(id: Long) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaConParticipantes(id).collect { hojaConParticipantes ->
-                    _nuevaHojaState.value = _nuevaHojaState.value.copy(hojaConParticipantes = hojaConParticipantes)
-                }
-            }
-        }
-    }
-
-    //Pinta una lista con los participantes del state
-    fun getListaParticipatesStateString(): String {//Borrar si no es necesario!!
-        var lista = ""
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                nuevaHojaState.value.listaParticipantes.forEach { participante ->
-                    lista = participante.nombre + ','
-                }
-            }
-        }
-        return lista
-    }
-
-
-
-/*
-    //2_INSERTAR HOJA
-    private suspend fun insertHojaCalculo(): Boolean {
-        val hoja = instanceNuevaHoja()
-
-        return try {
-       //     repositoryHojaCalculo.insertAllHojaCalculo(hoja)
-            true // insert OK
-        } catch (e: Exception) {
-            false // insert NOK
-        }
-    }
-
-   //5_LLAMADA A INSERTAR LINEAS DE HOJA....(participantes)
-   fun inserAlltHojaCalculoLin(){
-       viewModelScope.launch {
-           withContext(Dispatchers.IO){
-
-               val insertLinOK = insertHojaCalculoLin()
-               if (insertLinOK) {//si la insercion devuelve true, se insertan los participantes
-                   _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
-                   getMaxIdHojasCalculos()
-               }
-           }
-       }
-   }
-
-
-   //6_INTAR LINEAS HOJA (participantes)
-   private suspend fun insertHojaCalculoLin(): Boolean{
-       var insertLinOK = false
-
-       //Datos para insertar:
-       val id = _nuevaHojaState.value.maxIdHolaCalculo
-       var linea = 0
-
-       nuevaHojaState.value.listaParticipantes.forEach { participante ->
-           linea++
-           val idParticipante = repositoryParticipante.getIdParticipante(participante.nombre)
-
-           try {
-               repositoryHojaCalculo.insertAllHojaCalculoLin(
-                   DbHojaCalculoEntityLin(
-                       id,
-                       linea,
-                       idParticipante,
-                       "P"
-                   )
-               )
-               insertLinOK = true
-           } catch (e: Exception) {
-               insertLinOK = false
-           }
-       }
-       return insertLinOK
-   }
-
-    */
-
-   fun putIdHojaPrincipalPreference(idHoja: Long){
-       viewModelScope.launch {
-           dataStoreConfig.putIdHojaPrincipalPreference(idHoja)
-       }
-   }
-
     fun getIdRegistroPreference(){
         viewModelScope.launch {
             val idRegistrado = dataStoreConfig.getIdRegistroPreference()
@@ -232,7 +136,6 @@ class NuevaHojaViewModel @Inject constructor(
             }
         }
     }
-
 
    private fun vaciarTextFields(){
        _nuevaHojaState.value = _nuevaHojaState.value.copy(

@@ -47,15 +47,6 @@ class Validaciones {
             else null
         }
 
-        fun fechaToStringFormatFoto(fecha: LocalDate?): String?{
-            val format = "dd_MM_yyyy"
-
-            return if (fecha != null){
-                val formatter = DateTimeFormatter.ofPattern(format)
-                formatter.format(fecha)
-            }
-            else null
-        }
     }
 
 }

@@ -51,7 +51,6 @@ class GastosViewModel @Inject constructor(
     private val hojaCalculoRepository: HojaCalculoRepository,
     private val balanceRepository: BalanceRepository,
     private val gastoRepository: GastoRepository,
-    private val pagoRepository: PagoRepository,
     private val fotoRepository: FotoRepository
 ): ViewModel() {
 
