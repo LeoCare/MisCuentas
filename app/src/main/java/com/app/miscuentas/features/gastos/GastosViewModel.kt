@@ -26,6 +26,7 @@ import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
 import com.app.miscuentas.util.Contabilidad
+import com.app.miscuentas.util.Contabilidad.Contable.instanciarBalance
 import com.app.miscuentas.util.Contabilidad.Contable.totalGastosHoja
 import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
 import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
@@ -205,27 +206,35 @@ class GastosViewModel @Inject constructor(
 
     /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
     private suspend fun instanciarInsertarBalance(){
-        var balances : List<DbBalanceEntity> = listOf()
-//        calcularBalance()
-        gastosState.value.balanceDeuda?.forEach { (nombre, monto) ->
-            val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
-            val idParticipante =
-                gastosState.value.hojaAMostrar?.participantes?.firstOrNull {
-                    it.participante.nombre == nombre
-                }?.participante?.idParticipante
-            val deuda = DbBalanceEntity(
-                idBalance = 0,
-                idHojaBalance = gastosState.value.hojaAMostrar?.hoja?.idHoja!!,
-                idParticipanteBalance = idParticipante!!,
-                tipo = if(monto < 0) "D" else if(monto > 0) "A" else "B",
-                monto = montoRedondeado //redondeo y con 2 decimales
-            )
-            balances = balances + deuda
-        }
+        val balanceDeuda = gastosState.value.balanceDeuda
+        val hojaAMostrar = gastosState.value.hojaAMostrar
+        val balances = instanciarBalance(balanceDeuda, hojaAMostrar)
 
         insertBalancesForHoja(balances)
         updatePreferenceIdHojaPrincipal()
     }
+//    private suspend fun instanciarInsertarBalance(){
+//        var balances : List<DbBalanceEntity> = listOf()
+//
+//        gastosState.value.balanceDeuda?.forEach { (nombre, monto) ->
+//            val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
+//            val idParticipante =
+//                gastosState.value.hojaAMostrar?.participantes?.firstOrNull {
+//                    it.participante.nombre == nombre
+//                }?.participante?.idParticipante
+//            val deuda = DbBalanceEntity(
+//                idBalance = 0,
+//                idHojaBalance = gastosState.value.hojaAMostrar?.hoja?.idHoja!!,
+//                idParticipanteBalance = idParticipante!!,
+//                tipo = if(monto < 0) "D" else if(monto > 0) "A" else "B",
+//                monto = montoRedondeado //redondeo y con 2 decimales
+//            )
+//            balances = balances + deuda
+//        }
+//
+//        insertBalancesForHoja(balances)
+//        updatePreferenceIdHojaPrincipal()
+//    }
 
     /** INSERTA DATOS EN T_BALANCE **/
     private suspend fun insertBalancesForHoja(balances: List<DbBalanceEntity>){

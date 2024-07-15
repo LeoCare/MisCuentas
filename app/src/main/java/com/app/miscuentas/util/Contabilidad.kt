@@ -53,7 +53,28 @@ class Contabilidad {
                 val balance = gastoTotalParticipante - gastoPromedio
                 balances[nombreParticipante] = balance
             }
+            return balances
+        }
 
+        /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
+        fun instanciarBalance(balanceDeuda: Map<String, Double>?, hojaAMostrar: HojaConParticipantes? ): List<DbBalanceEntity>{
+            var balances : List<DbBalanceEntity> = listOf()
+
+            balanceDeuda?.forEach { (nombre, monto) ->
+                val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
+                val idParticipante =
+                    hojaAMostrar?.participantes?.firstOrNull {
+                        it.participante.nombre == nombre
+                    }?.participante?.idParticipante
+                val deuda = DbBalanceEntity(
+                    idBalance = 0,
+                    idHojaBalance = hojaAMostrar?.hoja?.idHoja!!,
+                    idParticipanteBalance = idParticipante!!,
+                    tipo = if(monto < 0) "D" else if(monto > 0) "A" else "B",
+                    monto = montoRedondeado //redondeo y con 2 decimales
+                )
+                balances = balances + deuda
+            }
             return balances
         }
 
