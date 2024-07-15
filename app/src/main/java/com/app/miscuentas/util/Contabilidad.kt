@@ -2,6 +2,7 @@ package com.app.miscuentas.util
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -29,7 +30,6 @@ class Contabilidad {
                 }
                 resultado[nombreParticipante] = sumaGastos
             }
-
             return resultado
         }
 
@@ -54,6 +54,26 @@ class Contabilidad {
                 balances[nombreParticipante] = balance
             }
             return balances
+        }
+
+        /** METODO QUE PINTA UN MAPA CON EL PARTICIPANTE Y SU DEUDA **/
+        /** Tiene en cuenta los pagos **/
+        fun calcularBalanceFinal(hojaParticipantes: HojaConParticipantes?, hojaBalance: HojaConBalances?): Map<String, Double>{
+            val balanceActual = hojaParticipantes?.let { calcularBalance(it) } as MutableMap<String, Double>
+            val balanceDeuda = mutableMapOf<String, Double>()
+
+            balanceActual.forEach { (nombre) -> //para el primer nombre del mapa de balance
+                hojaParticipantes.participantes.forEach { participantes -> //..busco en la lista de participantes de la hoja
+                    if(participantes.participante.nombre == nombre) { //..el que coincida con el nombre
+                        hojaBalance?.balances?.forEach{balance -> //..busco en t_balance
+                            if(participantes.participante.idParticipante == balance.idParticipanteBalance){ //..el que coincida con el idParticipante
+                                balanceDeuda[nombre] = balance.monto
+                            }
+                        }
+                    }
+                }
+            }
+            return balanceDeuda
         }
 
         /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/

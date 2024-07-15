@@ -83,8 +83,6 @@ class MisHojasViewModel @Inject constructor(
     }
     /************************/
 
-
-
     /** OPCIONES DE CADA HOJA **/
     fun onOpcionSelectedChanged(opcionElegida: String){
         _misHojasState.value = _misHojasState.value.copy(opcionSelected = opcionElegida)
@@ -104,29 +102,6 @@ class MisHojasViewModel @Inject constructor(
         }
     }
 
-    //Actualizar status segun fecha cierre
-    suspend fun updateStatusHojaForFechaCierre(hoja: DbHojaCalculoEntity) {
-        hoja.status = "F"
-        repositoryHojaCalculo.updateHoja(hoja)
-        withContext(Dispatchers.IO){
-            updatePreferenceIdHojaPrincipal(hoja)
-        }
-    }
-
-    /** METODO QUE COMPRUEBA LA FECHA Y PROVOCA LA FINALIZACION SEGUN CORRESPONDA **/
-    suspend fun compruebaFechaCierre(listaHojasConParticipantes: List<HojaConParticipantes>){
-        listaHojasConParticipantes.forEach { hojaConParticipantes ->
-            if(hojaConParticipantes.hoja.status == "C" && !hojaConParticipantes.hoja.fechaCierre.isNullOrEmpty()){
-                val fechaCierreHoja = Validaciones.fechaToDateFormat(hojaConParticipantes.hoja.fechaCierre!!)
-                val fechaActual = LocalDate.now()
-                fechaCierreHoja?.let{
-                    if (fechaCierreHoja < fechaActual){
-                        updateStatusHojaForFechaCierre(hojaConParticipantes.hoja)
-                    }
-                }
-            }
-        }
-    }
 
     //Eliminar
     fun deleteHojaConParticipantes() = viewModelScope.launch{
@@ -149,8 +124,6 @@ class MisHojasViewModel @Inject constructor(
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             repositoryHojaCalculo.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
-                //Comprueba la fecha de cierre y la finaliza si corresponde
-                compruebaFechaCierre(listaHojasConParticipantes)
                 //guardo la lista de hojas
                 _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
 

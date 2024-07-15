@@ -120,6 +120,7 @@ fun BalanceScreen(
                 if (balanceState.pagoNewFoto != null) {
                     viewModel.insertNewImage(bitmap)
                 }
+                else viewModel.onImagenBitmapChanged(bitmap)
             }
         }
     )
@@ -134,6 +135,7 @@ fun BalanceScreen(
                     if (balanceState.pagoNewFoto != null) {
                         viewModel.insertNewImage(bitmap)
                     }
+                    else viewModel.onImagenBitmapChanged(bitmap)
                 }
             }
         }
