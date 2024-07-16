@@ -1,54 +1,35 @@
 package com.app.miscuentas.features.balance
 
-import android.content.ContentUris
-import android.content.Context
-import android.database.Cursor
 import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Environment
-import android.provider.DocumentsContract
-import android.provider.MediaStore
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.local.repository.BalanceRepository
 import com.app.miscuentas.data.local.repository.FotoRepository
-import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.PagoRepository
-import com.app.miscuentas.domain.model.toEntity
 import com.app.miscuentas.util.Contabilidad
 import com.app.miscuentas.util.Contabilidad.Contable.esMontoPequeno
 import com.app.miscuentas.util.Contabilidad.Contable.redondearADosDecimales
 import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
 import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
 import com.app.miscuentas.util.Validaciones
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.MultiplePermissionsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class BalanceViewModel @Inject constructor(
-    private val dataStoreConfig: DataStoreConfig,
     private val hojaCalculoRepository: HojaCalculoRepository,
     private val balanceRepository: BalanceRepository,
     private val pagoRepository: PagoRepository,
@@ -121,30 +102,17 @@ class BalanceViewModel @Inject constructor(
             withContext(Dispatchers.IO) {
                 hojaCalculoRepository.getHojaConBalances(balanceState.value.hojaAMostrar?.hoja!!.idHoja).collect{
                     onHojaConBalanceChanged(it)
-                    calcularBalanceFinal()
+                    calculoFinal()
                 }
             }
         }
     }
     /** METODO QUE CALCULA EL BALANCE AL FINALIZAR LA HOJA **/
-    fun calcularBalanceFinal(){
+    private fun calculoFinal(){
         val hoja = balanceState.value.hojaAMostrar
         val hojaConBalances = balanceState.value.hojaConBalances
-        val balanceActual = balanceState.value.balanceDeuda
-        val balances = mutableMapOf<String, Double>()
-
-        balanceActual?.forEach { (nombre, monto) -> //para el primer nombre del mapa de balance
-            hoja?.participantes?.forEach { participantes -> //..busco en la lista de participantes de la hoja
-                if(participantes.participante.nombre == nombre) { //..el que coincida con el nombre
-                    hojaConBalances?.balances?.forEach{balance -> //..busco en t_balance
-                        if(participantes.participante.idParticipante == balance.idParticipanteBalance){ //..el que coincida con el idParticipante
-                            balances[nombre] = balance.monto
-                        }
-                    }
-                }
-            }
-        }
-        onBalanceDeudaChanged(balances)
+        val balanceDeuda = Contabilidad.calcularBalanceFinal(hoja, hojaConBalances)
+        onBalanceDeudaChanged(balanceDeuda)
         getPagos()
     }
 
@@ -181,7 +149,7 @@ class BalanceViewModel @Inject constructor(
         val balanceDeudor = hojaConBalances.balances.firstOrNull { it.idParticipanteBalance == idPagador }
         val balanceAcreedor = hojaConBalances.balances.firstOrNull { it.monto == montoAcreedorRedondeado }
 
-        val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
+        val (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) = Contabilidad.calcularNuevosMontos(montoDeudaRedondeado, montoAcreedorRedondeado)
 
         val idFotoPago = if(imagenPago != null) insertImage(imagenPago) else null
         val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
@@ -193,21 +161,6 @@ class BalanceViewModel @Inject constructor(
         }
     }
 
-    fun calcularNuevosMontos(deuda: Double, acreedor: Double): Triple<Double, Double, Double> {
-        var resto = deuda + acreedor
-        resto = if (resto.redondearADosDecimales().esMontoPequeno()) 0.0 else resto
-        return if (resto < 0) {
-            Triple(resto, acreedor, 0.0)
-        } else {
-            Triple(0.0, acreedor - resto, resto)
-        }.let { (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) ->
-            Triple(
-                if (nuevoMontoDeudor.esMontoPequeno()) 0.0 else nuevoMontoDeudor,
-                montoPagado,
-                if (montoAcreedorActualizado.redondearADosDecimales().esMontoPequeno()) 0.0 else montoAcreedorActualizado.redondearADosDecimales()
-            )
-        }
-    }
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_BALANCE **/
     suspend fun updateBalance(

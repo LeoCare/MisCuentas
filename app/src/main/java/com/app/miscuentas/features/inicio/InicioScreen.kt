@@ -209,7 +209,7 @@ fun InicioContent(
     Box(
         contentAlignment = Alignment.TopCenter,
         modifier = Modifier
-            .fillMaxSize() //estira al maximo
+            .fillMaxSize()
             .background(Color(color = 0xFFF5EFEF))
 
     ) {

@@ -188,6 +188,7 @@ fun BalanceScreen(
             cerrar = {
                 showFoto = false
                 viewModel.onMostrarFotoChanged(false)
+                viewModel.onImagenBitmapChanged(null)
             }
         )
     }

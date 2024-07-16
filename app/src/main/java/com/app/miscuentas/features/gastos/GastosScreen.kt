@@ -90,7 +90,7 @@ import java.text.NumberFormat
 @Composable
 fun GastosScreen(
     innerPadding: PaddingValues?,
-    idHojaAMostrar: Long?,
+    idHojaAMostrar: Long,
     onNavNuevoGasto: (Long) -> Unit,
     onNavBalance: (Long) -> Unit,
     viewModel: GastosViewModel = hiltViewModel()

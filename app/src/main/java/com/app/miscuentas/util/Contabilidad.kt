@@ -133,5 +133,22 @@ class Contabilidad {
         fun Double.esMontoPequeno(): Boolean {
             return (this == -0.01 || this  == 0.01)
         }
+        /** METODO QUE LOS 3 MONTOS REDONDEADOS SEGUN CORRESPONDA  **/
+        fun calcularNuevosMontos(deuda: Double, acreedor: Double): Triple<Double, Double, Double> {
+            var resto = deuda + acreedor
+            resto = if (resto.redondearADosDecimales().esMontoPequeno()) 0.0 else resto
+            return if (resto < 0) {
+                Triple(resto, acreedor, 0.0)
+            } else {
+                Triple(0.0, acreedor - resto, resto)
+            }.let { (nuevoMontoDeudor, montoPagado, montoAcreedorActualizado) ->
+                Triple(
+                    if (nuevoMontoDeudor.esMontoPequeno()) 0.0 else nuevoMontoDeudor,
+                    montoPagado,
+                    if (montoAcreedorActualizado.redondearADosDecimales().esMontoPequeno()) 0.0 else montoAcreedorActualizado.redondearADosDecimales()
+                )
+            }
+        }
+
     }
 }

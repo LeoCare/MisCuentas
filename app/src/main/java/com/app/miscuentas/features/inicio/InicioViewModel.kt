@@ -27,6 +27,22 @@ class InicioViewModel @Inject constructor(
     val inicioState: StateFlow<InicioState> = _inicioState
 
 
+    fun onTotalHojasChanged(total: Int){
+        _inicioState.value = _inicioState.value.copy(totalHojas = total)
+    }
+    fun onHojaPrincipalChanged(hojaPrincipal: HojaConParticipantes?){
+        _inicioState.value = _inicioState.value.copy(hojaPrincipal = hojaPrincipal)
+    }
+    fun onIdHojaPrincipalChanged(idHojaPrincipal: Long){
+        _inicioState.value = _inicioState.value.copy(idHojaPrincipal = idHojaPrincipal)
+    }
+    fun onRegistradoChanged(registrado: String){
+        _inicioState.value = _inicioState.value.copy(registrado = registrado)
+    }
+    fun onHuellaDigitalChanged(withHuella: Boolean){
+        _inicioState.value = _inicioState.value.copy(huellaDigital = withHuella)
+    }
+
     fun onInicioHuellaChanged(permitido: Boolean){
          _inicioState.value = _inicioState.value.copy(huellaDigital = permitido)
 
@@ -45,7 +61,7 @@ class InicioViewModel @Inject constructor(
     fun getAllHojasCalculos(){
         viewModelScope.launch {
             hojaCalculoRepository.getTotalHojasCreadas().collect{
-                _inicioState.value = _inicioState.value.copy(totalHojas = it)
+                onTotalHojasChanged(it)
             }
         }
     }
@@ -57,10 +73,10 @@ class InicioViewModel @Inject constructor(
                 val idHoja = withContext(Dispatchers.IO){ dataStoreConfig.getIdHojaPrincipalPreference()}
                 if (idHoja != null){
                     if(idHoja.toInt() == 0){ //si es 0 no hay preferida
-                        _inicioState.value = _inicioState.value.copy(hojaPrincipal = null)
-                        _inicioState.value = _inicioState.value.copy(idHojaPrincipal = 0)
+                        onHojaPrincipalChanged(null)
+                        onIdHojaPrincipalChanged( 0)
                     } else {
-                        _inicioState.value = _inicioState.value.copy(idHojaPrincipal = idHoja)
+                        onIdHojaPrincipalChanged(idHoja)
                         getHojaPrincipal(idHoja)
                     }
                 }
@@ -76,7 +92,7 @@ class InicioViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             hojaCalculoRepository.getHojaConParticipantes(idHoja).collect{ hoja ->
                 withContext(Dispatchers.Main) {
-                    _inicioState.value = _inicioState.value.copy(hojaPrincipal = hoja)
+                    onHojaPrincipalChanged(hoja)
                     compruebaFechaCierre(hoja)
                 }
             }
@@ -101,15 +117,11 @@ class InicioViewModel @Inject constructor(
         viewModelScope.launch {
             //Guardo el nombre del usuario para mostrarlo en el Drawer
             val registrado = dataStoreConfig.getRegistroPreference().toString()
-            _inicioState.value = _inicioState.value.copy(registrado = registrado)
+            onRegistradoChanged(registrado)
 
             //Compruebo si debe quedar el check de la huella seleccionado en el Drawer
             val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
-            if (inicioHuella == "SI") _inicioState.value =
-                _inicioState.value.copy(huellaDigital = true)
-
-
-
+            if (inicioHuella == "SI") onHuellaDigitalChanged(true)
         }
     }
 

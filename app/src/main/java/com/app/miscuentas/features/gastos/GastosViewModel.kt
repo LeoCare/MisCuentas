@@ -1,50 +1,30 @@
 package com.app.miscuentas.features.gastos
 
-import android.content.ContentUris
-import android.content.Context
-import android.database.Cursor
 import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Environment
-import android.provider.DocumentsContract
-import android.provider.MediaStore
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.LiveData
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.local.repository.BalanceRepository
 import com.app.miscuentas.data.local.repository.FotoRepository
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
-import com.app.miscuentas.data.local.repository.PagoRepository
 import com.app.miscuentas.util.Contabilidad
 import com.app.miscuentas.util.Contabilidad.Contable.calcularBalanceFinal
 import com.app.miscuentas.util.Contabilidad.Contable.instanciarBalance
-import com.app.miscuentas.util.Contabilidad.Contable.totalGastosHoja
 import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
 import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
 import com.app.miscuentas.util.Validaciones
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.MultiplePermissionsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -84,22 +64,30 @@ class GastosViewModel @Inject constructor(
     fun onTotalGastosActualChanged(total: Double){
         _gastosState.value = _gastosState.value.copy(totalGastosActual = total)
     }
+    fun onHojaAMostrarChanged(hoja: HojaConParticipantes?){
+        _gastosState.value = _gastosState.value.copy(hojaAMostrar = hoja)
+    }
 
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
      * Posteriormetne comprueba si existe un usuario que sea el registrado.
      * Ademas, actualiza el DataStore. **/
-    fun onHojaAMostrar(idHoja: Long?) {
+    fun onHojaAMostrar(idHoja: Long) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                if (idHoja != null) {
+            try {
+                withContext(Dispatchers.IO){
                     hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
-                        _gastosState.value = _gastosState.value.copy(hojaAMostrar = hojaCalculo)
-                        totalGastosHojaActual()
+                        withContext(Dispatchers.Main) {
+                            onHojaAMostrarChanged(hojaCalculo)
+                            totalGastosHojaActual()
+                        }
+
                         //Compruebo si se paso la fecha de cierre
                         compruebaFechaCierre(hojaCalculo)
                     }
                 }
+            }catch(e: Exception){
+                Log.e("GastosViewModel", "Error en onHojaAMostrar()", e)
             }
         }
     }
@@ -129,7 +117,7 @@ class GastosViewModel @Inject constructor(
 
     fun totalGastosHojaActual(){
         val hoja = gastosState.value.hojaAMostrar
-        val totalGastos = totalGastosHoja(hoja)
+        val totalGastos = Contabilidad.totalGastosHoja(hoja)
         onTotalGastosActualChanged(totalGastos)
     }
 
@@ -179,7 +167,9 @@ class GastosViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 gastoRepository.delete(gastosState.value.gastoABorrar)
-                totalGastosHojaActual()
+                withContext(Dispatchers.Main) {
+                    totalGastosHojaActual()
+                }
             }
         }
     }
