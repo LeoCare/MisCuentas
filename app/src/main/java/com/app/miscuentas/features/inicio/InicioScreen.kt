@@ -183,8 +183,7 @@ fun InicioContent(
 
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
     var mensaje by remember { mutableStateOf("")}
-    //Prueba para mostrar los participantes almacenados en la BBDD //Borrar!!
-    //val nombreDeTodos = getListaParticipatesStateString() //Borrar!!
+
     if (showDialog) MiAviso(true, mensaje, {showDialog = false})
 
     val existeHoja = {
@@ -216,8 +215,8 @@ fun InicioContent(
     ) {
 
         LazyColumn(
-            horizontalAlignment = Alignment.CenterHorizontally, // Alinear horizontalmente en la columna
-            verticalArrangement = Arrangement.spacedBy(26.dp), // Espacio entre elementos de la columna
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(26.dp)
         ) {
             val robotoItalic = FontFamily(Font(R.font.roboto_bolditalic))
             item {
