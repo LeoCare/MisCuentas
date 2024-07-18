@@ -226,7 +226,7 @@ class BalanceViewModel @Inject constructor(
         balanceState.value.listaPagosConParticipantes?.firstOrNull {
             it.idPago == idPagoConParticipante
         }?.fotoPago = foto
-        onMostrarFotoChanged(true)
+         //onMostrarFotoChanged(true)
     }
 
     /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
@@ -318,8 +318,11 @@ class BalanceViewModel @Inject constructor(
         val imageEntity = DbFotoEntity(imagen = byteArray)
         viewModelScope.launch {
             val idFoto = fotoRepository.insertFoto(imageEntity)
-            updatePagoWithFoto(idFoto)
-            updateListaPagoConParticipantes(bitmap)
+            withContext(Dispatchers.IO) { updatePagoWithFoto(idFoto) }
+            withContext(Dispatchers.Main){
+                updateListaPagoConParticipantes(bitmap)
+                onNewFotoPagoChanged(null)
+            }
         }
     }
 

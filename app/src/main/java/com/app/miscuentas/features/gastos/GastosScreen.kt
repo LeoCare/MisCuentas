@@ -200,7 +200,7 @@ fun GastosScreen(
         }
         if (gastosState.cierreAceptado){
             viewModel.calcularBalance()
-            viewModel.updateHoja()
+            viewModel.updateHoja("F")
         }
         if (gastosState.mostrarFoto){
             showFoto = true

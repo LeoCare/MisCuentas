@@ -81,7 +81,6 @@ class GastosViewModel @Inject constructor(
                             onHojaAMostrarChanged(hojaCalculo)
                             totalGastosHojaActual()
                         }
-
                         //Compruebo si se paso la fecha de cierre
                         compruebaFechaCierre(hojaCalculo)
                     }
@@ -126,8 +125,8 @@ class GastosViewModel @Inject constructor(
      * **/
     fun calcularBalance() {
         val hoja = gastosState.value.hojaAMostrar
-        //si esta finalizada...tiene en cuenta los pagos realizados
-        if (gastosState.value.hojaAMostrar?.hoja?.status == "F") {
+        //si esta finalizada o balanceada...tiene en cuenta los pagos realizados
+        if (gastosState.value.hojaAMostrar?.hoja?.status != "C") {
             getHojaConBalanceFinal() //..obtengo una HojaConBalance y modifico el mapa(nombre, monto) desde t_balance
         }
         else {
@@ -182,9 +181,9 @@ class GastosViewModel @Inject constructor(
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
     //Actualizar
-    suspend fun updateHoja() = viewModelScope.launch{
+    suspend fun updateHoja(status: String) = viewModelScope.launch{
         onCierreAceptado(false)
-        _gastosState.value.hojaAMostrar?.hoja?.status = "F"
+        _gastosState.value.hojaAMostrar?.hoja?.status = status
         withContext(Dispatchers.IO) {
             hojaCalculoRepository.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
             instanciarInsertarBalance()

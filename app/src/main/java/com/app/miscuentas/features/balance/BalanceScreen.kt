@@ -109,6 +109,18 @@ fun BalanceScreen(
         )
     }
 
+    var showFoto by rememberSaveable { mutableStateOf(false)}
+    if (showFoto){
+        MiImagenDialog(
+            show = true,
+            imagen = balanceState.imagenBitmap!!,
+            cerrar = {
+                showFoto = false
+                viewModel.onMostrarFotoChanged(false)
+                viewModel.onImagenBitmapChanged(null)
+            }
+        )
+    }
 
     /** IMAGENES **/
     /** Lanzadores **/
@@ -120,7 +132,9 @@ fun BalanceScreen(
                 if (balanceState.pagoNewFoto != null) {
                     viewModel.insertNewImage(bitmap)
                 }
-                else viewModel.onImagenBitmapChanged(bitmap)
+                else {
+                    viewModel.onImagenBitmapChanged(bitmap)
+                }
             }
         }
     )
@@ -135,7 +149,9 @@ fun BalanceScreen(
                     if (balanceState.pagoNewFoto != null) {
                         viewModel.insertNewImage(bitmap)
                     }
-                    else viewModel.onImagenBitmapChanged(bitmap)
+                    else {
+                        viewModel.onImagenBitmapChanged(bitmap)
+                    }
                 }
             }
         }
@@ -180,24 +196,13 @@ fun BalanceScreen(
         }
     }
 
-    var showFoto by rememberSaveable { mutableStateOf(false)}
-    if (showFoto){
-        MiImagenDialog(
-            show = true,
-            imagen = balanceState.imagenBitmap!!,
-            cerrar = {
-                showFoto = false
-                viewModel.onMostrarFotoChanged(false)
-                viewModel.onImagenBitmapChanged(null)
-            }
-        )
-    }
 
-    LaunchedEffect(key1 = balanceState) {
-        if (balanceState.mostrarFoto) {
-            showFoto = true
-        }
-    }
+
+//    LaunchedEffect(key1 = balanceState) {
+//        if (balanceState.mostrarFoto) {
+//            showFoto = true
+//        }
+//    }
     /******************************************************/
 
     BalanceContent(
@@ -834,6 +839,20 @@ fun Paso2(
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit
 ) {
+
+    var showFoto by rememberSaveable { mutableStateOf(false)}
+    if (showFoto){
+        if (imagenBitmapState != null) {
+            MiImagenDialog(
+                show = true,
+                imagen = imagenBitmapState,
+                cerrar = {
+                    showFoto = false
+                }
+            )
+        }
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -857,6 +876,10 @@ fun Paso2(
 
                     "Galeria" ->  {
                         elegirImagen()
+                    }
+
+                    "Ver" -> {
+                        showFoto = true
                     }
                 }
             }
