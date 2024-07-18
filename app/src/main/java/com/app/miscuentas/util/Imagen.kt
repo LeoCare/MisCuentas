@@ -10,7 +10,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
+import android.view.PixelCopy
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import java.io.ByteArrayOutputStream
@@ -54,36 +57,42 @@ class Imagen {
             // Obtener la vista raíz del diseño actual
             val view = activity.window.decorView.rootView
 
-            // Crear un bitmap de la vista
+            // Crear un bitmap del mismo tamaño que la vista
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-            val canvas = android.graphics.Canvas(bitmap)
-            view.draw(canvas)
 
-            // Guardar el bitmap en la galería usando MediaStore.createWriteRequest
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, "captura_${System.currentTimeMillis()}.png")
-                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
-                put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-            }
-            val resolver = activity.contentResolver
-            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            uri?.let {
-                try {
-                    resolver.openOutputStream(it)?.use { outputStream ->
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            // Usar PixelCopy para capturar el contenido de la vista
+            val handler = Handler(Looper.getMainLooper())
+            PixelCopy.request(activity.window, bitmap, { copyResult ->
+                if (copyResult == PixelCopy.SUCCESS) {
+                    // Guardar el bitmap en la galería
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Images.Media.DISPLAY_NAME, "captura_${System.currentTimeMillis()}.png")
+                        put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                        put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
+                        put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
                     }
-                    enviarImagen(activity, it)
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    Toast.makeText(activity, "Error al guardar la imagen", Toast.LENGTH_SHORT).show()
+                    val resolver = activity.contentResolver
+                    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    uri?.let {
+                        try {
+                            resolver.openOutputStream(it)?.use { outputStream ->
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                            }
+                            enviarImagen(activity, it)
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            Toast.makeText(activity, "Error al guardar la imagen", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(activity, "Error al capturar la imagen", Toast.LENGTH_SHORT).show()
                 }
-            }
+            }, handler)
         }
-
+     
         fun enviarImagen(activity: Activity, uri: Uri) {
             val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/*"
+                type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
