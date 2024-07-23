@@ -60,10 +60,6 @@ class BalanceViewModel @Inject constructor(
     fun onNewFotoPagoChanged(pago: PagoConParticipantes?){
         _balanceState.value = _balanceState.value.copy(pagoNewFoto = pago)
     }
-    fun onMostrarFotoChanged(mostrar: Boolean){
-        _balanceState.value = _balanceState.value.copy(mostrarFoto = mostrar)
-    }
-
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
      * Posteriormetne comprueba si existe un usuario que sea el registrado.

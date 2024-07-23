@@ -14,6 +14,5 @@ data class BalanceState (
     val balanceDeuda: Map<String, Double>? = null, //importe que debe/recibe cada participante hasta antes del cierre
     val pagoRealizado: Boolean = false,
     val pagoNewFoto: PagoConParticipantes? = null,
-    val listaPagosConParticipantes: List<PagoConParticipantes>? = listOf(),
-    val mostrarFoto: Boolean = false
+    val listaPagosConParticipantes: List<PagoConParticipantes>? = listOf()
 )

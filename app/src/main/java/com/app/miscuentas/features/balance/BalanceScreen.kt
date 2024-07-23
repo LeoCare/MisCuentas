@@ -116,7 +116,6 @@ fun BalanceScreen(
             imagen = balanceState.imagenBitmap!!,
             cerrar = {
                 showFoto = false
-                viewModel.onMostrarFotoChanged(false)
                 viewModel.onImagenBitmapChanged(null)
             }
         )
@@ -196,13 +195,6 @@ fun BalanceScreen(
         }
     }
 
-
-
-//    LaunchedEffect(key1 = balanceState) {
-//        if (balanceState.mostrarFoto) {
-//            showFoto = true
-//        }
-//    }
     /******************************************************/
 
     BalanceContent(
