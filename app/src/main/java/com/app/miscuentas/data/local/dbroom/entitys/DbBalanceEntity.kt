@@ -1,5 +1,6 @@
 package com.app.miscuentas.data.local.dbroom.entitys
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -23,8 +24,8 @@ import androidx.room.PrimaryKey
 )
 data class DbBalanceEntity(
     @PrimaryKey(autoGenerate = true) val idBalance: Long = 0,
-    val idHojaBalance: Long,
-    val idParticipanteBalance: Long,
-    var tipo: String,
-    var monto: Double
+    @ColumnInfo(name = "idHojaBalance", index = true) val idHojaBalance: Long,
+    @ColumnInfo(name = "idParticipanteBalance", index = true) val idParticipanteBalance: Long,
+    @ColumnInfo(name = "tipo") var tipo: String,
+    @ColumnInfo(name = "monto") var monto: Double
 )

@@ -165,7 +165,7 @@ class GastosViewModel @Inject constructor(
     suspend fun deleteGasto(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                gastoRepository.delete(gastosState.value.gastoABorrar)
+                gastosState.value.gastoABorrar?.let { gastoRepository.delete(it) }
                 withContext(Dispatchers.Main) {
                     totalGastosHojaActual()
                 }

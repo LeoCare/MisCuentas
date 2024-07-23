@@ -1,5 +1,6 @@
 package com.app.miscuentas.data.local.dbroom.entitys
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -23,10 +24,10 @@ import androidx.room.PrimaryKey
 )
 data class DbPagoEntity(
     @PrimaryKey(autoGenerate = true) val idPago: Long = 0,
-    val idBalance: Long,
-    val idBalancePagado: Long,
-    val monto: Double,
-    var idFotoPago: Long? = null,
-    val fechaPago: String,
-    val fechaConfirmacion: String,
+    @ColumnInfo(name = "idBalance", index = true) val idBalance: Long,
+    @ColumnInfo(name = "idBalancePagado", index = true) val idBalancePagado: Long,
+    @ColumnInfo(name = "monto") val monto: Double,
+    @ColumnInfo(name = "idFotoPago") var idFotoPago: Long? = null,
+    @ColumnInfo(name = "fechaPago") val fechaPago: String,
+    @ColumnInfo(name = "fechaConfirmacion") val fechaConfirmacion: String,
 )

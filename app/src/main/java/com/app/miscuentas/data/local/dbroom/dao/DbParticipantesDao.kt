@@ -28,8 +28,6 @@ interface DbParticipantesDao {
     @Delete
     suspend fun delete(participante: DbParticipantesEntity)
 
-    //Room mantiene el Flow actualizado, por lo que solo se necesita obtener los datos una vez.
-    //Luego Room se encarga de notificarnos con cada cambio en los datos
     @Transaction
     @Query("SELECT * FROM t_participantes p, t_hojas_cab h WHERE p.idRegistroParti = :idRegistro AND h.idRegistroHoja = :idRegistro")
     fun getParticipanteConGastos(idRegistro: Long): Flow<ParticipanteConGastos>

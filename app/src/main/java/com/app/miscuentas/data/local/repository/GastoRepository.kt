@@ -30,6 +30,6 @@ class GastoRepository @Inject constructor(
     suspend fun updateGasto(gasto: DbGastosEntity) { gastoDao.update(gasto)}
 
     @Delete
-    suspend fun delete(gasto: DbGastosEntity?) { gastoDao.delete(gasto) }
+    suspend fun delete(gasto: DbGastosEntity) { gastoDao.delete(gasto) }
 
 }

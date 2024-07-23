@@ -28,8 +28,8 @@ data class DbGastosEntity (
     @ColumnInfo(name = "concepto") var concepto: String = "",
     @ColumnInfo(name = "importe") var importe: String = "0.0",
     @ColumnInfo(name = "fecha_gasto") var fechaGasto: String?,
-    @ColumnInfo(name = "idParticipanteGasto") var idParticipanteGasto: Long?,
-    @ColumnInfo(name = "idFotoGasto") var idFotoGasto: Long? = null
+    @ColumnInfo(name = "idParticipanteGasto", index = true) var idParticipanteGasto: Long?,
+    @ColumnInfo(name = "idFotoGasto", index = true) var idFotoGasto: Long? = null
 
 )
 

@@ -3,6 +3,7 @@ package com.app.miscuentas.data.local.dbroom.entitys
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.app.miscuentas.domain.model.HojaCalculo
 import com.app.miscuentas.domain.model.Participante
@@ -26,7 +27,7 @@ data class DbHojaCalculoEntity (
     @ColumnInfo(name = "fechaCierre") var fechaCierre: String?,
     @ColumnInfo(name = "limite") var limite: String?,
     @ColumnInfo(name = "status") var status: String,
-    @ColumnInfo(name = "idRegistroHoja") var idRegistroHoja: Long = 0
+    @ColumnInfo(name = "idRegistroHoja", index = true) var idRegistroHoja: Long = 0
 )
 
 fun DbHojaCalculoEntity.toDomain(participantes: List<Participante> = listOf()) = HojaCalculo(

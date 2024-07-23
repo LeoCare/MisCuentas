@@ -44,19 +44,18 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
 }
 
 dependencies {
     val lifecycleVersion = "2.8.2"
-    val roomVersion = "2.5.1"
+    val roomVersion = "2.6.1"
 
     //Navegacion
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -94,9 +93,9 @@ dependencies {
     implementation ("androidx.biometric:biometric-ktx:1.2.0-alpha05")
 
     // Injeccion de dependencias HILT
-    implementation("com.google.dagger:hilt-android-gradle-plugin:2.48")
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation("com.google.dagger:hilt-android-gradle-plugin:2.51.1")
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-android-compiler:2.50")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     //Room

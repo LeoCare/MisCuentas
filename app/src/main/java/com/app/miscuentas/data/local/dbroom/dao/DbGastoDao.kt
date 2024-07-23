@@ -23,6 +23,6 @@ interface DbGastoDao {
     suspend fun update(gasto: DbGastosEntity)
 
     @Delete
-    suspend fun delete(gasto: DbGastosEntity?)
+    suspend fun delete(gasto: DbGastosEntity)
 
 }
