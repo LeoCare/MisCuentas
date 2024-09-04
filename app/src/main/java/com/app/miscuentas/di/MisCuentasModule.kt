@@ -1,9 +1,9 @@
 package com.app.miscuentas.di
 
-import com.app.miscuentas.data.network.hojas.HojasRepository
-import com.app.miscuentas.data.network.hojas.HojasService
+import com.app.miscuentas.data.network.usuario.UsuariosRepository
+import com.app.miscuentas.data.network.usuario.UsuariosService
 import com.app.miscuentas.data.network.webservices.WebService
-import com.app.miscuentas.domain.GetMisHojas
+import com.app.miscuentas.domain.GetUsuarios
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,25 +20,25 @@ object MisHojasModule {
     @Provides
     fun provideWebService(): WebService {
         return Retrofit.Builder()
-            .baseUrl("https://android-kotlin-fun-mars-server.appspot.com/")
+            .baseUrl("https://api.leondev.es/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(WebService::class.java)
     }
 
     @Provides
-    fun provideHojasService(webService: WebService): HojasService {
-        return HojasService(webService)
+    fun provideUsuariosService(webService: WebService): UsuariosService {
+        return UsuariosService(webService)
     }
 
     @Provides
-    fun provideHojasRepository(hojasService: HojasService): HojasRepository {
-        return HojasRepository(hojasService)
+    fun provideUsuariosRepository(usuariosService: UsuariosService): UsuariosRepository {
+        return UsuariosRepository(usuariosService)
     }
 
     @Provides
-    fun provideGetMisHojas(hojasRepository: HojasRepository): GetMisHojas {
-        return GetMisHojas(hojasRepository)
+    fun provideGetUsuarios(usuariosRepository: UsuariosRepository): GetUsuarios {
+        return GetUsuarios(usuariosRepository)
     }
 
 

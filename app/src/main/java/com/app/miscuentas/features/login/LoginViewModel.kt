@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.data.local.repository.RegistroRepository
+import com.app.miscuentas.data.network.usuario.UsuariosRepository
+import com.app.miscuentas.domain.GetUsuarios
+import com.app.miscuentas.domain.UsuarioCrearDto
 import com.app.miscuentas.domain.model.Participante
 import com.app.miscuentas.domain.model.Registro
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,  // DATASTORE
-    private val registroRepository: RegistroRepository
+    private val registroRepository: RegistroRepository,
+    private val usuariosRepository: UsuariosRepository
 ) : ViewModel(){
 
     private val _loginState = MutableStateFlow(LoginState())
@@ -75,7 +79,7 @@ class LoginViewModel @Inject constructor(
     }
 
     //Metodo para comprobar si existe ese usuario registrado
-    fun getRegistro(){
+     fun getRegistro(){
         val nombre = _loginState.value.usuario
         val contrasenna = _loginState.value.contrasenna
         var registro: Registro?
@@ -98,6 +102,7 @@ class LoginViewModel @Inject constructor(
     }
 
     //0_COMPRUEBO EXISTENCIA DEL CORREO
+
     fun inicioInsertRegistro(){
         val correo = _loginState.value.email
 
@@ -124,6 +129,7 @@ class LoginViewModel @Inject constructor(
     }
 
     //2_INSERTAR REGISTRO Y PARTICIPANTE PRINCIPAL
+    /*local
     suspend fun insertRegistro(): Boolean {
         val nombre = _loginState.value.usuario
         val correo = _loginState.value.email
@@ -140,6 +146,34 @@ class LoginViewModel @Inject constructor(
            false // inserción NOK
         }
     }
+     */
+    fun insertRegistro(): Boolean {
+        val nombre = _loginState.value.usuario
+        val correo = _loginState.value.email
+        val contrasenna = _loginState.value.contrasenna
+        val perfil = "ADMIN"
+        var result = false
+
+       val usuarioCrearDto = UsuarioCrearDto(
+           contrasenna,
+           correo,
+           nombre,
+           perfil)
+        viewModelScope.launch {
+            try {
+                val usuario =
+                    GetUsuarios(usuariosRepository).putRegistro(usuarioCrearDto)
+                if (usuario != null) result = true // insert OK
+                else result = false
+            } catch (e: Exception) {
+                result = false // inserción NOK
+            }
+
+        }
+        return result
+    }
+
+
 
     private fun instanciaParticipante(): Participante{
         return  Participante(
