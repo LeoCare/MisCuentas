@@ -6,7 +6,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
-import com.app.miscuentas.domain.model.Gasto
+import com.app.miscuentas.data.model.Gasto
 
 
 @Entity(

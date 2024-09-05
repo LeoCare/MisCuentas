@@ -1,17 +1,15 @@
 package com.app.miscuentas.features.login
 
-import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.data.local.repository.RegistroRepository
 import com.app.miscuentas.data.network.usuario.UsuariosRepository
+import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import com.app.miscuentas.domain.GetUsuarios
-import com.app.miscuentas.domain.UsuarioCrearDto
-import com.app.miscuentas.domain.model.Participante
-import com.app.miscuentas.domain.model.Registro
+import com.app.miscuentas.data.model.Participante
+import com.app.miscuentas.data.model.Registro
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -175,7 +173,7 @@ class LoginViewModel @Inject constructor(
 
 
 
-    private fun instanciaParticipante(): Participante{
+    private fun instanciaParticipante(): Participante {
         return  Participante(
             0,
             loginState.value.usuario,

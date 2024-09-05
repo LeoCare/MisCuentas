@@ -6,8 +6,8 @@ import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.GastoRepository
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.util.Validaciones
-import com.app.miscuentas.domain.model.Gasto
-import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.data.model.Gasto
+import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.util.Contabilidad.Contable.superaLimite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

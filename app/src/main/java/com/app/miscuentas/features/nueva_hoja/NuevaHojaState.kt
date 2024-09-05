@@ -2,7 +2,7 @@ package com.app.miscuentas.features.nueva_hoja
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.data.model.Participante
 
 data class NuevaHojaState(
     val titulo: String = "",

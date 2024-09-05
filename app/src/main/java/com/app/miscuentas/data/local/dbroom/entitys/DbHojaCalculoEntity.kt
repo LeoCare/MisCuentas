@@ -5,8 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.app.miscuentas.domain.model.HojaCalculo
-import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.data.model.HojaCalculo
+import com.app.miscuentas.data.model.Participante
 
 @Entity(
     tableName = "t_hojas_cab",

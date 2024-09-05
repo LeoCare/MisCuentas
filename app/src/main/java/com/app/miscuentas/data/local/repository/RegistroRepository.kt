@@ -5,10 +5,10 @@ import androidx.room.Transaction
 import com.app.miscuentas.data.local.dbroom.dao.DbRegistroDao
 import com.app.miscuentas.data.local.dbroom.entitys.DbRegistrosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
-import com.app.miscuentas.domain.model.Participante
-import com.app.miscuentas.domain.model.Registro
-import com.app.miscuentas.domain.model.toEntity
-import com.app.miscuentas.domain.model.toEntityWithRegistro
+import com.app.miscuentas.data.model.Participante
+import com.app.miscuentas.data.model.Registro
+import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.model.toEntityWithRegistro
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

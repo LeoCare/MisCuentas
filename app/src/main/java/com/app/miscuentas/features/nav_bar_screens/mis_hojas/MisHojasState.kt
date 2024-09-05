@@ -1,7 +1,7 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.data.model.HojaCalculo
 
 data class MisHojasState(
     /** API **/ //val listaHojas: List<Hoja> = listOf(), hoja de data/model/Hoja

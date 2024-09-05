@@ -50,7 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
-import com.app.miscuentas.domain.model.IconoGasto
+import com.app.miscuentas.data.model.IconoGasto
 
 @Composable
 fun MisGastosScreen(

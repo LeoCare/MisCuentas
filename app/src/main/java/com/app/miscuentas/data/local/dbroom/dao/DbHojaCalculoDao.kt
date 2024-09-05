@@ -14,7 +14,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.domain.model.Gasto
+import com.app.miscuentas.data.model.Gasto
 import kotlinx.coroutines.flow.Flow
 
 @Dao

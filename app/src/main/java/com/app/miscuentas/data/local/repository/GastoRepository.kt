@@ -8,8 +8,8 @@ import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.dao.DbGastoDao
 import com.app.miscuentas.data.local.dbroom.dao.DbHojaCalculoDao
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
-import com.app.miscuentas.domain.model.Gasto
-import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.data.model.Gasto
+import com.app.miscuentas.data.model.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

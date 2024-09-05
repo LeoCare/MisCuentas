@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain.model
+package com.app.miscuentas.data.model
 
 import android.media.Image
 import androidx.compose.ui.graphics.painter.Painter

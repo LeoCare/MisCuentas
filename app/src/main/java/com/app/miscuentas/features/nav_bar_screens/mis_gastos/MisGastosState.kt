@@ -3,8 +3,8 @@ package com.app.miscuentas.features.nav_bar_screens.mis_gastos
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
-import com.app.miscuentas.domain.model.Gasto
-import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.data.model.Gasto
+import com.app.miscuentas.data.model.HojaCalculo
 
 data class MisGastosState (
     val idRegistro: Long? = null,

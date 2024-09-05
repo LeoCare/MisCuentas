@@ -7,7 +7,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
-import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.data.model.HojaCalculo
 
 data class GastosState (
     val hojaConBalances: HojaConBalances? = null,

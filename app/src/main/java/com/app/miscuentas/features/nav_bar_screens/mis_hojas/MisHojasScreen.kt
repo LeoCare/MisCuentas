@@ -55,7 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.domain.model.HojaCalculo
+import com.app.miscuentas.data.model.HojaCalculo
 import com.app.miscuentas.util.Desing
 
 

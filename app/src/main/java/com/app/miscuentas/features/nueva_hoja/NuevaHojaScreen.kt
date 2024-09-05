@@ -75,7 +75,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.util.Validaciones.Companion.isValid
-import com.app.miscuentas.domain.model.Participante
+import com.app.miscuentas.data.model.Participante
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.showDatePickerDialog
 

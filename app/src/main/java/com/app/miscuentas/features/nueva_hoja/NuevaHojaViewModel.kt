@@ -9,9 +9,9 @@ import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.data.local.repository.RegistroRepository
 import com.app.miscuentas.util.Validaciones
-import com.app.miscuentas.domain.model.Participante
-import com.app.miscuentas.domain.model.toEntity
-import com.app.miscuentas.domain.model.toEntityWithRegistro
+import com.app.miscuentas.data.model.Participante
+import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.model.toEntityWithRegistro
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

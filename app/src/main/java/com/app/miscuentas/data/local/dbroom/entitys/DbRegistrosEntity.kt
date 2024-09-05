@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.app.miscuentas.domain.model.Registro
+import com.app.miscuentas.data.model.Registro
 
 @Entity(
     tableName = "t_registros",

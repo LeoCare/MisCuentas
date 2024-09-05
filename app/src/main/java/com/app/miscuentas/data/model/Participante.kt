@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain.model
+package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 

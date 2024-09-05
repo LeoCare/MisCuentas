@@ -9,8 +9,8 @@ import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.util.Validaciones
-import com.app.miscuentas.domain.model.HojaCalculo
-import com.app.miscuentas.domain.model.toEntity
+import com.app.miscuentas.data.model.HojaCalculo
+import com.app.miscuentas.data.model.toEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

@@ -71,7 +71,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.repository.IconoGastoProvider
-import com.app.miscuentas.domain.model.IconoGasto
+import com.app.miscuentas.data.model.IconoGasto
 import com.app.miscuentas.features.gastos.CustomFloatButton
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Validaciones.Companion.isValid
