@@ -10,7 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**** DATASTORE *****/
-/********************/
+/*******************
 @Module
 @InstallIn(SingletonComponent::class)
 object PreferencesModule {
@@ -19,5 +19,5 @@ object PreferencesModule {
     @Singleton
     fun provideDataStorePref(@ApplicationContext context: Context): DataStoreConfig =
         DataStoreConfig(context)
-
 }
+*/

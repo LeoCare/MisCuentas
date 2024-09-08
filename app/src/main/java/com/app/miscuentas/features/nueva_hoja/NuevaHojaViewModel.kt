@@ -6,12 +6,11 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.repository.HojaCalculoRepository
-import com.app.miscuentas.data.local.repository.ParticipanteRepository
-import com.app.miscuentas.data.local.repository.RegistroRepository
-import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.data.model.Participante
 import com.app.miscuentas.data.model.toEntity
-import com.app.miscuentas.data.model.toEntityWithRegistro
+import com.app.miscuentas.data.model.toEntityWithUsuario
+import com.app.miscuentas.data.pattern.UsuariosRepository
+import com.app.miscuentas.util.Validaciones
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
     private val hojaCalculoRepository: HojaCalculoRepository,
-    private val registroRepository: RegistroRepository,
+    private val usuariosRepository: UsuariosRepository,
     private val dataStoreConfig: DataStoreConfig
 ) : ViewModel() {
 
@@ -52,8 +51,8 @@ class NuevaHojaViewModel @Inject constructor(
         vaciarTextFields() //Vacio estados
     }
 
-    fun onIdRegistroChanged(idRegistro: Long) {
-        _nuevaHojaState.value = _nuevaHojaState.value.copy(idRegistro = idRegistro)
+    fun onIdRegistroChanged(idUsuario: Long) {
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(idUsuario = idUsuario)
     }
 
     /** METODOS PARA EL STATE DE PARTICIPANTES **/
@@ -67,7 +66,7 @@ class NuevaHojaViewModel @Inject constructor(
     }
 
     fun addParticipanteRegistrado(idRegistrado: Long, participante: Participante) {
-        val partiRegistrado = participante.toEntityWithRegistro(idRegistrado)
+        val partiRegistrado = participante.toEntityWithUsuario(idRegistrado)
         val updatedList =_nuevaHojaState.value.listaParticipantesEntitys + partiRegistrado
         _nuevaHojaState.value = _nuevaHojaState.value.copy(
             participanteRegistrado = partiRegistrado,
@@ -105,7 +104,7 @@ class NuevaHojaViewModel @Inject constructor(
             fechaCierre = _nuevaHojaState.value.fechaCierre.ifEmpty { null },
             limite = _nuevaHojaState.value.limiteGasto.ifEmpty { null },
             status = _nuevaHojaState.value.status,
-            idRegistroHoja = _nuevaHojaState.value.idRegistro
+            idUsuarioHoja = _nuevaHojaState.value.idUsuario
         )
     }
 
@@ -128,7 +127,7 @@ class NuevaHojaViewModel @Inject constructor(
             if (idRegistrado != null) {
                 onIdRegistroChanged(idRegistrado)
                 //Agrego el primer participante que es el registrado
-                registroRepository.getRegistroWhereId(idRegistrado).collect{
+                usuariosRepository.getRegistroWhereId(idRegistrado).collect{
                     it?.let { it1 ->
                         addParticipanteRegistrado(idRegistrado, Participante(0, it1.nombre, it.correo))
                     }

@@ -7,7 +7,7 @@ import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.HojaCalculo
 
 data class MisGastosState (
-    val idRegistro: Long? = null,
+    val idUsuario: Long? = null,
     val idHojaPrincipal: Long? = null,
     val hojasDelRegistrado: List<HojaConParticipantes> = listOf(),
     val hojaAMostrar: HojaConParticipantes? = null,

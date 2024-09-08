@@ -1,7 +1,6 @@
 package com.app.miscuentas.domain
 
-import com.app.miscuentas.data.network.hoja.HojasRepository
-import com.app.miscuentas.data.network.hoja.HojasService
+import com.app.miscuentas.data.pattern.HojasRepository
 import com.app.miscuentas.domain.dto.HojaCrearDto
 import com.app.miscuentas.domain.dto.HojaDto
 

@@ -34,6 +34,7 @@ class SplashViewModel @Inject constructor(
         _splashState.value = _splashState.value.copy(permisosTratados = tratado)
     }
 
+    /** Comprueba y limpia datastore si es necesario **/
     fun checkAndClearDataStore() {
         viewModelScope.launch {
             withContext(Dispatchers.IO){

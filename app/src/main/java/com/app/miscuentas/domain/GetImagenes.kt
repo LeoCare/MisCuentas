@@ -1,7 +1,6 @@
 package com.app.miscuentas.domain
 
-import com.app.miscuentas.data.network.imagen.ImagenesRepository
-import com.app.miscuentas.data.network.imagen.ImagenesService
+import com.app.miscuentas.data.pattern.ImagenesRepository
 import com.app.miscuentas.domain.dto.ImagenCrearDto
 import com.app.miscuentas.domain.dto.ImagenDto
 

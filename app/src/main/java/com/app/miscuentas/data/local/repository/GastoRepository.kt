@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Transaction
 import androidx.room.Update
-import com.app.miscuentas.data.local.dbroom.dao.DbGastoDao
-import com.app.miscuentas.data.local.dbroom.dao.DbHojaCalculoDao
+import com.app.miscuentas.data.pattern.dao.DbGastoDao
+import com.app.miscuentas.data.pattern.dao.DbHojaCalculoDao
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.toEntity

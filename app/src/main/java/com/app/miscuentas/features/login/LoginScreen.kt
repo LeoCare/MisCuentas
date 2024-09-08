@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -110,8 +112,7 @@ fun Login(
             { viewModel.onEmailFieldChanged(it) },
             { viewModel.onRegistroCheckChanged(it)},
             { viewModel.getRegistro() },
-            { viewModel.inicioInsertRegistro() },
-            { viewModel.insertRegistro()}
+            { viewModel.inicioInsertRegistro() }
         )
     }
 }
@@ -132,8 +133,7 @@ private fun LoginContent(
     onEmailFieldChanged: (String) -> Unit,
     onRegistroCheckChanged: (Boolean) -> Unit,
     getRegistro: () -> Unit,
-    inicioInsertRegistro: () -> Unit,
-    insertRegistro: () -> Unit
+    inicioInsertRegistro: () -> Unit
 ) {
 
     //Inicio por huella digital
@@ -181,8 +181,8 @@ private fun LoginContent(
                 //MODO REGISTRO
                 if (loginState.registro) {
                     uiErrorMessage.value = ""
-                    //inicioInsertRegistro() //inserta el registro
-                    insertRegistro()
+                    inicioInsertRegistro() //inserta el registro
+
                 }
                 //MODO LOGIN
                 else {
@@ -194,21 +194,23 @@ private fun LoginContent(
         mensajeChanged(uiErrorMessage.value)
     }
 
-    LazyColumn(
 
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-    )
-    {
+    ){
         item {
 
             //Imagen y texto
             HeaderImage(modifier)
             CustomSpacer(40.dp)
 
-            TextoLogin(loginState.registro)
+            TextoLogin(
+                loginState.registro,
+                loginState.isLoading
+            )
             CustomSpacer(24.dp)
 
             //TextFiedl Usuario
@@ -283,22 +285,41 @@ fun HeaderImage(modifier: Modifier) {
 
 /** Composable para el texto inicial **/
 @Composable
-fun TextoLogin(registroState: Boolean) {
-    val robotoBold = FontFamily(Font(R.font.roboto_bold))
-    Text(
-        text = "Registrar / Iniciar",
-        fontSize = 20.sp,
-        fontFamily = robotoBold,
-        textAlign = TextAlign.Center
-    )
-
-    if( registroState){
+fun TextoLogin(
+    registroState: Boolean,
+    loginState: Boolean
+) {
+    if(loginState){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.width(44.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+    else {
+        val robotoBold = FontFamily(Font(R.font.roboto_bold))
         Text(
-            text = stringResource(R.string.noPublicidad),
-            fontSize = 15.sp,
+            text = "Registrar / Iniciar",
+            fontSize = 20.sp,
+            fontFamily = robotoBold,
             textAlign = TextAlign.Center
         )
+
+        if( registroState){
+            Text(
+                text = stringResource(R.string.noPublicidad),
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center
+            )
+        }
     }
+
 }
 
 /** Composable para la creacion de los TextField **/

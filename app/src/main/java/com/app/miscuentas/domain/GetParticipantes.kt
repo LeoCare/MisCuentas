@@ -1,6 +1,6 @@
 package com.app.miscuentas.domain
 
-import com.app.miscuentas.data.network.participante.ParticipantesRepository
+import com.app.miscuentas.data.pattern.ParticipantesRepository
 import com.app.miscuentas.domain.dto.ParticipanteCrearDto
 import com.app.miscuentas.domain.dto.ParticipanteDto
 

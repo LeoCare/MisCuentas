@@ -11,7 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /***** ROOM *****/
-/****************/
+/***************
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -56,3 +56,5 @@ object DatabaseModule {
     fun provideFotoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getFotoDao()
 
 }
+
+ */

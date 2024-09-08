@@ -12,9 +12,9 @@ import com.app.miscuentas.data.model.Participante
     tableName = "t_hojas_cab",
     foreignKeys = [
         ForeignKey(
-            entity = DbRegistrosEntity::class,
-            parentColumns = ["idRegistro"],
-            childColumns = ["idRegistroHoja"],
+            entity = DbUsuariosEntity::class,
+            parentColumns = ["idUsuario"],
+            childColumns = ["idUsuarioHoja"],
             onDelete = ForeignKey.CASCADE
         )
     ]
@@ -27,7 +27,7 @@ data class DbHojaCalculoEntity (
     @ColumnInfo(name = "fechaCierre") var fechaCierre: String?,
     @ColumnInfo(name = "limite") var limite: String?,
     @ColumnInfo(name = "status") var status: String,
-    @ColumnInfo(name = "idRegistroHoja", index = true) var idRegistroHoja: Long = 0
+    @ColumnInfo(name = "idUsuarioHoja", index = true) var idUsuarioHoja: Long = 0
 )
 
 fun DbHojaCalculoEntity.toDomain(participantes: List<Participante> = listOf()) = HojaCalculo(
@@ -38,6 +38,6 @@ fun DbHojaCalculoEntity.toDomain(participantes: List<Participante> = listOf()) =
     limite = limite,
     status = status,
     participantesHoja = participantes,
-    idRegistroHoja = idRegistroHoja
+    idUsuarioHoja = idUsuarioHoja
 )
 

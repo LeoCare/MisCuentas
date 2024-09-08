@@ -4,12 +4,11 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.data.local.repository.RegistroRepository
-import com.app.miscuentas.data.network.usuario.UsuariosRepository
-import com.app.miscuentas.domain.dto.UsuarioCrearDto
-import com.app.miscuentas.domain.GetUsuarios
 import com.app.miscuentas.data.model.Participante
-import com.app.miscuentas.data.model.Registro
+import com.app.miscuentas.data.model.Usuario
+import com.app.miscuentas.data.pattern.Resource
+import com.app.miscuentas.data.pattern.UsuariosRepository
+import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +22,6 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,  // DATASTORE
-    private val registroRepository: RegistroRepository,
     private val usuariosRepository: UsuariosRepository
 ) : ViewModel(){
 
@@ -80,13 +78,13 @@ class LoginViewModel @Inject constructor(
      fun getRegistro(){
         val nombre = _loginState.value.usuario
         val contrasenna = _loginState.value.contrasenna
-        var registro: Registro?
+        var usuario: Usuario?
 
         viewModelScope.launch {
              withContext(Dispatchers.IO) {
-                registro = registroRepository.getRegistroWhereLogin(nombre, contrasenna).firstOrNull()
-                 if  (registro != null){
-                     onRegistroDataStoreChanged(registro!!.idRegistro, nombre) //si existe, actualiza el dataStore con el nombre
+                 usuario = usuariosRepository.getUsuarioWhereLogin(nombre, contrasenna).firstOrNull()
+                 if  (usuario != null){
+                     onRegistroDataStoreChanged(usuario!!.idUsuario, nombre) //si existe, actualiza el dataStore con el nombre
                  }
                  else _loginState.value = _loginState.value.copy(mensaje = "Usuario o Contraseña incorrectos!")
             }
@@ -99,52 +97,121 @@ class LoginViewModel @Inject constructor(
         onLoginOkChanged(true)
     }
 
-    //0_COMPRUEBO EXISTENCIA DEL CORREO
-
-    fun inicioInsertRegistro(){
+    /** COMPRUEBO EXISTENCIA DEL CORREO EN AL API
+     * Uso de NetworkBoundResource, el cual verifica si ya existe en la Api.
+     * Actualiza Room con la API si fuera necesario.
+     * **/
+    fun inicioInsertRegistro() {
         val correo = _loginState.value.email
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                val existeCorreoRegistro = registroRepository.getRegistroWhereCorreo(correo).firstOrNull()
-                if (existeCorreoRegistro == null) {
-                    insertRegistroCall()
+            usuariosRepository.getUsuarioByCorreo(correo).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> { // Muestra un spinner o indica que la operación está en curso
+                        _loginState.value = _loginState.value.copy(isLoading = true)
+                    }
+
+                    is Resource.Success -> { // Verifica si el correo existe o es nulo, tanto en ROOM como en la API:
+                        val existeCorreoRegistro = resource.data
+
+                        if (existeCorreoRegistro == null) {
+                            // Si no existe, llamar a la función para insertar el registro
+                            insertRegistroCall()
+                        } else {// Si ya existe el correo:
+                            _loginState.value = _loginState.value.copy(
+                                mensaje = "El correo ya está registrado",
+                                isLoading = false
+                            )
+                        }
+                    }
+
+                    is Resource.Error -> {// Maneja el error de red o cualquier otro problema en la API
+                        insertRegistroCall()
+                        _loginState.value = _loginState.value.copy(
+                            mensaje = resource.message ?: "Error desconocido",
+                            isLoading = false
+                        )
+                        //ha fallado la insercion en la API, VOLVER A INTERNTARLO EN EL LOGIN
+                    }
                 }
             }
         }
     }
 
-    //1_LLAMADA A INSERTAR REGISTRO
+    /** LLAMADA A INSERTAR REGISTRO **/
     suspend fun insertRegistroCall(){
-                val insertOk = insertRegistro()
-
-                if (insertOk) {
-                    onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
-                }
-                else _loginState.value = _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
-
-
-    }
-
-    //2_INSERTAR REGISTRO Y PARTICIPANTE PRINCIPAL
-    /*local
-    suspend fun insertRegistro(): Boolean {
         val nombre = _loginState.value.usuario
         val correo = _loginState.value.email
         val contrasenna = _loginState.value.contrasenna
+        val perfil = "USER"
+        var idRegistro: Long = 0
 
-        val registro = Registro(0, nombre, correo, contrasenna)
-
-        return try {
-                val participante = instanciaParticipante()
-                val idRegistro = registroRepository.insertRegistroConParticipante(registro, participante )
-                onIdRegistroChanged(idRegistro) //guardado el id del insert del resitro
-                true // insert OK
-        } catch (e: Exception) {
-           false // inserción NOK
+        //Insert en API
+        val usuarioApiOk = insertRegistroApi(contrasenna, correo, nombre, perfil)
+        if (usuarioApiOk != null) {
+            onRegistroDataStoreChanged(usuarioApiOk.idUsuario, usuarioApiOk.nombre)
+            idRegistro = usuarioApiOk.idUsuario
         }
+
+        //Insert en Room
+        val insertRoomOk = insertRegistroRoom(contrasenna, correo, idRegistro, nombre, perfil)
+        if (insertRoomOk) {
+            onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
+        } else _loginState.value =
+            _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
+
+
     }
-     */
+
+    /** INSERTAR REGISTRO (API) **/
+    suspend fun insertRegistroApi(
+        contrasenna: String,
+        correo: String,
+        nombre: String,
+        perfil: String
+    ): Usuario? {
+
+        var result: Usuario? = null
+        val usuarioCrearDto = UsuarioCrearDto(contrasenna, correo, nombre, perfil)
+
+        try {
+            val registroApi = usuariosRepository.putRegistroApi(usuarioCrearDto)
+            if (registroApi != null){
+                result = registroApi // insert OK
+            }
+        } catch (e: Exception) {
+            result = null // inserción NOK
+        }
+
+        return result
+    }
+
+    /** INSERTAR REGISTRO (ROOM) **/
+    suspend fun insertRegistroRoom(
+        contrasenna: String,
+        correo: String,
+        idRegistro: Long,
+        nombre: String,
+        perfil: String
+    ): Boolean {
+
+        var result = false
+        val usuarioRoom = Usuario(contrasenna, correo, idRegistro, nombre, perfil)
+
+        try {
+            val participante = instanciaParticipante()
+            val idRegistroRoom = usuariosRepository.insertUsuarioConParticipantes(usuarioRoom, participante ) //Insert en ROOM
+            //onIdRegistroChanged(idRegistroRoom) //guardado el id del insert del registro
+            result = true // insert OK
+        } catch (e: Exception) {
+            result = false // inserción NOK
+        }
+
+        return result
+    }
+
+
+    /*
     fun insertRegistro(): Boolean {
         val nombre = _loginState.value.usuario
         val correo = _loginState.value.email
@@ -159,8 +226,7 @@ class LoginViewModel @Inject constructor(
            perfil)
         viewModelScope.launch {
             try {
-                val usuario =
-                    GetUsuarios(usuariosRepository).putRegistro(usuarioCrearDto)
+                val usuario = usuariosRepository.putRegistroApi(usuarioCrearDto)
                 if (usuario != null) result = true // insert OK
                 else result = false
             } catch (e: Exception) {
@@ -170,7 +236,7 @@ class LoginViewModel @Inject constructor(
         }
         return result
     }
-
+    */
 
 
     private fun instanciaParticipante(): Participante {

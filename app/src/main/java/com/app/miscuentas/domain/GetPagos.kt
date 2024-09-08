@@ -1,6 +1,6 @@
 package com.app.miscuentas.domain
 
-import com.app.miscuentas.data.network.pago.PagosRepository
+import com.app.miscuentas.data.pattern.PagosRepository
 import com.app.miscuentas.domain.dto.PagoCrearDto
 import com.app.miscuentas.domain.dto.PagoDto
 

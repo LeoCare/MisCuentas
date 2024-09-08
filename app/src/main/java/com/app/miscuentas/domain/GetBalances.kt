@@ -1,6 +1,6 @@
 package com.app.miscuentas.domain
 
-import com.app.miscuentas.data.network.balance.BalancesRepository
+import com.app.miscuentas.data.pattern.BalancesRepository
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
 

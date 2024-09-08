@@ -71,7 +71,7 @@ class MisGastosViewModel @Inject constructor(
     fun getIdRegistroPreference() = viewModelScope.launch {
         withContext(Dispatchers.IO){
             val idRegistrado = dataStoreConfig.getIdRegistroPreference()
-            _misGastosState.value = _misGastosState.value.copy(idRegistro = idRegistrado)
+            _misGastosState.value = _misGastosState.value.copy(idUsuario = idRegistrado)
             getAllHojaConParticipantes()
         }
     }
@@ -79,8 +79,8 @@ class MisGastosViewModel @Inject constructor(
 
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
-            val idRegistro = misGastosState.value.idRegistro ?: return@withContext
-            val hojasDelRegistrado =  hojaCalculoRepository.getAllHojaConParticipantes(idRegistro)
+            val idUsuario = misGastosState.value.idUsuario ?: return@withContext
+            val hojasDelRegistrado =  hojaCalculoRepository.getAllHojaConParticipantes(idUsuario)
 
             hojasDelRegistrado.collect { listaHojasConParticipantes ->
                 onHojaDelRegistradoChanged(listaHojasConParticipantes)
@@ -89,7 +89,7 @@ class MisGastosViewModel @Inject constructor(
                         hojaConParticipantes ->
                         hojaConParticipantes.participantes
                     }
-                    .filter { it.participante.idRegistroParti == idRegistro }
+                    .filter { it.participante.idUsuarioParti == idUsuario }
                     .flatMap { it.gastos }
 
                 onGastosDelParticipanteChanged(gastosDelRegistrado)
@@ -108,13 +108,13 @@ class MisGastosViewModel @Inject constructor(
     }
 
     private fun mostrarHoja() {
-        val idRegistro = misGastosState.value.idRegistro
+        val idUsuario = misGastosState.value.idUsuario
         val listaFiltrada = _misGastosState.value.hojasDelRegistrado
             .filter {
                 it.hoja.idHoja == _misGastosState.value.filtroHojaElegido
             }
             .flatMap { it.participantes }
-            .filter { it.participante.idRegistroParti == idRegistro }
+            .filter { it.participante.idUsuarioParti == idUsuario }
             .flatMap{ it.gastos }
 
         onListaGastosAMostrarChanged(listaFiltrada)

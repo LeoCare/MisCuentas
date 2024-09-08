@@ -25,12 +25,14 @@ object DataStoreKeys {
     val IDHOJAPRINCIPAL = longPreferencesKey("IDHOJAPRINCIPAL")
     val PERMISOCAMARA = booleanPreferencesKey("PERMISOCAMARA")
     val PERMISOSALMACENAMIENTO = booleanPreferencesKey("PERMISOSALMACENAMIENTO")
+    val TOKEN = stringPreferencesKey("JWT_TOKEN")
 }
 
 class DataStoreConfig @Inject constructor(
     private val context: Context
 ) {
 
+    /** Elimina todas las preferences **/
     suspend fun clearDataStore() {
         context.dataStore.edit { preferences ->
             preferences.clear()
@@ -48,7 +50,7 @@ class DataStoreConfig @Inject constructor(
         return preferences[DataStoreKeys.VERSION]
     }
 
-    //Metodo que actualiza el usuario registrado
+    /** Metodo que actualiza el usuario registrado */
     suspend fun putRegistroPreference(registrado: String){
         context.dataStore.edit { preferences ->
             if (registrado.isEmpty()){
@@ -62,7 +64,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo que retorna el nombre del usuario registrado
+    /** Metodo que retorna el nombre del usuario registrado */
     suspend fun getRegistroPreference(): String? {
         return try {
             val preferences = context.dataStore.data.first()
@@ -73,7 +75,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo para guardar el Id de la hoja principal
+    /** Metodo para guardar el Id de la hoja principal */
     suspend fun putIdRegistroPreference(idRegistro: Long?){
         if (idRegistro != null) {
             context.dataStore.edit { preferences ->
@@ -82,7 +84,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo que retorna el id del usuario registrado
+    /** Metodo que retorna el id del usuario registrado */
     suspend fun getIdRegistroPreference(): Long? {
         return try {
             val preferences = context.dataStore.data.first()
@@ -93,7 +95,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo para guardar TRUE en caso de que se hayan registrado
+    /** Metodo para guardar TRUE en caso de que se hayan registrado */
     suspend fun putInicoHuellaPreference(inicioHuella: Boolean){
         val inicioOk = if (inicioHuella) "SI" else "NO"
         context.dataStore.edit { preferences ->
@@ -101,7 +103,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo que retorna el valor guardado en las preference
+    /** Metodo que retorna el valor guardado en las preference */
     suspend fun getInicoHuellaPreference(): String? {
         return try {
             val preferences = context.dataStore.data.first()
@@ -112,7 +114,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo para guardar el Id de la hoja principal
+    /** Metodo para guardar el Id de la hoja principal */
     suspend fun putIdHojaPrincipalPreference(idHoja: Long?){
         if (idHoja != null) {
             context.dataStore.edit { preferences ->
@@ -121,7 +123,7 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo que retorna el Id de la hoja principal
+    /** Metodo que retorna el Id de la hoja principal */
     suspend fun getIdHojaPrincipalPreference(): Long? {
         return try {
             val preferences = context.dataStore.data.first()
@@ -132,14 +134,14 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo para guardar el estado del permiso de la camara
+    /** Metodo para guardar el estado del permiso de la camara */
     suspend fun putPermisoCamaraPreference(concedido: Boolean){
         context.dataStore.edit { preferences ->
             preferences[DataStoreKeys.PERMISOCAMARA] = concedido
         }
     }
 
-    //Metodo que retorna el estado del permiso de la camara
+    /** Metodo que retorna el estado del permiso de la camara */
     suspend fun getPermisoCamaraPreference(): Boolean? {
         return try {
             val preferences = context.dataStore.data.first()
@@ -150,14 +152,14 @@ class DataStoreConfig @Inject constructor(
         }
     }
 
-    //Metodo para guardar el estado del permiso de la camara
+    /** Metodo para guardar el estado del permiso de la camara */
     suspend fun putPermisosPreference(concedido: Boolean){
         context.dataStore.edit { preferences ->
             preferences[DataStoreKeys.PERMISOSALMACENAMIENTO] = concedido
         }
     }
 
-    //Metodo que retorna el estado del permiso de la camara
+    /** Metodo que retorna el estado del permiso de la camara */
     suspend fun getPermisosPreference(): Boolean? {
         return try {
             val preferences = context.dataStore.data.first()
@@ -165,6 +167,30 @@ class DataStoreConfig @Inject constructor(
 
         }catch (e: Exception){
             null
+        }
+    }
+
+    /** Guardar el token JWT en DataStore */
+    suspend fun putToken(token: String) {
+        context.dataStore.edit { preferences ->
+            preferences[DataStoreKeys.TOKEN] = token
+        }
+    }
+
+    /** Obtener el token JWT desde DataStore */
+    suspend fun getToken(): String? {
+        return try {
+            val preferences = context.dataStore.data.first()
+            preferences[DataStoreKeys.TOKEN]
+        }catch (e: Exception){
+            null
+        }
+    }
+
+    /** Eliminar el token JWT de DataStore */
+    suspend fun clearToken() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(DataStoreKeys.TOKEN)
         }
     }
 }

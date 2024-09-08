@@ -13,7 +13,7 @@ data class NuevaHojaState(
     val limiteGasto: String = "",
     val fechaCierre: String = "",
     val status: String = "C",
-    val idRegistro: Long = 0,
+    val idUsuario: Long = 0,
 
     //Valores de la BBDD Room
     val insertOk: Boolean = false,

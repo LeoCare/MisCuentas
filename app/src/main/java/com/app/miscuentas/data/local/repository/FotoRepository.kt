@@ -1,6 +1,6 @@
 package com.app.miscuentas.data.local.repository
 
-import com.app.miscuentas.data.local.dbroom.dao.DbFotoDao
+import com.app.miscuentas.data.pattern.dao.DbFotoDao
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

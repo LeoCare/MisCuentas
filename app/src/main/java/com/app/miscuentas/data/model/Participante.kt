@@ -22,9 +22,9 @@ fun Participante.toEntityWithHoja(idHojaCalculo: Long) = DbParticipantesEntity(
     idHojaParti = idHojaCalculo
 )
 
-fun Participante.toEntityWithRegistro(idRegistroParti: Long) = DbParticipantesEntity(
+fun Participante.toEntityWithUsuario(idUsuarioParti: Long) = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
-    idRegistroParti = idRegistroParti
+    idUsuarioParti = idUsuarioParti
 )

@@ -1,7 +1,7 @@
 package com.app.miscuentas.domain
 
 
-import com.app.miscuentas.data.network.gasto.GastosRepository
+import com.app.miscuentas.data.pattern.GastosRepository
 import com.app.miscuentas.domain.dto.GastoCrearDto
 import com.app.miscuentas.domain.dto.GastoDto
 

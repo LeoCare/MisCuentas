@@ -1,6 +1,6 @@
 package com.app.miscuentas.data.local.repository
 
-import com.app.miscuentas.data.local.dbroom.dao.DbParticipantesDao
+import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.model.Participante

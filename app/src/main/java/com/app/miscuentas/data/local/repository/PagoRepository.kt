@@ -1,6 +1,6 @@
 package com.app.miscuentas.data.local.repository
 
-import com.app.miscuentas.data.local.dbroom.dao.DbPagoDao
+import com.app.miscuentas.data.pattern.dao.DbPagoDao
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import javax.inject.Inject
 
