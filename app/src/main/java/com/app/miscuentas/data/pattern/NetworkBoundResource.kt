@@ -25,7 +25,7 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
             localData?.let { emit(Resource.Success(it)) }
 
             try {
-                // Hacemos la llamada a la red y guardamos los datos
+                // Hacemos la llamada a la red y guardamos los datos desde la red
                 val apiResponse = fetchFromNetwork()
                 if (apiResponse != null) {
                     saveNetworkResult(apiResponse)

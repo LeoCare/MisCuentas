@@ -45,6 +45,9 @@ class LoginViewModel @Inject constructor(
     fun onMensajeChanged(mensaje: String) {
         _loginState.value = _loginState.value.copy(mensaje = mensaje)
     }
+    fun onIsLoadingOkChanged(isLoading: Boolean) {
+        _loginState.value = _loginState.value.copy(isLoading = isLoading)
+    }
     fun onLoginOkChanged(loginOk: Boolean) {
         _loginState.value = _loginState.value.copy(loginOk = loginOk)
     }
@@ -52,29 +55,12 @@ class LoginViewModel @Inject constructor(
         _loginState.value = _loginState.value.copy(idRegistro = idRegistro)
     }
 
-    //Metodos que comprueban la sintaxis del correo y la contraseña
-    fun emailOk(email: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
-    fun contrasennaOk(contrasena: String): Boolean {
-        if (contrasena.length < 6) {
-            return false
-        }
 
-        var tieneNumero = false
-        var tieneMayus = false
-        var tieneMinus = false
+    /********* LOGIN **********/
+    /**************************/
 
-        for (char in contrasena) {
-            when {
-                char.isDigit() -> tieneNumero = true
-                char.isUpperCase() -> tieneMayus = true
-                char.isLowerCase() -> tieneMinus = true
-            }
-        }
-        return tieneNumero && tieneMayus && tieneMinus
-    }
-
-    //Metodo para comprobar si existe ese usuario registrado
+    /** Metodo para comprobar si existe ese usuario registrado (LOGIN) **/
      fun getRegistro(){
         val nombre = _loginState.value.usuario
         val contrasenna = _loginState.value.contrasenna
@@ -86,16 +72,20 @@ class LoginViewModel @Inject constructor(
                  if  (usuario != null){
                      onRegistroDataStoreChanged(usuario!!.idUsuario, nombre) //si existe, actualiza el dataStore con el nombre
                  }
-                 else _loginState.value = _loginState.value.copy(mensaje = "Usuario o Contraseña incorrectos!")
+                 else onMensajeChanged("Usuario o Contraseña incorrectos!")
             }
         }
     }
 
+    /** Actualiza datastore con los datos de login (LOGIN) **/
     suspend fun onRegistroDataStoreChanged(idRegistro: Long, usuario: String){
         dataStoreConfig.putRegistroPreference(usuario)
         dataStoreConfig.putIdRegistroPreference(idRegistro)
         onLoginOkChanged(true)
     }
+
+    /********* REGISTRO **********/
+    /*****************************/
 
     /** COMPRUEBO EXISTENCIA DEL CORREO EN AL API
      * Uso de NetworkBoundResource, el cual verifica si ya existe en la Api.
@@ -108,7 +98,7 @@ class LoginViewModel @Inject constructor(
             usuariosRepository.getUsuarioByCorreo(correo).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> { // Muestra un spinner o indica que la operación está en curso
-                        _loginState.value = _loginState.value.copy(isLoading = true)
+                        onIsLoadingOkChanged(true)
                     }
 
                     is Resource.Success -> { // Verifica si el correo existe o es nulo, tanto en ROOM como en la API:
@@ -118,27 +108,25 @@ class LoginViewModel @Inject constructor(
                             // Si no existe, llamar a la función para insertar el registro
                             insertRegistroCall()
                         } else {// Si ya existe el correo:
-                            _loginState.value = _loginState.value.copy(
-                                mensaje = "El correo ya está registrado",
-                                isLoading = false
-                            )
+                            onMensajeChanged("El correo ya está registrado")
+                            onIsLoadingOkChanged( false)
                         }
                     }
 
                     is Resource.Error -> {// Maneja el error de red o cualquier otro problema en la API
                         insertRegistroCall()
-                        _loginState.value = _loginState.value.copy(
-                            mensaje = resource.message ?: "Error desconocido",
-                            isLoading = false
-                        )
-                        //ha fallado la insercion en la API, VOLVER A INTERNTARLO EN EL LOGIN
+                        onMensajeChanged(resource.message ?: "Error desconocido")
+                        onIsLoadingOkChanged( false)
+                        //Si ha fallado la insercion en la API, VOLVER A INTERNTARLO EN EL LOGIN
                     }
                 }
             }
         }
     }
 
-    /** LLAMADA A INSERTAR REGISTRO **/
+    /** LLAMADA A INSERTAR REGISTRO ç
+     * Aqui se llega ya que ese correo no se encuentra en la BBDD.
+     * Primero inserta desde la API y luego desde ROOM.**/
     suspend fun insertRegistroCall(){
         val nombre = _loginState.value.usuario
         val correo = _loginState.value.email
@@ -151,16 +139,13 @@ class LoginViewModel @Inject constructor(
         if (usuarioApiOk != null) {
             onRegistroDataStoreChanged(usuarioApiOk.idUsuario, usuarioApiOk.nombre)
             idRegistro = usuarioApiOk.idUsuario
+
+            //Insert en Room
+            val insertRoomOk = insertRegistroRoom(contrasenna, correo, idRegistro, nombre, perfil)
+            if (insertRoomOk) {
+                onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
+            } else  onMensajeChanged("Ese correo ya esta registrado!")
         }
-
-        //Insert en Room
-        val insertRoomOk = insertRegistroRoom(contrasenna, correo, idRegistro, nombre, perfil)
-        if (insertRoomOk) {
-            onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
-        } else _loginState.value =
-            _loginState.value.copy(mensaje = "Ese correo ya esta registrado!")
-
-
     }
 
     /** INSERTAR REGISTRO (API) **/
@@ -180,6 +165,8 @@ class LoginViewModel @Inject constructor(
                 result = registroApi // insert OK
             }
         } catch (e: Exception) {
+            onMensajeChanged("Imposible acceder al servidor, verifique la red!")
+            onIsLoadingOkChanged( false)
             result = null // inserción NOK
         }
 
@@ -195,48 +182,17 @@ class LoginViewModel @Inject constructor(
         perfil: String
     ): Boolean {
 
-        var result = false
         val usuarioRoom = Usuario(contrasenna, correo, idRegistro, nombre, perfil)
 
         try {
             val participante = instanciaParticipante()
-            val idRegistroRoom = usuariosRepository.insertUsuarioConParticipantes(usuarioRoom, participante ) //Insert en ROOM
+            usuariosRepository.insertUsuarioConParticipantes(usuarioRoom, participante ) //Insert en ROOM
             //onIdRegistroChanged(idRegistroRoom) //guardado el id del insert del registro
-            result = true // insert OK
+            return true // insert OK
         } catch (e: Exception) {
-            result = false // inserción NOK
+            return false // inserción NOK
         }
-
-        return result
     }
-
-
-    /*
-    fun insertRegistro(): Boolean {
-        val nombre = _loginState.value.usuario
-        val correo = _loginState.value.email
-        val contrasenna = _loginState.value.contrasenna
-        val perfil = "ADMIN"
-        var result = false
-
-       val usuarioCrearDto = UsuarioCrearDto(
-           contrasenna,
-           correo,
-           nombre,
-           perfil)
-        viewModelScope.launch {
-            try {
-                val usuario = usuariosRepository.putRegistroApi(usuarioCrearDto)
-                if (usuario != null) result = true // insert OK
-                else result = false
-            } catch (e: Exception) {
-                result = false // inserción NOK
-            }
-
-        }
-        return result
-    }
-    */
 
 
     private fun instanciaParticipante(): Participante {
@@ -255,8 +211,8 @@ class LoginViewModel @Inject constructor(
             val registrado = dataStoreConfig.getRegistroPreference()
 
             if (registrado != null && inicioHuella == "SI") startBiometricAuthentication()
-            else if (registrado != null) _loginState.value = _loginState.value.copy(loginOk = true)
-            else  _loginState.value = _loginState.value.copy(loginOk = false)
+            else if (registrado != null) onLoginOkChanged(true)
+            else  onLoginOkChanged(false)
         }
     }
 
@@ -280,6 +236,30 @@ class LoginViewModel @Inject constructor(
         _loginState.value = _loginState.value.copy(
             biometricAuthenticationState = LoginState.BiometricAuthenticationState.AuthenticationFailed
         )
+    }
+
+
+    /** Metodos que comprueban la sintaxis del correo **/
+    fun emailOk(email: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+
+    /** Metodos que comprueban la sintaxis de la contraseña **/
+    fun contrasennaOk(contrasena: String): Boolean {
+        if (contrasena.length < 6) {
+            return false
+        }
+
+        var tieneNumero = false
+        var tieneMayus = false
+        var tieneMinus = false
+
+        for (char in contrasena) {
+            when {
+                char.isDigit() -> tieneNumero = true
+                char.isUpperCase() -> tieneMayus = true
+                char.isLowerCase() -> tieneMinus = true
+            }
+        }
+        return tieneNumero && tieneMayus && tieneMinus
     }
 
 }

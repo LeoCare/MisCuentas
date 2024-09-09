@@ -11,7 +11,7 @@ import com.app.miscuentas.data.model.Usuario
     indices = [Index(value = ["correo"], unique = true)]
 )
 data class DbUsuariosEntity (
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey(autoGenerate = false)
     @ColumnInfo(name = "idUsuario") val idUsuario: Long = 0,
     @ColumnInfo(name = "nombre") val nombre: String = "",
     @ColumnInfo(name = "correo") val correo: String = "",
