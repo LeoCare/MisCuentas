@@ -50,8 +50,8 @@ interface DbUsuarioDao {
     fun getUsuarioWhereId(idUsuario: Long): Flow<DbUsuariosEntity>
 
     //Obtener usuario registrado segun nombre y contraseña
-    @Query("SELECT * FROM t_usuarios WHERE nombre = :nombre AND contrasenna = :contrasenna")
-    fun getUsuarioWhereLogin(nombre: String, contrasenna: String): Flow<DbUsuariosEntity?>
+    @Query("SELECT * FROM t_usuarios WHERE correo = :correo AND contrasenna = :contrasenna")
+    fun getUsuarioWhereLogin(correo: String, contrasenna: String): Flow<DbUsuariosEntity?>
 
     //Obtener usuario resgistrado al olvidar la contraseña
     @Query("SELECT * FROM t_usuarios WHERE correo = :correo")

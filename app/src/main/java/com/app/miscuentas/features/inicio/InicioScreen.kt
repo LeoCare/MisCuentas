@@ -530,6 +530,7 @@ fun MyDrawer(
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
+                /** Boton SALIR **/
                 NavigationDrawerItem(
                     label = { Text(
                         style = MaterialTheme.typography.labelLarge,
@@ -541,6 +542,7 @@ fun MyDrawer(
                     },
                     icon = { Icon(imageVector = Icons.Filled.Output, contentDescription = "Salir") }
                 )
+                /** Boton CERRAR SESION **/
                 NavigationDrawerItem(
                     label = { Text(
                         style = MaterialTheme.typography.labelLarge,

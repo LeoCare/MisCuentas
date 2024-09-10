@@ -132,7 +132,7 @@ object MisHojasModule {
     @Singleton
     fun provideWebService(okHttpClient: OkHttpClient): WebService {
         return Retrofit.Builder()
-            .baseUrl("https://api_rest.leondev.es/")
+            .baseUrl("https://api-miscuentas.leondev.es/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient) // Usa el cliente que tiene el interceptor
             .build()

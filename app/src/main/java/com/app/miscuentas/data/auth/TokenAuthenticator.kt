@@ -13,7 +13,7 @@ class TokenAuthenticator @Inject constructor(
 
     /** Guardar el token JWT en DataStore */
     suspend fun saveToken(token: String) {
-        dataStoreConfig.putToken(token)
+        dataStoreConfig.putTokenPreference(token)
         tokenCache = token
     }
 
@@ -24,14 +24,14 @@ class TokenAuthenticator @Inject constructor(
             return it
         }
         // Si no está en el caché, obtenerlo de DataStore y actualizar el caché
-        val token = dataStoreConfig.getToken()
+        val token = dataStoreConfig.getTokenPreference()
         tokenCache = token // Almacenar en caché
         return token
     }
 
     /** Eliminar el token JWT de DataStore */
     suspend fun clearToken() {
-        dataStoreConfig.clearToken()
+        dataStoreConfig.clearTokenPreference()
         tokenCache = null
     }
 }

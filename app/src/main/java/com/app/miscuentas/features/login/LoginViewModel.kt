@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.login
 
+import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -61,18 +62,36 @@ class LoginViewModel @Inject constructor(
     /**************************/
 
     /** Metodo para comprobar si existe ese usuario registrado (LOGIN) **/
-     fun getRegistro(){
-        val nombre = _loginState.value.usuario
+     fun iniciarSesion(){
+        val correo = _loginState.value.email
         val contrasenna = _loginState.value.contrasenna
-        var usuario: Usuario?
 
         viewModelScope.launch {
              withContext(Dispatchers.IO) {
-                 usuario = usuariosRepository.getUsuarioWhereLogin(nombre, contrasenna).firstOrNull()
-                 if  (usuario != null){
-                     onRegistroDataStoreChanged(usuario!!.idUsuario, nombre) //si existe, actualiza el dataStore con el nombre
+                 usuariosRepository.getUsuarioByLogin(correo, contrasenna).collect { resource ->
+                     when (resource) {
+                         is Resource.Loading -> {
+                             onIsLoadingOkChanged(true)
+                         }
+                         is Resource.Success -> {
+                             // Usuario autenticado con éxito y token guardado
+                             val usuario = resource.data
+                             if (usuario == null) {
+                                 onMensajeChanged("Correo o Contraseña incorrectos!")
+                                 onIsLoadingOkChanged(false)
+                             } else {// Si el logeo es correcto..
+                                 onIsLoadingOkChanged( false)
+                                 //Esto permitira la navegacion:
+                                 onRegistroDataStoreChanged(usuario.idUsuario, usuario.nombre) //si existe, actualiza el dataStore con el nombre
+                             }
+                         }
+                         is Resource.Error -> {
+                             // Mostrar el mensaje de error
+                             Log.e("LoginError", resource.message ?: "Error desconocido")
+                             onMensajeChanged("Error al comprobar los datos!")
+                         }
+                     }
                  }
-                 else onMensajeChanged("Usuario o Contraseña incorrectos!")
             }
         }
     }
@@ -95,7 +114,7 @@ class LoginViewModel @Inject constructor(
         val correo = _loginState.value.email
 
         viewModelScope.launch {
-            usuariosRepository.getUsuarioByCorreo(correo).collect { resource ->
+            usuariosRepository.getRegistroByCorreo(correo).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> { // Muestra un spinner o indica que la operación está en curso
                         onIsLoadingOkChanged(true)
@@ -117,7 +136,6 @@ class LoginViewModel @Inject constructor(
                         insertRegistroCall()
                         onMensajeChanged(resource.message ?: "Error desconocido")
                         onIsLoadingOkChanged( false)
-                        //Si ha fallado la insercion en la API, VOLVER A INTERNTARLO EN EL LOGIN
                     }
                 }
             }
@@ -203,20 +221,21 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    // DATASTORE
+    /** BIOMETRIC **/
     init {
         // Observa los cambios en DataStore para comprobar el inicio por huella
         viewModelScope.launch {
             val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
             val registrado = dataStoreConfig.getRegistroPreference()
+            val token = dataStoreConfig.getTokenPreference()
 
-            if (registrado != null && inicioHuella == "SI") startBiometricAuthentication()
-            else if (registrado != null) onLoginOkChanged(true)
+            if (registrado != null && token != null && inicioHuella == "SI") startBiometricAuthentication()
+            else if (registrado != null && token != null) onLoginOkChanged(true)
             else  onLoginOkChanged(false)
         }
     }
 
-    //METODOS PARA LA AUTENTICACION POR HUELLA (BIOMETRIC)
+    //METODOS PARA LA AUTENTICACION POR HUELLA
     // Función para iniciar la autenticación
     fun startBiometricAuthentication() {
         _loginState.value = _loginState.value.copy(
@@ -239,10 +258,11 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    /** Metodos que comprueban la sintaxis del correo **/
+    /** COMPROBACIONES **/
+    // Metodos que comprueban la sintaxis del correo
     fun emailOk(email: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
-    /** Metodos que comprueban la sintaxis de la contraseña **/
+    // Metodos que comprueban la sintaxis de la contraseña
     fun contrasennaOk(contrasena: String): Boolean {
         if (contrasena.length < 6) {
             return false

@@ -2,6 +2,8 @@ package com.app.miscuentas.data.pattern
 
 
 import androidx.room.Transaction
+import com.app.miscuentas.data.auth.TokenAuthenticator
+import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.pattern.dao.DbUsuarioDao
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.model.Participante
@@ -9,6 +11,7 @@ import com.app.miscuentas.data.model.Usuario
 import com.app.miscuentas.data.model.toDto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.model.toEntityWithUsuario
+import com.app.miscuentas.data.model.toLogin
 import com.app.miscuentas.data.network.UsuariosService
 import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import com.app.miscuentas.domain.dto.UsuarioDeleteDto
@@ -108,7 +111,7 @@ class UsuariosRepository @Inject constructor(
     /**************************/
     /** NetworkBoundResource **/
     /**************************/
-    fun getUsuarioByCorreo(correo: String): Flow<Resource<out UsuarioDto?>> {
+    fun getRegistroByCorreo(correo: String): Flow<Resource<out UsuarioDto?>> {
         return object : NetworkBoundResource<UsuarioDto?, UsuarioDto>() {
 
             // Cargar desde la base de datos (Room)
@@ -139,9 +142,38 @@ class UsuariosRepository @Inject constructor(
         }.asFlow()
     }
 
+    fun getUsuarioByLogin(correo: String, contrasenna: String): Flow<Resource<out UsuarioDto?>> {
+        return object : NetworkBoundResource<UsuarioDto?, UsuarioWithTokenDto>() {
 
-    /*
-        fun getUsuarioById(token: String, id: Long): Flow<Resource<UsuarioDto>> {
+            // Cargar desde la base de datos (Room)
+            override fun loadFromDb(): Flow<UsuarioDto?> {
+                return usuarioDao.getUsuarioWhereLogin(correo, contrasenna).map { it?.toDto() }
+
+            }
+
+            // Llamar a la API para verificar si el correo existe
+            override suspend fun fetchFromNetwork(): UsuarioWithTokenDto? {
+                //si el login es correcto, guarda el token dentro de este metodo
+                return usuariosService.postLogin(UsuarioLoginDto(correo, contrasenna))
+            }
+
+            // Guardar el resultado de la red en la base de datos
+            override suspend fun saveNetworkResult(item: UsuarioWithTokenDto) {
+                // Guardar el usuario en Room
+                usuarioDao.insert(item.usuario.toEntity())
+            }
+
+            // Decidir si debemos realizar la llamada a la API (fetch)
+            override fun shouldFetch(data: UsuarioDto?): Boolean {
+                // Realizamos fetch si los datos locales son nulos
+                return data == null
+            }
+
+        }.asFlow()
+    }
+
+
+        fun getUsuarioById(token: String, id: Long): Flow<Resource<out UsuarioDto?>> {
             return object : NetworkBoundResource<UsuarioDto, UsuarioDto>() {
                 override fun loadFromDb(): Flow<UsuarioDto> {
                     return usuarioDao.getUsuarioWhereId(id).map { it.toDto() }
@@ -162,7 +194,7 @@ class UsuariosRepository @Inject constructor(
             }.asFlow()
         }
 
-        fun getUsuarios(token: String): Flow<Resource<List<UsuarioDto>>> {
+        fun getUsuarios(token: String): Flow<Resource<out List<UsuarioDto>?>> {
             return object : NetworkBoundResource<List<UsuarioDto>, List<UsuarioDto>>() {
                 override fun loadFromDb(): Flow<List<UsuarioDto>> {
                     return usuarioDao.getAll().map { it.map { dbUsuario -> dbUsuario.toDto() } }
@@ -183,5 +215,5 @@ class UsuariosRepository @Inject constructor(
             }.asFlow()
         }
 
-     */
+
 }

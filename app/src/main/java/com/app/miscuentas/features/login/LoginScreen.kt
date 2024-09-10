@@ -111,7 +111,7 @@ fun Login(
             { viewModel.onContrasennaFieldChanged(it) },
             { viewModel.onEmailFieldChanged(it) },
             { viewModel.onRegistroCheckChanged(it)},
-            { viewModel.getRegistro() },
+            { viewModel.iniciarSesion() },
             { viewModel.inicioInsertRegistro() }
         )
     }
@@ -132,7 +132,7 @@ private fun LoginContent(
     onContrasennaFieldChanged: (String) -> Unit,
     onEmailFieldChanged: (String) -> Unit,
     onRegistroCheckChanged: (Boolean) -> Unit,
-    getRegistro: () -> Unit,
+    iniciarSesion: () -> Unit,
     inicioInsertRegistro: () -> Unit
 ) {
 
@@ -187,7 +187,7 @@ private fun LoginContent(
                 //MODO LOGIN
                 else {
                     uiErrorMessage.value = ""
-                    getRegistro() //Comprueba si el login es correcto (ya esta registrado)
+                    iniciarSesion() //Comprueba si el login es correcto (ya esta registrado)
                 }
             }
         }
@@ -213,11 +213,11 @@ private fun LoginContent(
             )
             CustomSpacer(24.dp)
 
-            //TextFiedl Usuario
+            //TextFiedl Email
             CustomTextField(
-                "Usuario",
-                value = loginState.usuario
-            ) { onUsuarioFieldChanged(it) }
+                "Email",
+                value = loginState.email
+            ) { onEmailFieldChanged(it) }
             CustomSpacer(24.dp)
 
             //TextFiedl Contraseña
@@ -227,7 +227,7 @@ private fun LoginContent(
             ) { onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
 
-            //TextFiedl Email
+            //TextFiedl Usuario
             AnimatedVisibility(
                 visible = loginState.registro,
                 enter = expandIn(
@@ -240,9 +240,9 @@ private fun LoginContent(
                 )
             ) {
                 CustomTextField(
-                    "Email",
-                    value = loginState.email
-                ) { onEmailFieldChanged(it) }
+                    "Nombre de usuario",
+                    value = loginState.usuario
+                ) { onUsuarioFieldChanged(it) }
             }
 
             //CheckBox Registro

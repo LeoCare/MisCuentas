@@ -2,6 +2,7 @@ package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
 import com.app.miscuentas.domain.dto.UsuarioDto
+import com.app.miscuentas.domain.dto.UsuarioLoginDto
 
 data class Usuario(
     val contrasenna: String,
@@ -34,4 +35,10 @@ fun UsuarioDto.toEntity() = DbUsuariosEntity(
     correo = this.correo,
     contrasenna = this.contrasenna ?: "",
     perfil = perfil
+)
+
+// Convertir de DTO a entidad
+fun DbUsuariosEntity.toLogin() = UsuarioLoginDto(
+    correo = this.correo,
+    contrasenna = this.contrasenna ?: ""
 )

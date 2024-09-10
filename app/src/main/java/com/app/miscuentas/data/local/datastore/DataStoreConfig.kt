@@ -171,14 +171,14 @@ class DataStoreConfig @Inject constructor(
     }
 
     /** Guardar el token JWT en DataStore */
-    suspend fun putToken(token: String) {
+    suspend fun putTokenPreference(token: String) {
         context.dataStore.edit { preferences ->
             preferences[DataStoreKeys.TOKEN] = token
         }
     }
 
     /** Obtener el token JWT desde DataStore */
-    suspend fun getToken(): String? {
+    suspend fun getTokenPreference(): String? {
         return try {
             val preferences = context.dataStore.data.first()
             preferences[DataStoreKeys.TOKEN]
@@ -188,7 +188,7 @@ class DataStoreConfig @Inject constructor(
     }
 
     /** Eliminar el token JWT de DataStore */
-    suspend fun clearToken() {
+    suspend fun clearTokenPreference() {
         context.dataStore.edit { preferences ->
             preferences.remove(DataStoreKeys.TOKEN)
         }
