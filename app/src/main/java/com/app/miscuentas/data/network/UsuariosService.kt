@@ -24,10 +24,15 @@ class UsuariosService (
         }
     }
 
-    suspend fun putRegistro(usuario: UsuarioCrearDto): Usuario? {
+    suspend fun putRegistro(usuario: UsuarioCrearDto): UsuarioWithTokenDto? {
         val response = webService.putRegistro(usuario)
         if (response.isSuccessful) {
-            return response.body()
+            val usuarioWithToken = response.body()
+            // Guardar el token
+            usuarioWithToken?.let {
+                tokenAuthenticator.saveToken(it.token)
+            }
+            return usuarioWithToken
         } else {
             //return null
             throw Exception("Error al registrar usuario: ${response.code()} - ${response.message()}")

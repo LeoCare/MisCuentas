@@ -44,7 +44,7 @@ interface WebService {
     @POST("usuarios/registro")
     suspend fun putRegistro(
         @Body usuario: UsuarioCrearDto
-    ): Response<Usuario?>
+    ): Response<UsuarioWithTokenDto?>
 
     //Iniciar Login, obteniendo el token:
     @POST("usuarios/login")

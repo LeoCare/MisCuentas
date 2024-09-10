@@ -10,6 +10,8 @@ import com.app.miscuentas.data.model.Usuario
 import com.app.miscuentas.data.pattern.Resource
 import com.app.miscuentas.data.pattern.UsuariosRepository
 import com.app.miscuentas.domain.dto.UsuarioCrearDto
+import com.app.miscuentas.domain.dto.UsuarioDto
+import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -100,6 +102,7 @@ class LoginViewModel @Inject constructor(
     suspend fun onRegistroDataStoreChanged(idRegistro: Long, usuario: String){
         dataStoreConfig.putRegistroPreference(usuario)
         dataStoreConfig.putIdRegistroPreference(idRegistro)
+        //falta guardar el token!!
         onLoginOkChanged(true)
     }
 
@@ -155,8 +158,7 @@ class LoginViewModel @Inject constructor(
         //Insert en API
         val usuarioApiOk = insertRegistroApi(contrasenna, correo, nombre, perfil)
         if (usuarioApiOk != null) {
-            onRegistroDataStoreChanged(usuarioApiOk.idUsuario, usuarioApiOk.nombre)
-            idRegistro = usuarioApiOk.idUsuario
+            idRegistro = usuarioApiOk.usuario.idUsuario
 
             //Insert en Room
             val insertRoomOk = insertRegistroRoom(contrasenna, correo, idRegistro, nombre, perfil)
@@ -172,9 +174,9 @@ class LoginViewModel @Inject constructor(
         correo: String,
         nombre: String,
         perfil: String
-    ): Usuario? {
+    ): UsuarioWithTokenDto? {
 
-        var result: Usuario? = null
+        var result: UsuarioWithTokenDto? = null
         val usuarioCrearDto = UsuarioCrearDto(contrasenna, correo, nombre, perfil)
 
         try {

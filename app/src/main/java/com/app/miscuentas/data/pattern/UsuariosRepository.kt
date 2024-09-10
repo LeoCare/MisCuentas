@@ -72,7 +72,7 @@ class UsuariosRepository @Inject constructor(
     /**********/
 
     // Registrar usuario (API)
-    suspend fun putRegistroApi(usuarioCrearDto: UsuarioCrearDto): Usuario? {
+    suspend fun putRegistroApi(usuarioCrearDto: UsuarioCrearDto): UsuarioWithTokenDto? {
         return usuariosService.putRegistro(usuarioCrearDto)
     }
 

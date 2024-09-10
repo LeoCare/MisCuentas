@@ -13,7 +13,7 @@ class GetUsuarios(
 ) {
 
     // Registrar usuario (Registro)
-    suspend fun putRegistro(usuarioCrearDto: UsuarioCrearDto): Usuario?{
+    suspend fun putRegistro(usuarioCrearDto: UsuarioCrearDto): UsuarioWithTokenDto?{
         return usuariosRepository.putRegistroApi(usuarioCrearDto)
     }
 
