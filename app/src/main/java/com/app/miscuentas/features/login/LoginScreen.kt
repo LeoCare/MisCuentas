@@ -172,9 +172,9 @@ private fun LoginContent(
     // Actualiza el mensaje de error, al presionar el boton, si corresponde actualiza el estado de 'loginOk'.
     val onBotonInicioClick = {
         when { //Mensajes de error:
-            loginState.usuario.isEmpty() -> uiErrorMessage.value = "Falta usuario"
+            !emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
             !contrasennaOk(loginState.contrasenna) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
-            loginState.registro && !emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
+            loginState.registro && loginState.usuario.isEmpty() -> uiErrorMessage.value = "Falta usuario"
 
             //Si los campos son correctos...
             else -> {
@@ -202,7 +202,6 @@ private fun LoginContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         item {
-
             //Imagen y texto
             HeaderImage(modifier)
             CustomSpacer(40.dp)
