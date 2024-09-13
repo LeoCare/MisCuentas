@@ -6,35 +6,34 @@ import com.app.miscuentas.data.auth.JwtInterceptor
 import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DbMisCuentas
-import com.app.miscuentas.data.pattern.BalancesRepository
+import com.app.miscuentas.data.pattern.repository.BalancesRepository
 import com.app.miscuentas.data.network.BalancesService
-import com.app.miscuentas.data.pattern.GastosRepository
+import com.app.miscuentas.data.pattern.repository.GastosRepository
 import com.app.miscuentas.data.network.GastosService
-import com.app.miscuentas.data.pattern.HojasRepository
+import com.app.miscuentas.data.pattern.repository.HojasRepository
 import com.app.miscuentas.data.network.HojasService
-import com.app.miscuentas.data.pattern.ImagenesRepository
+import com.app.miscuentas.data.pattern.repository.ImagenesRepository
 import com.app.miscuentas.data.network.ImagenesService
-import com.app.miscuentas.data.pattern.PagosRepository
+import com.app.miscuentas.data.pattern.repository.PagosRepository
 import com.app.miscuentas.data.network.PagosService
-import com.app.miscuentas.data.pattern.ParticipantesRepository
+import com.app.miscuentas.data.pattern.repository.ParticipantesRepository
 import com.app.miscuentas.data.network.ParticipantesService
-import com.app.miscuentas.data.pattern.TipoBalanceRepository
+import com.app.miscuentas.data.pattern.repository.TipoBalanceRepository
 import com.app.miscuentas.data.network.TipoBalanceService
-import com.app.miscuentas.data.pattern.TipoPerfilRepository
+import com.app.miscuentas.data.pattern.repository.TipoPerfilRepository
 import com.app.miscuentas.data.network.TipoPerfilService
-import com.app.miscuentas.data.pattern.TipoStatusRepository
+import com.app.miscuentas.data.pattern.repository.TipoStatusRepository
 import com.app.miscuentas.data.network.TipoStatusService
-import com.app.miscuentas.data.pattern.UsuariosRepository
+import com.app.miscuentas.data.pattern.repository.UsuariosRepository
 import com.app.miscuentas.data.network.UsuariosService
+import com.app.miscuentas.data.pattern.dao.DbBalanceDao
+import com.app.miscuentas.data.pattern.dao.DbImagenDao
+import com.app.miscuentas.data.pattern.dao.DbGastoDao
+import com.app.miscuentas.data.pattern.dao.DbHojaCalculoDao
+import com.app.miscuentas.data.pattern.dao.DbPagoDao
+import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.pattern.dao.DbUsuarioDao
 import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.GetBalances
-import com.app.miscuentas.domain.GetGastos
-import com.app.miscuentas.domain.GetHojas
-import com.app.miscuentas.domain.GetPagos
-import com.app.miscuentas.domain.GetParticipantes
-import com.app.miscuentas.domain.GetUsuarios
-import com.app.miscuentas.domain.GetImagenes
 import com.app.miscuentas.domain.GetTipos
 import dagger.Module
 import dagger.Provides
@@ -142,137 +141,96 @@ object MisHojasModule {
     /** USUARIO DI */
     @Provides
     @Singleton
-    fun provideUsuariosService(webService: WebService, tokenAuthenticator: TokenAuthenticator): UsuariosService {
-        return UsuariosService(webService, tokenAuthenticator )
+    fun provideUsuariosRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): UsuariosRepository {
+        return UsuariosRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun provideUsuariosRepository(usuarioDao: DbUsuarioDao, usuariosService: UsuariosService): UsuariosRepository {
-        return UsuariosRepository(usuarioDao, usuariosService)
+    fun provideUsuariosService(usuarioDao: DbUsuarioDao, usuariosRepository: UsuariosRepository): UsuariosService {
+        return UsuariosService(usuarioDao, usuariosRepository )
     }
 
-    @Provides
-    @Singleton
-    fun provideGetUsuarios(usuariosRepository: UsuariosRepository): GetUsuarios {
-        return GetUsuarios(usuariosRepository)
-    }
     /*****************/
 
 
     /** BALANCE DI */
     @Provides
     @Singleton
-    fun provideBalancesService(webService: WebService, tokenAuthenticator: TokenAuthenticator): BalancesService {
-        return BalancesService(webService, tokenAuthenticator )
+    fun provideBalancesRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): BalancesRepository {
+        return BalancesRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun provideBalancesRepository(balancesService: BalancesService): BalancesRepository {
-        return BalancesRepository(balancesService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetBalances(balancesRepository: BalancesRepository): GetBalances {
-        return GetBalances(balancesRepository)
+    fun provideBalancesService(balanceDao: DbBalanceDao, balancesRepository: BalancesRepository): BalancesService {
+        return BalancesService(balanceDao, balancesRepository )
     }
     /*****************/
 
     /** PARTICIPANTES DI */
     @Provides
     @Singleton
-    fun provideParticipantesService(webService: WebService, tokenAuthenticator: TokenAuthenticator): ParticipantesService {
-        return ParticipantesService(webService, tokenAuthenticator)
+    fun provideParticipantesRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): ParticipantesRepository {
+        return ParticipantesRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun provideParticipantesRepository(participantesService: ParticipantesService): ParticipantesRepository {
-        return ParticipantesRepository(participantesService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetParticipantes(participantesRepository: ParticipantesRepository): GetParticipantes {
-        return GetParticipantes(participantesRepository)
+    fun provideParticipantesService(participantesDao: DbParticipantesDao, participantesRepository: ParticipantesRepository): ParticipantesService {
+        return ParticipantesService(participantesDao, participantesRepository)
     }
 
     /** PAGOS DI */
     @Provides
     @Singleton
-    fun providePagosService(webService: WebService, tokenAuthenticator: TokenAuthenticator): PagosService {
-        return PagosService(webService, tokenAuthenticator)
+    fun providePagosRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): PagosRepository {
+        return PagosRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun providePagosRepository(pagosService: PagosService): PagosRepository {
-        return PagosRepository(pagosService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetPagos(pagosRepository: PagosRepository): GetPagos {
-        return GetPagos(pagosRepository)
+    fun providePagosService(pagoDao: DbPagoDao, pagosRepository: PagosRepository): PagosService {
+        return PagosService(pagoDao, pagosRepository)
     }
 
     /** GASTOS DI */
     @Provides
     @Singleton
-    fun provideGastosService(webService: WebService, tokenAuthenticator: TokenAuthenticator): GastosService {
-        return GastosService(webService, tokenAuthenticator)
+    fun provideGastosRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): GastosRepository {
+        return GastosRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun provideGastosRepository(gastosService: GastosService): GastosRepository {
-        return GastosRepository(gastosService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetGastos(gastosRepository: GastosRepository): GetGastos {
-        return GetGastos(gastosRepository)
+    fun provideGastosService(gastoDao: DbGastoDao, gastosRepository: GastosRepository): GastosService {
+        return GastosService(gastoDao, gastosRepository)
     }
 
     /** HOJAS DI */
     @Provides
     @Singleton
-    fun provideHojasService(webService: WebService, tokenAuthenticator: TokenAuthenticator): HojasService {
-        return HojasService(webService, tokenAuthenticator)
+    fun provideHojasRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): HojasRepository {
+        return HojasRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun provideHojasRepository(hojasService: HojasService): HojasRepository {
-        return HojasRepository(hojasService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetHojas(hojasRepository: HojasRepository): GetHojas {
-        return GetHojas(hojasRepository)
+    fun provideHojasService(hojaCalculoDao: DbHojaCalculoDao, hojasRepository: HojasRepository): HojasService {
+        return HojasService(hojaCalculoDao, hojasRepository)
     }
 
     /** IMAGENES DI */
     @Provides
     @Singleton
-    fun provideImagenesService(webService: WebService, tokenAuthenticator: TokenAuthenticator): ImagenesService {
-        return ImagenesService(webService, tokenAuthenticator)
+    fun provideImagenesRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): ImagenesRepository {
+        return ImagenesRepository(webService, tokenAuthenticator)
     }
 
     @Provides
     @Singleton
-    fun provideImagenesRepository(imagenesService: ImagenesService): ImagenesRepository {
-        return ImagenesRepository(imagenesService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetImagenes(imagenesRepository: ImagenesRepository): GetImagenes {
-        return GetImagenes(imagenesRepository)
+    fun provideImagenesService(fotoDao: DbImagenDao, imagenesRepository: ImagenesRepository): ImagenesService {
+        return ImagenesService(fotoDao, imagenesRepository)
     }
 
     /** TIPOS DI (PERFILES, BALANCES, STATUS) */

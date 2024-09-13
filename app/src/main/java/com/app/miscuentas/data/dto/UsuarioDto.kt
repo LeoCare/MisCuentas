@@ -13,7 +13,7 @@ data class UsuarioDto(
     @SerializedName("idUsuario") val idUsuario: Long,
     @SerializedName("nombre") val nombre: String,
     @SerializedName("correo") val correo: String,
-    @SerializedName("contrasenna") val contrasenna: String?,
+    @SerializedName("contrasenna") val contrasenna: String,
     @SerializedName("perfil") val perfil: String
 )
 

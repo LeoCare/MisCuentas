@@ -1,62 +1,84 @@
 package com.app.miscuentas.data.network
 
-import com.app.miscuentas.data.auth.TokenAuthenticator
-import com.app.miscuentas.data.pattern.webservices.WebService
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Transaction
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
+import com.app.miscuentas.data.pattern.dao.DbBalanceDao
+import com.app.miscuentas.data.pattern.repository.BalancesRepository
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
 
 class BalancesService(
-    private val webService: WebService,
-    private val tokenAuthenticator: TokenAuthenticator
+    private val balanceDao: DbBalanceDao,
+    private val balancesRepository: BalancesRepository
 ) {
+    /*****************/
+    /** ROOM (local)**/
+    /*****************/
+    @Transaction
+    @Insert
+    suspend fun insertBalance(balance: DbBalancesEntity): Long {
+        return balanceDao.insertBalance(balance)
+    }
 
+    @Transaction
+    suspend fun getBalanceByHoja(idHoja: Long): List<DbBalancesEntity> {
+        return balanceDao.getBalanceByHoja(idHoja)
+    }
+
+    @Transaction
+    suspend fun getBalanceByParticipante(idParticipante: Long): List<DbBalancesEntity> {
+        return balanceDao.getBalanceByParticipante(idParticipante)
+    }
+
+
+    suspend fun updateBalance(balance: DbBalancesEntity): Boolean {
+        val actualizado = balanceDao.updateBalance(balance)
+        return actualizado > 0
+    }
+
+    @Delete
+    suspend fun deleteBalance(balance: DbBalancesEntity) {
+        balanceDao.deleteBalance(balance)
+    }
+
+    @Transaction
+    @Insert
+    suspend fun insertBalancesForHoja(
+        hoja: DbHojaCalculoEntity,
+        balances: List<DbBalancesEntity>
+    ) {
+        balanceDao.insertBalancesForHoja(hoja, balances)
+    }
+
+    /**********/
+    /** API **/
+    /**********/
     // Obtener todos los balances
-    suspend fun getBalances(token: String): List<BalanceDto>? {
-        val response = webService.getBalances("Bearer $token")
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener balances: ${response.code()} - ${response.message()}")
-        }
+    suspend fun getBalancesApi(token: String): List<BalanceDto>? {
+        return balancesRepository.getBalances(token)
     }
 
     // Obtener un balance por ID
-    suspend fun getBalanceById(token: String, id: Long): BalanceDto? {
-        val response = webService.getBalanceById("Bearer $token", id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener balance: ${response.code()} - ${response.message()}")
-        }
+    suspend fun getBalanceByIdApi(token: String, id: Long): BalanceDto? {
+        return balancesRepository.getBalanceById(token, id)
     }
 
     // Crear un nuevo balance
-    suspend fun postBalance(token: String, balanceCrearDto: BalanceCrearDto): BalanceDto? {
-        val response = webService.postBalance("Bearer $token", balanceCrearDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al crear balance: ${response.code()} - ${response.message()}")
-        }
+    suspend fun postBalanceApi(token: String, balanceCrearDto: BalanceCrearDto): BalanceDto? {
+        return balancesRepository.postBalance(token, balanceCrearDto)
     }
 
     // Actualizar un balance
-    suspend fun putBalance(token: String, balanceDto: BalanceDto): BalanceDto? {
-        val response = webService.putBalance("Bearer $token", balanceDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al actualizar balance: ${response.code()} - ${response.message()}")
-        }
+    suspend fun putBalanceApi(token: String, balanceDto: BalanceDto): BalanceDto? {
+        return balancesRepository.putBalance(token, balanceDto)
     }
 
-    // Eliminar un balance
-    suspend fun deleteBalance(token: String, id: Long): String? {
-        val response = webService.deleteBalance("Bearer $token", id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al eliminar balance: ${response.code()} - ${response.message()}")
-        }
+    // Eliminar un balance por ID
+    suspend fun deleteBalanceApi(token: String, id: Long): String? {
+        return balancesRepository.deleteBalance(token, id)
     }
+
 }

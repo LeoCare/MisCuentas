@@ -3,7 +3,6 @@ package com.app.miscuentas.data.local.dbroom.entitys
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.app.miscuentas.data.model.HojaCalculo
 import com.app.miscuentas.data.model.Participante

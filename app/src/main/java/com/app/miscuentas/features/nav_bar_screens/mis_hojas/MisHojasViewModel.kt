@@ -6,11 +6,10 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
-import com.app.miscuentas.data.local.repository.ParticipanteRepository
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.data.model.HojaCalculo
 import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.network.HojasService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -23,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MisHojasViewModel @Inject constructor(
-    private val repositoryHojaCalculo: HojaCalculoRepository,
+    private val hojasService: HojasService,
     private val dataStoreConfig: DataStoreConfig
     /** API **/ // private val getMisHojas: GetMisHojas
 ): ViewModel(){
@@ -97,7 +96,7 @@ class MisHojasViewModel @Inject constructor(
     fun updateStatusHoja() = viewModelScope.launch{
         _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
         withContext(Dispatchers.IO) {
-            repositoryHojaCalculo.updateHoja(misHojasState.value.hojaAModificar!!.toEntity())
+            hojasService.updateHoja(misHojasState.value.hojaAModificar!!.toEntity())
             updatePreferenceIdHojaPrincipal(misHojasState.value.hojaAModificar!!.toEntity())
         }
     }
@@ -106,7 +105,7 @@ class MisHojasViewModel @Inject constructor(
     //Eliminar
     fun deleteHojaConParticipantes() = viewModelScope.launch{
         withContext(Dispatchers.IO) {
-            repositoryHojaCalculo.deleteHojaConParticipantes(misHojasState.value.hojaAModificar!!.toEntity())
+            hojasService.deleteHojaConParticipantes(misHojasState.value.hojaAModificar!!.toEntity())
             updatePreferenceIdHojaPrincipal(misHojasState.value.hojaAModificar!!.toEntity())
         }
     }
@@ -123,7 +122,7 @@ class MisHojasViewModel @Inject constructor(
     //Metodo que obtiene la lista de hojas, ordena por defecto y para el circularIndicator
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
-            repositoryHojaCalculo.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
+            hojasService.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
                 //guardo la lista de hojas
                 _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
 

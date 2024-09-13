@@ -1,6 +1,5 @@
-package com.app.miscuentas.data.local.repository
+package com.app.miscuentas.data.local
 
-import android.content.Context
 import com.app.miscuentas.R
 import com.app.miscuentas.data.model.IconoGasto
 

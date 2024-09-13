@@ -22,7 +22,7 @@ import androidx.room.PrimaryKey
         )
     ]
 )
-data class DbBalanceEntity(
+data class DbBalancesEntity(
     @PrimaryKey(autoGenerate = true) val idBalance: Long = 0,
     @ColumnInfo(name = "idHojaBalance", index = true) val idHojaBalance: Long,
     @ColumnInfo(name = "idParticipanteBalance", index = true) val idParticipanteBalance: Long,

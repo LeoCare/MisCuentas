@@ -1,11 +1,12 @@
-package com.app.miscuentas.data.network
+package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
+import com.app.miscuentas.data.network.ParticipantesService
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.domain.dto.ParticipanteCrearDto
 import com.app.miscuentas.domain.dto.ParticipanteDto
 
-class ParticipantesService(
+class ParticipantesRepository(
     private val webService: WebService,
     private val tokenAuthenticator: TokenAuthenticator
 ) {

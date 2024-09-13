@@ -3,18 +3,17 @@ package com.app.miscuentas.features.balance
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
-import com.app.miscuentas.data.local.repository.BalanceRepository
-import com.app.miscuentas.data.local.repository.FotoRepository
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
-import com.app.miscuentas.data.local.repository.PagoRepository
+import com.app.miscuentas.data.network.BalancesService
+import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.data.network.ImagenesService
+import com.app.miscuentas.data.network.PagosService
 import com.app.miscuentas.util.Contabilidad
-import com.app.miscuentas.util.Contabilidad.Contable.esMontoPequeno
 import com.app.miscuentas.util.Contabilidad.Contable.redondearADosDecimales
 import com.app.miscuentas.util.Imagen.Companion.bitmapToByteArray
 import com.app.miscuentas.util.Imagen.Companion.byteArrayToBitmap
@@ -30,10 +29,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BalanceViewModel @Inject constructor(
-    private val hojaCalculoRepository: HojaCalculoRepository,
-    private val balanceRepository: BalanceRepository,
-    private val pagoRepository: PagoRepository,
-    private val fotoRepository: FotoRepository
+    private val hojasService: HojasService,
+    private val balancesService: BalancesService,
+    private val pagosService: PagosService,
+    private val imagenesService: ImagenesService
 ): ViewModel() {
 
     val _balanceState = MutableStateFlow(BalanceState())
@@ -68,7 +67,7 @@ class BalanceViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 if (idHoja != null) {
-                    hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
+                    hojasService.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         onHojaAMostrarChanged(hojaCalculo)
                         calcularBalance()
                     }
@@ -96,7 +95,7 @@ class BalanceViewModel @Inject constructor(
     fun getHojaConBalances() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaConBalances(balanceState.value.hojaAMostrar?.hoja!!.idHoja).collect{
+                hojasService.getHojaConBalances(balanceState.value.hojaAMostrar?.hoja!!.idHoja).collect{
                     onHojaConBalanceChanged(it)
                     calculoFinal()
                 }
@@ -117,7 +116,7 @@ class BalanceViewModel @Inject constructor(
         if (acreedor != null) {
             viewModelScope.launch{
                 calculoUpdatePago(deudor, acreedor)?.let {
-                    val pagoInsertado = pagoRepository.insertPago(it)
+                    val pagoInsertado = pagosService.insertPago(it)
                     if (pagoInsertado > 0) { //si el pago se ha insertado
                         onPagoRealizadoChanged(true)
                         updateIfHojaBalanceada() //compruebo si esta balanciado en su totalidad
@@ -160,21 +159,21 @@ class BalanceViewModel @Inject constructor(
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_BALANCE **/
     suspend fun updateBalance(
-        balanceDeudor: DbBalanceEntity?,
-        balanceAcreedor: DbBalanceEntity?,
+        balanceDeudor: DbBalancesEntity?,
+        balanceAcreedor: DbBalancesEntity?,
         nuevoMontoDeudor: Double,
         montoAcreedorRedondeado: Double
     ): Boolean {
         val exitoDeudor = balanceDeudor?.let {
             it.monto = nuevoMontoDeudor
             if (it.monto == 0.0) it.tipo = "B"
-            balanceRepository.updateBalance(it)
+            balancesService.updateBalance(it)
         } ?: false
 
         val exitoAcreedor = balanceAcreedor?.let {
             it.monto = montoAcreedorRedondeado
             if (it.monto == 0.0) it.tipo = "B"
-            balanceRepository.updateBalance(it)
+            balancesService.updateBalance(it)
         } ?: false
 
         return exitoDeudor && exitoAcreedor
@@ -196,7 +195,7 @@ class BalanceViewModel @Inject constructor(
                 hojaActualizada.status = "B"
                 viewModelScope.launch {
                     withContext(Dispatchers.IO){
-                        hojaCalculoRepository.updateHoja(hojaActualizada)
+                        hojasService.updateHoja(hojaActualizada)
                     }
                 }
             }
@@ -207,11 +206,11 @@ class BalanceViewModel @Inject constructor(
     suspend fun updatePagoWithFoto(idFoto: Long){
         val idPago = balanceState.value.pagoNewFoto?.idPago
         val pagoEntity = idPago?.let {
-            pagoRepository.getPagosById(it)
+            pagosService.getPagosById(it)
         }
         if (pagoEntity != null) {
             pagoEntity.idFotoPago = idFoto
-            pagoRepository.updatePago(pagoEntity)
+            pagosService.updatePago(pagoEntity)
         }
     }
 
@@ -227,8 +226,8 @@ class BalanceViewModel @Inject constructor(
 
     /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
     fun instanciarPago(
-        balanceDeudor: DbBalanceEntity?,
-        balanceAcreedor: DbBalanceEntity?,
+        balanceDeudor: DbBalancesEntity?,
+        balanceAcreedor: DbBalancesEntity?,
         montoPagado: Double,
         idFotoPago: Long?
     ): DbPagoEntity {
@@ -249,7 +248,7 @@ class BalanceViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 balanceState.value.hojaConBalances?.balances?.forEach{
-                    listaPagos = listaPagos + pagoRepository.getPagosByDeuda(it.idBalance)
+                    listaPagos = listaPagos + pagosService.getPagosByDeuda(it.idBalance)
                     pagosConParticipantes(listaPagos)
                 }
             }
@@ -303,17 +302,17 @@ class BalanceViewModel @Inject constructor(
     /** INSERTAR IMAGEN EN LA BBDD **/
     suspend fun insertImage(bitmap: Bitmap): Long {
         val byteArray = bitmapToByteArray(bitmap,50)
-        val imageEntity = DbFotoEntity(imagen = byteArray)
-        return fotoRepository.insertFoto(imageEntity)
+        val imageEntity = DbFotosEntity(imagen = byteArray)
+        return imagenesService.insertFoto(imageEntity)
     }
 
     /** METODO QUE INSERTA LA FOTO Y ACTUALIZA EL GASTO **/
     fun insertNewImage(bitmap: Bitmap) {
         onImagenBitmapChanged(bitmap)
         val byteArray = bitmapToByteArray(bitmap, 50)
-        val imageEntity = DbFotoEntity(imagen = byteArray)
+        val imageEntity = DbFotosEntity(imagen = byteArray)
         viewModelScope.launch {
-            val idFoto = fotoRepository.insertFoto(imageEntity)
+            val idFoto = imagenesService.insertFoto(imageEntity)
             withContext(Dispatchers.IO) { updatePagoWithFoto(idFoto) }
             withContext(Dispatchers.Main){
                 updateListaPagoConParticipantes(bitmap)
@@ -324,7 +323,7 @@ class BalanceViewModel @Inject constructor(
 
     /** OBTENER IMAGEN DE LA BBDD **/
     fun obtenerFotoPago(idFoto: Long): Bitmap {
-        val imagenByteArray = fotoRepository.getFoto(idFoto).imagen
+        val imagenByteArray = imagenesService.getFoto(idFoto).imagen
         return byteArrayToBitmap(imagenByteArray)
     }
 

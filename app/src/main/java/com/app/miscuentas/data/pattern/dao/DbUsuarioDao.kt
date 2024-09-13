@@ -20,18 +20,23 @@ interface DbUsuarioDao {
 
 
     @Transaction
-    suspend fun insertUsuarioConParticipante(usuario: DbUsuariosEntity, participante: DbParticipantesEntity) : Long{
-        val idUsuario = insert(usuario)
+    suspend fun clearInsertUsuarioConParticipante(usuario: DbUsuariosEntity, participante: DbParticipantesEntity) : Long{
+        val idUsuario = cleanInsert(usuario)
         val participanteEntity = participante.copy(idUsuarioParti = idUsuario)
+        clearAllParticipantes()
         insertParticipante(participanteEntity)
         return idUsuario
     }
 
     @Transaction
+    suspend fun cleanInsert(usuario: DbUsuariosEntity): Long {
+        clearAllUsuarios()
+        return insert(usuario)
+    }
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(usuario: DbUsuariosEntity): Long
 
-    @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertParticipante(participante: DbParticipantesEntity): Long
 
@@ -40,6 +45,12 @@ interface DbUsuarioDao {
 
     @Delete
     suspend fun delete(usuario: DbUsuariosEntity)
+
+    @Query("DELETE FROM  t_usuarios")
+    suspend fun clearAllUsuarios()
+
+    @Query("DELETE FROM t_participantes")
+    suspend fun clearAllParticipantes()
 
     // Método para obtener todos los registros de la tabla
     @Query("SELECT * FROM t_usuarios")
@@ -50,8 +61,8 @@ interface DbUsuarioDao {
     fun getUsuarioWhereId(idUsuario: Long): Flow<DbUsuariosEntity>
 
     //Obtener usuario registrado segun nombre y contraseña
-    @Query("SELECT * FROM t_usuarios WHERE correo = :correo AND contrasenna = :contrasenna")
-    fun getUsuarioWhereLogin(correo: String, contrasenna: String): Flow<DbUsuariosEntity?>
+    @Query("SELECT * FROM t_usuarios WHERE correo = :correo")
+    fun getUsuarioWhereLogin(correo: String): Flow<DbUsuariosEntity?>
 
     //Obtener usuario resgistrado al olvidar la contraseña
     @Query("SELECT * FROM t_usuarios WHERE correo = :correo")

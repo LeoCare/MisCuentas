@@ -33,12 +33,12 @@ fun UsuarioDto.toEntity() = DbUsuariosEntity(
     idUsuario = this.idUsuario,
     nombre = this.nombre,
     correo = this.correo,
-    contrasenna = this.contrasenna ?: "",
+    contrasenna = this.contrasenna,
     perfil = perfil
 )
 
 // Convertir de DTO a entidad
 fun DbUsuariosEntity.toLogin() = UsuarioLoginDto(
     correo = this.correo,
-    contrasenna = this.contrasenna ?: ""
+    contrasenna = this.contrasenna
 )

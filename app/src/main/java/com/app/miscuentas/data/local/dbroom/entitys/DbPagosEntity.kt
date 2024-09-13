@@ -9,13 +9,13 @@ import androidx.room.PrimaryKey
     tableName = "t_pagos",
     foreignKeys = [
         ForeignKey(
-            entity = DbBalanceEntity::class,
+            entity = DbBalancesEntity::class,
             parentColumns = ["idBalance"],
             childColumns = ["idBalance"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = DbBalanceEntity::class,
+            entity = DbBalancesEntity::class,
             parentColumns = ["idBalance"],
             childColumns = ["idBalancePagado"],
             onDelete = ForeignKey.CASCADE

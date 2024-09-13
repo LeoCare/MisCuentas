@@ -8,15 +8,24 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DbParticipantesDao {
-    //Una instancia de entity es una fila de la BBDD, si se intenta modificar desde alguna otra parte del codigo se pueden generar conflictos.
-    //Con esta anotacion se puede indicar que hacer en caso de conflicto.
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(vararg participante: DbParticipantesEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(participante: DbParticipantesEntity): Long
+
+    @Transaction
+    suspend fun cleanInsert(participante: DbParticipantesEntity): Long {
+        clearAllParticipantes()
+        return insert(participante)
+    }
 
     //Como la entidad representa una fila en concreto, si se le pasa la entidad modificada la actualizara en la BBDD
     @Update
@@ -27,6 +36,9 @@ interface DbParticipantesDao {
 
     @Delete
     suspend fun delete(participante: DbParticipantesEntity)
+
+    @Query("DELETE FROM t_participantes")
+    suspend fun clearAllParticipantes()
 
     @Transaction
     @Query("SELECT * FROM t_participantes p, t_hojas_cab h WHERE p.idUsuarioParti = :idRegistro AND h.idUsuarioHoja = :idRegistro")

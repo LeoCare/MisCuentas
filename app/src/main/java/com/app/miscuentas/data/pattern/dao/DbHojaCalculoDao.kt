@@ -7,14 +7,11 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 //import com.app.miscuentas.data.local.dbroom.entitys.DbHojaParticipantesGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.model.Gasto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,7 +19,7 @@ interface DbHojaCalculoDao {
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllHojaCalculo( hojaCalculo: DbHojaCalculoEntity): Long
+    suspend fun insertHojaCalculo( hojaCalculo: DbHojaCalculoEntity): Long
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -35,6 +32,8 @@ interface DbHojaCalculoDao {
     @Delete
     suspend fun delete(hojaCalculo: DbHojaCalculoEntity)
 
+    @Query("DELETE FROM t_hojas_cab")
+    suspend fun clearAllHojas()
 
     //Room mantiene el Flow actualizado, por lo que solo se necesita obtener los datos una vez.
     //Luego Room se encarga de notificarnos con cada cambio en los datos
@@ -61,7 +60,7 @@ interface DbHojaCalculoDao {
     //PARA INSERTAR DOS CLASES RELACIONADAS DEBEN INSERTARSE EN UNA MISMA TRANSACCION:
     @Transaction
     suspend fun insertHojaConParticipantes(hoja: DbHojaCalculoEntity, participantes: List<DbParticipantesEntity>) {
-        val hojaId = insertAllHojaCalculo(hoja)
+        val hojaId = insertHojaCalculo(hoja)
         participantes.forEach { participante ->
             val participanteConHojaId = participante.copy(idHojaParti = hojaId)
             insertParticipante(participanteConHojaId)

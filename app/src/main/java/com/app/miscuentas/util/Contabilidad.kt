@@ -1,6 +1,6 @@
 package com.app.miscuentas.util
 
-import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
@@ -77,8 +77,8 @@ class Contabilidad {
         }
 
         /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
-        fun instanciarBalance(balanceDeuda: Map<String, Double>?, hojaAMostrar: HojaConParticipantes? ): List<DbBalanceEntity>{
-            var balances : List<DbBalanceEntity> = listOf()
+        fun instanciarBalance(balanceDeuda: Map<String, Double>?, hojaAMostrar: HojaConParticipantes? ): List<DbBalancesEntity>{
+            var balances : List<DbBalancesEntity> = listOf()
 
             balanceDeuda?.forEach { (nombre, monto) ->
                 val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
@@ -86,7 +86,7 @@ class Contabilidad {
                     hojaAMostrar?.participantes?.firstOrNull {
                         it.participante.nombre == nombre
                     }?.participante?.idParticipante
-                val deuda = DbBalanceEntity(
+                val deuda = DbBalancesEntity(
                     idBalance = 0,
                     idHojaBalance = hojaAMostrar?.hoja?.idHoja!!,
                     idParticipanteBalance = idParticipante!!,

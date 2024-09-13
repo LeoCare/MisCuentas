@@ -1,4 +1,4 @@
-package com.app.miscuentas.data.pattern
+package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.dto.TipoBalanceDto
 import com.app.miscuentas.data.dto.TipoPerfilDto

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
+import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.util.Validaciones
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class InicioViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig, // DATASTORE
-    private val hojaCalculoRepository: HojaCalculoRepository
+    private val hojasService: HojasService
 ) : ViewModel()
 {
 
@@ -60,7 +60,7 @@ class InicioViewModel @Inject constructor(
     //Compruebo si hay alguna hoja creada
     fun getAllHojasCalculos(){
         viewModelScope.launch {
-            hojaCalculoRepository.getTotalHojasCreadas().collect{
+            hojasService.getTotalHojasCreadas().collect{
                 onTotalHojasChanged(it)
             }
         }
@@ -90,7 +90,7 @@ class InicioViewModel @Inject constructor(
     //Obtengo la instancia de esa hoja
      private suspend fun getHojaPrincipal(idHoja: Long){
         withContext(Dispatchers.IO) {
-            hojaCalculoRepository.getHojaConParticipantes(idHoja).collect{ hoja ->
+            hojasService.getHojaConParticipantes(idHoja).collect{ hoja ->
                 withContext(Dispatchers.Main) {
                     onHojaPrincipalChanged(hoja)
                     compruebaFechaCierre(hoja)

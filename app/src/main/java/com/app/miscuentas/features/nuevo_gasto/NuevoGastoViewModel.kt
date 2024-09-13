@@ -3,11 +3,11 @@ package com.app.miscuentas.features.nuevo_gasto
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
-import com.app.miscuentas.data.local.repository.GastoRepository
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.network.GastosService
+import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.util.Contabilidad.Contable.superaLimite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NuevoGastoViewModel @Inject constructor (
-    private val repositoryHojaCalculo: HojaCalculoRepository,
-    private val repositoryGasto: GastoRepository
+    private val hojasService: HojasService,
+    private val gastosService: GastosService
 ): ViewModel()
 {
     val _nuevoGastoState = MutableStateFlow(NuevoGastoState())
@@ -59,7 +59,7 @@ class NuevoGastoViewModel @Inject constructor (
     suspend fun getHojaCalculo(){
         //Hoja a la cual sumarle este nuevo gasto
         val id = _nuevoGastoState.value.idHoja!!
-        repositoryHojaCalculo.getHojaConParticipantes(id).collect {
+        hojasService.getHojaConParticipantes(id).collect {
             _nuevoGastoState.value = _nuevoGastoState.value.copy(hojaActual = it) //Actualizo state con la hoja actual
         }
     }
@@ -80,7 +80,7 @@ class NuevoGastoViewModel @Inject constructor (
                     val idParticipante = _nuevoGastoState.value.idPagador
                     val gasto = instanciaNuevoGasto().toEntity(idParticipante)
 
-                    repositoryGasto.insertaGasto(gasto)
+                    gastosService.insertaGasto(gasto)
                     vaciarTextFields()
                     onInsertOKChanged(true)
                 }

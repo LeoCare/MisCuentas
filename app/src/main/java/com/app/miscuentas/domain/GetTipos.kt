@@ -3,9 +3,9 @@ package com.app.miscuentas.domain
 import com.app.miscuentas.data.dto.TipoBalanceDto
 import com.app.miscuentas.data.dto.TipoPerfilDto
 import com.app.miscuentas.data.dto.TipoStatusDto
-import com.app.miscuentas.data.pattern.TipoBalanceRepository
-import com.app.miscuentas.data.pattern.TipoPerfilRepository
-import com.app.miscuentas.data.pattern.TipoStatusRepository
+import com.app.miscuentas.data.pattern.repository.TipoBalanceRepository
+import com.app.miscuentas.data.pattern.repository.TipoPerfilRepository
+import com.app.miscuentas.data.pattern.repository.TipoStatusRepository
 
 class GetTipos(
     private val tipoPerfilRepository: TipoPerfilRepository,

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
+import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.util.Contabilidad
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MisGastosViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,
-    private val hojaCalculoRepository: HojaCalculoRepository
+    private val hojasService: HojasService
 ): ViewModel(){
 
     private val _misGastosState by lazy { MutableStateFlow(MisGastosState()) }
@@ -80,7 +80,7 @@ class MisGastosViewModel @Inject constructor(
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             val idUsuario = misGastosState.value.idUsuario ?: return@withContext
-            val hojasDelRegistrado =  hojaCalculoRepository.getAllHojaConParticipantes(idUsuario)
+            val hojasDelRegistrado =  hojasService.getAllHojaConParticipantes(idUsuario)
 
             hojasDelRegistrado.collect { listaHojasConParticipantes ->
                 onHojaDelRegistradoChanged(listaHojasConParticipantes)

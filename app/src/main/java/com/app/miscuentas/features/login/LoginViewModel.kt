@@ -7,8 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.model.Participante
 import com.app.miscuentas.data.model.Usuario
-import com.app.miscuentas.data.pattern.Resource
-import com.app.miscuentas.data.pattern.UsuariosRepository
+import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.network.BalancesService
+import com.app.miscuentas.data.network.GastosService
+import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.data.network.ParticipantesService
+import com.app.miscuentas.data.network.UsuariosService
+import com.app.miscuentas.data.pattern.repository.Resource
 import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import com.app.miscuentas.domain.dto.UsuarioDto
 import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
@@ -16,7 +21,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -25,7 +29,13 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,  // DATASTORE
-    private val usuariosRepository: UsuariosRepository
+    private val usuariosService: UsuariosService,
+    private val participantesService: ParticipantesService,
+    private val pagosService: ParticipantesService,
+    private val gastosService: GastosService,
+    private val hojasService: HojasService,
+    private val balancesService: BalancesService
+
 ) : ViewModel(){
 
     private val _loginState = MutableStateFlow(LoginState())
@@ -70,7 +80,7 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
              withContext(Dispatchers.IO) {
-                 usuariosRepository.getUsuarioByLogin(correo, contrasenna).collect { resource ->
+                 usuariosService.getUsuarioByLogin(correo, contrasenna).collect { resource ->
                      when (resource) {
                          is Resource.Loading -> {
                              onIsLoadingOkChanged(true)
@@ -82,15 +92,21 @@ class LoginViewModel @Inject constructor(
                                  onMensajeChanged("Correo o Contraseña incorrectos!")
                                  onIsLoadingOkChanged(false)
                              } else {// Si el logeo es correcto..
+                                 //VOLCAMOS TODOS LOS DATOS PERTENECIENTES A ESE USUARIO:
+                                 // Si el login fue exitoso desde la API, limpia y vuelca datos
+                                 if (resource.fromNetwork) {  // Solo si viene de la API
+                                     limpiarYVolcarLogin(usuario)
+                                 }
                                  onIsLoadingOkChanged( false)
                                  //Esto permitira la navegacion:
                                  onRegistroDataStoreChanged(usuario.idUsuario, usuario.nombre) //si existe, actualiza el dataStore con el nombre
                              }
                          }
-                         is Resource.Error -> {
+                         is Resource.Error -> {// Si el logeo no es correcto..
                              // Mostrar el mensaje de error
                              Log.e("LoginError", resource.message ?: "Error desconocido")
-                             onMensajeChanged("Error al comprobar los datos!")
+                             onMensajeChanged("Error en Correo o Contraseña!")
+                             onIsLoadingOkChanged( false)
                          }
                      }
                  }
@@ -98,11 +114,30 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    //Solo si el login es exitoso desde la API y no desde ROOM:
+    suspend fun limpiarYVolcarLogin(usuario: UsuarioDto){
+        val token = dataStoreConfig.getTokenPreference()
+        val idRegistrado = usuario.idUsuario
+
+        // Obtener datos desde la API y guardarlos en Room
+        val hojas = token?.let { hojasService.getAllHojas(it) }?.filter { it.idUsuario == idRegistrado }
+//        val participantes = participantesService.getParticipantes(usuarioId)
+//        val pagos = apiService.getPagos(usuarioId)
+//        val gastos = apiService.getGastos(usuarioId)
+
+
+//        // Limpia e Insertar los datos en Room
+        hojas?.forEach { hojasService.insertHojaCalculo(it.toEntity()) }
+//        usuarioDao.insert(participantes.map { it.toEntity() })
+//        pagosDao.insert(pagos.map { it.toEntity() })
+//        gastosDao.insert(gastos.map { it.toEntity() })
+
+    }
+
     /** Actualiza datastore con los datos de login (LOGIN) **/
     suspend fun onRegistroDataStoreChanged(idRegistro: Long, usuario: String){
         dataStoreConfig.putRegistroPreference(usuario)
         dataStoreConfig.putIdRegistroPreference(idRegistro)
-        //falta guardar el token!!
         onLoginOkChanged(true)
     }
 
@@ -117,7 +152,7 @@ class LoginViewModel @Inject constructor(
         val correo = _loginState.value.email
 
         viewModelScope.launch {
-            usuariosRepository.getRegistroByCorreo(correo).collect { resource ->
+            usuariosService.getRegistroByCorreo(correo).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> { // Muestra un spinner o indica que la operación está en curso
                         onIsLoadingOkChanged(true)
@@ -135,7 +170,7 @@ class LoginViewModel @Inject constructor(
                         }
                     }
 
-                    is Resource.Error -> {// Maneja el error de red o cualquier otro problema en la API
+                    is Resource.Error -> {// No lo devuelven ni Room ni la API
                         insertRegistroCall()
                         onMensajeChanged(resource.message ?: "Error desconocido")
                         onIsLoadingOkChanged( false)
@@ -161,7 +196,7 @@ class LoginViewModel @Inject constructor(
             idRegistro = usuarioApiOk.usuario.idUsuario
 
             //Insert en Room
-            val insertRoomOk = insertRegistroRoom(contrasenna, correo, idRegistro, nombre, perfil)
+            val insertRoomOk = insertRegistroRoom(usuarioApiOk.usuario.contrasenna, correo, idRegistro, nombre, perfil)
             if (insertRoomOk) {
                 onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
             } else  onMensajeChanged("Ese correo ya esta registrado!")
@@ -180,7 +215,7 @@ class LoginViewModel @Inject constructor(
         val usuarioCrearDto = UsuarioCrearDto(contrasenna, correo, nombre, perfil)
 
         try {
-            val registroApi = usuariosRepository.putRegistroApi(usuarioCrearDto)
+            val registroApi = usuariosService.putRegistroApi(usuarioCrearDto)
             if (registroApi != null){
                 result = registroApi // insert OK
             }
@@ -205,21 +240,13 @@ class LoginViewModel @Inject constructor(
         val usuarioRoom = Usuario(contrasenna, correo, idRegistro, nombre, perfil)
 
         try {
-            val participante = instanciaParticipante()
-            usuariosRepository.insertUsuarioConParticipantes(usuarioRoom, participante ) //Insert en ROOM
+            val participante = Participante(0, usuarioRoom.nombre, usuarioRoom.correo)
+            usuariosService.insertUsuarioConParticipantes(usuarioRoom, participante ) //Insert en ROOM
             //onIdRegistroChanged(idRegistroRoom) //guardado el id del insert del registro
             return true // insert OK
         } catch (e: Exception) {
             return false // inserción NOK
         }
-    }
-
-
-    private fun instanciaParticipante(): Participante {
-        return  Participante(
-            0,
-            loginState.value.usuario,
-            loginState.value.email)
     }
 
 

@@ -5,14 +5,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.data.local.dbroom.entitys.DbBalanceEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbFotoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
-import com.app.miscuentas.data.local.repository.BalanceRepository
-import com.app.miscuentas.data.local.repository.FotoRepository
-import com.app.miscuentas.data.local.repository.GastoRepository
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
+import com.app.miscuentas.data.network.BalancesService
+import com.app.miscuentas.data.network.GastosService
+import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.data.network.ImagenesService
 import com.app.miscuentas.util.Contabilidad
 import com.app.miscuentas.util.Contabilidad.Contable.calcularBalanceFinal
 import com.app.miscuentas.util.Contabilidad.Contable.instanciarBalance
@@ -31,10 +31,10 @@ import javax.inject.Inject
 @HiltViewModel
 class GastosViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,
-    private val hojaCalculoRepository: HojaCalculoRepository,
-    private val balanceRepository: BalanceRepository,
-    private val gastoRepository: GastoRepository,
-    private val fotoRepository: FotoRepository
+    private val hojasService: HojasService,
+    private val balancesService: BalancesService,
+    private val gastosService: GastosService,
+    private val imagenesService: ImagenesService
 ): ViewModel() {
 
     private val _gastosState = MutableStateFlow(GastosState())
@@ -76,7 +76,7 @@ class GastosViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO){
-                    hojaCalculoRepository.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
+                    hojasService.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         withContext(Dispatchers.Main) {
                             onHojaAMostrarChanged(hojaCalculo)
                             totalGastosHojaActual()
@@ -140,7 +140,7 @@ class GastosViewModel @Inject constructor(
     private fun getHojaConBalanceFinal() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                hojaCalculoRepository.getHojaConBalances(gastosState.value.hojaAMostrar?.hoja!!.idHoja).collect{
+                hojasService.getHojaConBalances(gastosState.value.hojaAMostrar?.hoja!!.idHoja).collect{
                     _gastosState.value = _gastosState.value.copy(hojaConBalances = it)
                     calculoFinal() //con estos datos calculo el balance final
                 }
@@ -165,7 +165,7 @@ class GastosViewModel @Inject constructor(
     suspend fun deleteGasto(){
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                gastosState.value.gastoABorrar?.let { gastoRepository.delete(it) }
+                gastosState.value.gastoABorrar?.let { gastosService.delete(it) }
                 withContext(Dispatchers.Main) {
                     totalGastosHojaActual()
                 }
@@ -176,7 +176,7 @@ class GastosViewModel @Inject constructor(
     /** METODO QUE ACTUALIZA LA FOTO DEL GASTO **/
     private suspend fun updateGastoWithFoto(idFoto: Long){
         gastosState.value.gastoNewFoto?.idFotoGasto = idFoto
-        gastosState.value.gastoNewFoto?.let { gastoRepository.updateGasto(it) }
+        gastosState.value.gastoNewFoto?.let { gastosService.updateGasto(it) }
     }
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
@@ -185,7 +185,7 @@ class GastosViewModel @Inject constructor(
         onCierreAceptado(false)
         _gastosState.value.hojaAMostrar?.hoja?.status = status
         withContext(Dispatchers.IO) {
-            hojaCalculoRepository.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
+            hojasService.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
             instanciarInsertarBalance()
 
         }
@@ -208,8 +208,8 @@ class GastosViewModel @Inject constructor(
     }
 
     /** INSERTA DATOS EN T_BALANCE **/
-    private suspend fun insertBalancesForHoja(balances: List<DbBalanceEntity>){
-        balanceRepository.insertBalancesForHoja(gastosState.value.hojaAMostrar?.hoja!!, balances)
+    private suspend fun insertBalancesForHoja(balances: List<DbBalancesEntity>){
+        balancesService.insertBalancesForHoja(gastosState.value.hojaAMostrar?.hoja!!, balances)
     }
 
 
@@ -217,9 +217,9 @@ class GastosViewModel @Inject constructor(
     fun insertImage(bitmap: Bitmap) {
         onImagenBitmapChanged(bitmap)
         val byteArray = bitmapToByteArray(bitmap, 50)
-        val imageEntity = DbFotoEntity(imagen = byteArray)
+        val imageEntity = DbFotosEntity(imagen = byteArray)
         viewModelScope.launch {
-            val idFoto = fotoRepository.insertFoto(imageEntity)
+            val idFoto = imagenesService.insertFoto(imageEntity)
             updateGastoWithFoto(idFoto)
             onMostrarFotoChanged(true)
         }
@@ -229,7 +229,7 @@ class GastosViewModel @Inject constructor(
     fun obtenerFotoGasto(id: Long) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val imagen = fotoRepository.getFoto(id).imagen
+                val imagen = imagenesService.getFoto(id).imagen
                 onImagenBitmapChanged(byteArrayToBitmap(imagen))
                 onMostrarFotoChanged(true)
             }

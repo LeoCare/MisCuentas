@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
-import com.app.miscuentas.data.local.repository.HojaCalculoRepository
 import com.app.miscuentas.data.model.Participante
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.model.toEntityWithUsuario
-import com.app.miscuentas.data.pattern.UsuariosRepository
+import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.data.network.UsuariosService
 import com.app.miscuentas.util.Validaciones
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,8 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NuevaHojaViewModel @Inject constructor(
-    private val hojaCalculoRepository: HojaCalculoRepository,
-    private val usuariosRepository: UsuariosRepository,
+    private val hojasService: HojasService,
+    private val usuariosService: UsuariosService,
     private val dataStoreConfig: DataStoreConfig
 ) : ViewModel() {
 
@@ -117,7 +117,7 @@ class NuevaHojaViewModel @Inject constructor(
 
     /** METODO PARA INSERTAR LA HOJA Y LOS PARTICIPANTES RELACIONADOS **/
     suspend fun insertrHojaConParticipantes(hoja: DbHojaCalculoEntity, participantes: List<DbParticipantesEntity>) {
-        hojaCalculoRepository.insertHojaConParticipantes(hoja, participantes)
+        hojasService.insertHojaConParticipantes(hoja, participantes)
         _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
     }
 
@@ -127,7 +127,7 @@ class NuevaHojaViewModel @Inject constructor(
             if (idRegistrado != null) {
                 onIdRegistroChanged(idRegistrado)
                 //Agrego el primer participante que es el registrado
-                usuariosRepository.getRegistroWhereId(idRegistrado).collect{
+                usuariosService.getRegistroWhereId(idRegistrado).collect{
                     it?.let { it1 ->
                         addParticipanteRegistrado(idRegistrado, Participante(0, it1.nombre, it.correo))
                     }

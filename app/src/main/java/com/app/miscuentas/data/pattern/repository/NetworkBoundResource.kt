@@ -1,8 +1,7 @@
-package com.app.miscuentas.data.pattern
+package com.app.miscuentas.data.pattern.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -14,7 +13,7 @@ import kotlinx.coroutines.flow.map
 abstract class NetworkBoundResource<ResultType, RequestType> {
 
     fun asFlow() = flow {
-        emit(Resource.Loading<ResultType>())
+        emit(Resource.Loading())
 
         // Primero obtenemos los datos locales
         val localData = loadFromDb().firstOrNull()
@@ -22,7 +21,7 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
         // Si los datos locales no son nulos, emitimos los datos
         if (shouldFetch(localData)) {
             // Si hay datos locales, emitimos esos datos primero
-            localData?.let { emit(Resource.Success(it)) }
+            localData?.let { emit(Resource.Success(it, fromNetwork = false)) }
 
             try {
                 // Hacemos la llamada a la red y guardamos los datos desde la red
@@ -30,11 +29,11 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
                 if (apiResponse != null) {
                     saveNetworkResult(apiResponse)
                     // Después de guardar los datos de la red, cargamos de nuevo desde la base de datos
-                    emitAll(loadFromDb().map { Resource.Success(it) })
+                    emitAll(loadFromDb().map { Resource.Success(it, fromNetwork = true) })
                 }
                 else {
                     // Si la respuesta de la API es null, emitir error
-                    emit(Resource.Success(null))
+                    emit(Resource.Error<ResultType>("No se encontraron datos en la API", null))
                 }
 
             } catch (e: Exception) {
@@ -44,7 +43,7 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
         } else {
             // Si no es necesario hacer fetch, emitimos los datos locales
             if (localData != null) {
-                emit(Resource.Success(localData))
+                emit(Resource.Success(localData, fromNetwork = false))
             } else {
                 emit(Resource.Error<ResultType>("No hay datos locales disponibles", null))
             }
@@ -61,9 +60,10 @@ abstract class NetworkBoundResource<ResultType, RequestType> {
 //Clase para manejar los estados de los datos
 sealed class Resource<T>(
     val data: T? = null,
-    val message: String? = null
+    val message: String? = null,
+    val fromNetwork: Boolean = false
 ) {
-    class Success<T>(data: T) : Resource<T>(data)
-    class Loading<T>(data: T? = null) : Resource<T>(data)
+    class Success<T>(data: T?, fromNetwork: Boolean = false) : Resource<T>(data, fromNetwork = fromNetwork)
     class Error<T>(message: String, data: T? = null) : Resource<T>(data, message)
+    class Loading<T>(data: T? = null) : Resource<T>(data)
 }

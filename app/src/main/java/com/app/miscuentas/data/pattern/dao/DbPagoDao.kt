@@ -29,4 +29,7 @@ interface DbPagoDao {
     @Transaction
     @Delete
     suspend fun deletePago(pago: DbPagoEntity)
+
+    @Query("DELETE FROM t_pagos")
+    suspend fun clearAllPagos()
 }

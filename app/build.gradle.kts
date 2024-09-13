@@ -130,4 +130,7 @@ dependencies {
 
     //Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    //Bcrypt
+    implementation("at.favre.lib:bcrypt:0.9.0")
 }
