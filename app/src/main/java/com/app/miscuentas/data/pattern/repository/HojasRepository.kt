@@ -26,41 +26,57 @@ class HojasRepository(
 
     // Obtener una hoja por ID
     suspend fun getHojaById(token: String, id: Long): HojaDto? {
-        val response = webService.getHojaById(token, id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener hoja: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getHojaById(token, id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener hoja: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Crear una nueva hoja
     suspend fun createHoja(token: String, hojaCrearDto: HojaCrearDto): HojaDto? {
-        val response = webService.createHoja(token, hojaCrearDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al crear hoja: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.createHoja(token, hojaCrearDto)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al crear hoja: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Actualizar una hoja
     suspend fun updateHoja(token: String, hojaDto: HojaDto): HojaDto? {
-        val response = webService.updateHoja(token, hojaDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al actualizar hoja: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.updateHoja(token, hojaDto)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al actualizar hoja: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Eliminar una hoja por ID
     suspend fun deleteHoja(token: String, id: Long): String? {
-        val response = webService.deleteHoja(token, id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al eliminar hoja: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.deleteHoja(token, id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al eliminar hoja: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 }

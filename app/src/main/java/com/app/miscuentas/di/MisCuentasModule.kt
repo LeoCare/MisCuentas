@@ -18,12 +18,6 @@ import com.app.miscuentas.data.pattern.repository.PagosRepository
 import com.app.miscuentas.data.network.PagosService
 import com.app.miscuentas.data.pattern.repository.ParticipantesRepository
 import com.app.miscuentas.data.network.ParticipantesService
-import com.app.miscuentas.data.pattern.repository.TipoBalanceRepository
-import com.app.miscuentas.data.network.TipoBalanceService
-import com.app.miscuentas.data.pattern.repository.TipoPerfilRepository
-import com.app.miscuentas.data.network.TipoPerfilService
-import com.app.miscuentas.data.pattern.repository.TipoStatusRepository
-import com.app.miscuentas.data.network.TipoStatusService
 import com.app.miscuentas.data.pattern.repository.UsuariosRepository
 import com.app.miscuentas.data.network.UsuariosService
 import com.app.miscuentas.data.pattern.dao.DbBalanceDao
@@ -34,7 +28,6 @@ import com.app.miscuentas.data.pattern.dao.DbPagoDao
 import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.pattern.dao.DbUsuarioDao
 import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.GetTipos
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -231,50 +224,5 @@ object MisHojasModule {
     @Singleton
     fun provideImagenesService(fotoDao: DbImagenDao, imagenesRepository: ImagenesRepository): ImagenesService {
         return ImagenesService(fotoDao, imagenesRepository)
-    }
-
-    /** TIPOS DI (PERFILES, BALANCES, STATUS) */
-    @Provides
-    @Singleton
-    fun provideTipoPerfilesService(webService: WebService, tokenAuthenticator: TokenAuthenticator): TipoPerfilService {
-        return TipoPerfilService(webService, tokenAuthenticator)
-    }
-
-    @Provides
-    @Singleton
-    fun provideTipoPerfilesRepository(tipoPerfilesService: TipoPerfilService): TipoPerfilRepository {
-        return TipoPerfilRepository(tipoPerfilesService)
-    }
-
-
-    @Provides
-    @Singleton
-    fun provideTipoBalancesService(webService: WebService, tokenAuthenticator: TokenAuthenticator): TipoBalanceService {
-        return TipoBalanceService(webService, tokenAuthenticator)
-    }
-
-    @Provides
-    @Singleton
-    fun provideTipoBalancesRepository(tipoBalancesService: TipoBalanceService): TipoBalanceRepository {
-        return TipoBalanceRepository(tipoBalancesService)
-    }
-
-
-    @Provides
-    @Singleton
-    fun provideTipoStatusService(webService: WebService, tokenAuthenticator: TokenAuthenticator): TipoStatusService {
-        return TipoStatusService(webService, tokenAuthenticator)
-    }
-
-    @Provides
-    @Singleton
-    fun provideTipoStatusRepository(tipoStatusService: TipoStatusService): TipoStatusRepository {
-        return TipoStatusRepository(tipoStatusService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetTipos(tipoPerfilRepository: TipoPerfilRepository, tipoBalanceRepository: TipoBalanceRepository, tipoStatusRepository: TipoStatusRepository): GetTipos {
-        return GetTipos( tipoPerfilRepository, tipoBalanceRepository, tipoStatusRepository)
     }
 }

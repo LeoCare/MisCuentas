@@ -13,51 +13,71 @@ class BalancesRepository(
 
     // Obtener todos los balances
     suspend fun getBalances(token: String): List<BalanceDto>? {
-        val response = webService.getBalances("Bearer $token")
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener balances: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getBalances("Bearer $token")
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener balances: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Obtener un balance por ID
     suspend fun getBalanceById(token: String, id: Long): BalanceDto? {
-        val response = webService.getBalanceById("Bearer $token", id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener balance: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getBalanceById("Bearer $token", id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener balance: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Crear un nuevo balance
     suspend fun postBalance(token: String, balanceCrearDto: BalanceCrearDto): BalanceDto? {
-        val response = webService.postBalance("Bearer $token", balanceCrearDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al crear balance: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.postBalance("Bearer $token", balanceCrearDto)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al crear balance: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Actualizar un balance
     suspend fun putBalance(token: String, balanceDto: BalanceDto): BalanceDto? {
-        val response = webService.putBalance("Bearer $token", balanceDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al actualizar balance: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.putBalance("Bearer $token", balanceDto)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al actualizar balance: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
     // Eliminar un balance
     suspend fun deleteBalance(token: String, id: Long): String? {
-        val response = webService.deleteBalance("Bearer $token", id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al eliminar balance: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.deleteBalance("Bearer $token", id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al eliminar balance: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 }

@@ -47,65 +47,88 @@ class UsuariosRepository @Inject constructor(
     }
 
     suspend fun postLogin(usuarioLogin: UsuarioLoginDto): UsuarioWithTokenDto? {
-        val response = webService.postLogin(usuarioLogin)
-        if (response.isSuccessful) {
-            val usuarioWithToken = response.body()
+        return try {
+            val response = webService.postLogin(usuarioLogin)
+            if (response.isSuccessful) {
+                val usuarioWithToken = response.body()
 
-            // Guardar el token
-            usuarioWithToken?.let {
-                tokenAuthenticator.saveToken(it.token)
+                // Guardar el token
+                usuarioWithToken?.let {
+                    tokenAuthenticator.saveToken(it.token)
+                }
+
+                usuarioWithToken
+            } else {
+                throw Exception("Error al hacer login: ${response.code()} - ${response.message()}")
             }
-
-            return usuarioWithToken
-        } else {
-            throw Exception("Error al hacer login: ${response.code()} - ${response.message()}")
+        }catch (e: Exception) {
+            null
         }
     }
 
     suspend fun getUsuarios(token: String): List<UsuarioDto>? {
-        val response = webService.getUsuarios("Bearer $token")
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener usuarios: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getUsuarios("Bearer $token")
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener usuarios: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     suspend fun getWhenData(token: String, column: String, query: String): List<UsuarioDto>? {
-        val response = webService.getWhenData("Bearer $token", column, query)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener los datos: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getWhenData("Bearer $token", column, query)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener los datos: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     suspend fun getUsuarioById(token: String, id: Long): UsuarioDto? {
-        val response = webService.getUsuarioById("Bearer $token", id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener usuario por ID: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getUsuarioById("Bearer $token", id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener usuario por ID: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     suspend fun putUsuario(token: String, usuario: UsuarioDto): UsuarioDto? {
-        val response = webService.putUsuario("Bearer $token", usuario)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al actualizar usuario: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.putUsuario("Bearer $token", usuario)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al actualizar usuario: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     suspend fun deleteUsuario(token: String, usuario: UsuarioDeleteDto): String? {
-        val response = webService.deleteUsuario("Bearer $token", usuario)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al eliminar usuario: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.deleteUsuario("Bearer $token", usuario)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al eliminar usuario: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
-
 
 }

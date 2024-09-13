@@ -13,51 +13,71 @@ class ParticipantesRepository(
 
     // Obtener todos los participantes
     suspend fun getAllParticipantes(token: String): List<ParticipanteDto>? {
-        val response = webService.getAllParticipantes(token)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener participantes: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getAllParticipantes(token)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener participantes: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     // Obtener un participante por ID
     suspend fun getParticipanteById(token: String, id: Long): ParticipanteDto? {
-        val response = webService.getParticipanteById(token, id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al obtener participante: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.getParticipanteById(token, id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener participante: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     // Crear un nuevo participante
     suspend fun createParticipante(token: String, participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
-        val response = webService.createParticipante(token, participanteCrearDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al crear participante: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.createParticipante(token, participanteCrearDto)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al crear participante: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     // Actualizar un participante
     suspend fun updateParticipante(token: String, participanteDto: ParticipanteDto): ParticipanteDto? {
-        val response = webService.updateParticipante(token, participanteDto)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al actualizar participante: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.updateParticipante(token, participanteDto)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al actualizar participante: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 
     // Eliminar un participante por ID
     suspend fun deleteParticipante(token: String, id: Long): String? {
-        val response = webService.deleteParticipante(token, id)
-        if (response.isSuccessful) {
-            return response.body()
-        } else {
-            throw Exception("Error al eliminar participante: ${response.code()} - ${response.message()}")
+        return try {
+            val response = webService.deleteParticipante(token, id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al eliminar participante: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
         }
     }
 }
