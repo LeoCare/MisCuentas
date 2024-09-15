@@ -8,6 +8,7 @@ import com.app.miscuentas.data.model.toEntityWithHoja
 import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.pattern.repository.ParticipantesRepository
 import com.app.miscuentas.data.pattern.webservices.WebService
+import com.app.miscuentas.domain.dto.HojaDto
 import com.app.miscuentas.domain.dto.ParticipanteCrearDto
 import com.app.miscuentas.domain.dto.ParticipanteDto
 import kotlinx.coroutines.flow.Flow
@@ -59,27 +60,32 @@ class ParticipantesService(
     /** API **/
     /**********/
     // Obtener todos los participantes
-    suspend fun getAllParticipantes(token: String): List<ParticipanteDto>? {
-        return participantesRepository.getAllParticipantes(token)
+    suspend fun getAllParticipantesApi(): List<ParticipanteDto>? {
+        return participantesRepository.getAllParticipantes()
     }
 
     // Obtener un participante por ID
-    suspend fun getParticipanteById(token: String, id: Long): ParticipanteDto? {
-        return participantesRepository.getParticipanteById(token, id)
+    suspend fun getParticipanteById(id: Long): ParticipanteDto? {
+        return participantesRepository.getParticipanteById(id)
+    }
+
+    // Obtener una hoja segun consulta
+    suspend fun getParticipanteBy(column: String, query: String):  List<ParticipanteDto>? {
+        return participantesRepository.getParticipanteBy(column, query)
     }
 
     // Crear un nuevo participante
-    suspend fun createParticipante(token: String, participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
-        return participantesRepository.createParticipante(token, participanteCrearDto)
+    suspend fun createParticipante(participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
+        return participantesRepository.createParticipante(participanteCrearDto)
     }
 
     // Actualizar un participante
-    suspend fun updateParticipante(token: String, participanteDto: ParticipanteDto): ParticipanteDto? {
-        return participantesRepository.updateParticipante(token, participanteDto)
+    suspend fun updateParticipante(participanteDto: ParticipanteDto): ParticipanteDto? {
+        return participantesRepository.updateParticipante(participanteDto)
     }
 
     // Eliminar un participante por ID
-    suspend fun deleteParticipante(token: String, id: Long): String? {
-        return participantesRepository.deleteParticipante(token, id)
+    suspend fun deleteParticipante(id: Long): String? {
+        return participantesRepository.deleteParticipante(id)
     }
 }

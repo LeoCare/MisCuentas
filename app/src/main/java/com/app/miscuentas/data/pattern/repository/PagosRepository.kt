@@ -12,9 +12,9 @@ class PagosRepository(
 ) {
 
     // Obtener todos los pagos
-    suspend fun getAllPagos(token: String): List<PagoDto>? {
+    suspend fun getAllPagos(): List<PagoDto>? {
         return try {
-            val response = webService.getAllPagos(token)
+            val response = webService.getAllPagos()
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -26,9 +26,23 @@ class PagosRepository(
     }
 
     // Obtener un pago por ID
-    suspend fun getPagoById(token: String, id: Long): PagoDto? {
+    suspend fun getPagoById(id: Long): PagoDto? {
         return try {
-            val response = webService.getPagoById(token, id)
+            val response = webService.getPagoById( id)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener pago: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
+        }
+    }
+
+    // Obtener pagos segun condicion
+    suspend fun getPagosBy(column: String, query: String): List<PagoDto>? {
+        return try {
+            val response = webService.getPagosWhenData(column, query)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -40,9 +54,9 @@ class PagosRepository(
     }
 
     // Crear un nuevo pago
-    suspend fun createPago(token: String, pagoCrearDto: PagoCrearDto): PagoDto? {
+    suspend fun createPago(pagoCrearDto: PagoCrearDto): PagoDto? {
         return try {
-            val response = webService.createPago(token, pagoCrearDto)
+            val response = webService.createPago( pagoCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -54,9 +68,9 @@ class PagosRepository(
     }
 
     // Actualizar un pago
-    suspend fun updatePago(token: String, pagoDto: PagoDto): PagoDto? {
+    suspend fun updatePago(pagoDto: PagoDto): PagoDto? {
         return try {
-            val response = webService.updatePago(token, pagoDto)
+            val response = webService.updatePago( pagoDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -68,9 +82,9 @@ class PagosRepository(
     }
 
     // Eliminar un pago por ID
-    suspend fun deletePago(token: String, id: Long): String? {
+    suspend fun deletePago(id: Long): String? {
         return try {
-            val response = webService.deletePago(token, id)
+            val response = webService.deletePago( id)
             if (response.isSuccessful) {
                 response.body()
             } else {

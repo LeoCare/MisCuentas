@@ -78,27 +78,32 @@ class HojasService(
     /** API **/
     /**********/
     // Obtener todas las hojas
-    suspend fun getAllHojas(token: String): List<HojaDto>? {
-        return hojasRepository.getAllHojas(token)
+    suspend fun getAllHojas(): List<HojaDto>? {
+        return hojasRepository.getAllHojas()
     }
 
     // Obtener una hoja por ID
-    suspend fun getHojaById(token: String, id: Long): HojaDto? {
-        return hojasRepository.getHojaById(token, id)
+    suspend fun getHojaById(id: Long): HojaDto? {
+        return hojasRepository.getHojaById(id)
+    }
+
+    // Obtener una hoja segun consulta
+    suspend fun getHojaBy(column: String, query: String):  List<HojaDto>? {
+        return hojasRepository.getHojaBy(column, query)
     }
 
     // Crear una nueva hoja
-    suspend fun createHoja(token: String, hojaCrearDto: HojaCrearDto): HojaDto? {
-        return hojasRepository.createHoja(token, hojaCrearDto)
+    suspend fun createHoja(hojaCrearDto: HojaCrearDto): HojaDto? {
+        return hojasRepository.createHoja(hojaCrearDto)
     }
 
     // Actualizar una hoja
-    suspend fun updateHoja(token: String, hojaDto: HojaDto): HojaDto? {
-        return hojasRepository.updateHoja(token, hojaDto)
+    suspend fun updateHoja(hojaDto: HojaDto): HojaDto? {
+        return hojasRepository.updateHoja(hojaDto)
     }
 
     // Eliminar una hoja por ID
-    suspend fun deleteHoja(token: String, id: Long): String? {
-        return hojasRepository.deleteHoja(token, id)
+    suspend fun deleteHoja(id: Long): String? {
+        return hojasRepository.deleteHoja(id)
     }
 }

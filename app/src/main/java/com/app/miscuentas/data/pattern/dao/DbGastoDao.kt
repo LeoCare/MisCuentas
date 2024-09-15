@@ -8,13 +8,14 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
 
 @Dao
 interface DbGastoDao {
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAllGastos( gasto: DbGastosEntity): Long
+    suspend fun insertAllGastos( gastos: List<DbGastosEntity>)
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)

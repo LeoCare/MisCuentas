@@ -14,7 +14,7 @@ class BalancesRepository(
     // Obtener todos los balances
     suspend fun getBalances(token: String): List<BalanceDto>? {
         return try {
-            val response = webService.getBalances("Bearer $token")
+            val response = webService.getBalances()
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -28,7 +28,7 @@ class BalancesRepository(
     // Obtener un balance por ID
     suspend fun getBalanceById(token: String, id: Long): BalanceDto? {
         return try {
-            val response = webService.getBalanceById("Bearer $token", id)
+            val response = webService.getBalanceById(id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -42,7 +42,7 @@ class BalancesRepository(
     // Crear un nuevo balance
     suspend fun postBalance(token: String, balanceCrearDto: BalanceCrearDto): BalanceDto? {
         return try {
-            val response = webService.postBalance("Bearer $token", balanceCrearDto)
+            val response = webService.postBalance(balanceCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -56,7 +56,7 @@ class BalancesRepository(
     // Actualizar un balance
     suspend fun putBalance(token: String, balanceDto: BalanceDto): BalanceDto? {
         return try {
-            val response = webService.putBalance("Bearer $token", balanceDto)
+            val response = webService.putBalance(balanceDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -70,7 +70,7 @@ class BalancesRepository(
     // Eliminar un balance
     suspend fun deleteBalance(token: String, id: Long): String? {
         return try {
-            val response = webService.deleteBalance("Bearer $token", id)
+            val response = webService.deleteBalance(id)
             if (response.isSuccessful) {
                 response.body()
             } else {

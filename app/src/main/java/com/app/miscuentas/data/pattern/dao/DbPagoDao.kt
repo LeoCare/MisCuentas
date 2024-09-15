@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 
 @Dao
@@ -14,6 +15,10 @@ interface DbPagoDao {
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPago(pago: DbPagoEntity): Long
+
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllPagos( pagos: List<DbPagoEntity>)
 
     @Transaction
     @Query("SELECT * FROM t_pagos WHERE idBalance = :idDeuda")

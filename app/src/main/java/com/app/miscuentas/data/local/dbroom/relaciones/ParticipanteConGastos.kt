@@ -8,7 +8,8 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 
 data class ParticipanteConGastos(
-    @Embedded val participante: DbParticipantesEntity,
+    @Embedded
+    val participante: DbParticipantesEntity,
     @Relation(
         entity = DbGastosEntity::class,
         parentColumn = "idParticipante", //id de DbParticipantesEntity

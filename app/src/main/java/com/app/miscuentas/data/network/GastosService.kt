@@ -26,6 +26,11 @@ class GastosService(
         gastoDao.insertaGasto(gasto)
     }
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllGastos(gastos: List<DbGastosEntity>) {
+        gastoDao.insertAllGastos(gastos)
+    }
+
     @Update
     suspend fun update(gasto: Gasto, idParticipante: Long) { gastoDao.update(gasto.toEntity(idParticipante))}
 
@@ -42,27 +47,32 @@ class GastosService(
     /** API **/
     /**********/
     // Obtener todos los gastos
-    suspend fun getAllGastos(token: String): List<GastoDto>? {
-        return gastosRepository.getAllGastos(token)
+    suspend fun getAllGastos(): List<GastoDto>? {
+        return gastosRepository.getAllGastos()
     }
 
     // Obtener un gasto por ID
-    suspend fun getGastoById(token: String, id: Long): GastoDto? {
-        return gastosRepository.getGastoById(token, id)
+    suspend fun getGastoById(id: Long): GastoDto? {
+        return gastosRepository.getGastoById(id)
+    }
+
+    // Obtener un gasto por ID
+    suspend fun getGastoBy(column: String, query: String): List<GastoDto>? {
+        return gastosRepository.getGastoBy(column, query)
     }
 
     // Crear un nuevo gasto
-    suspend fun createGasto(token: String, gastoCrearDto: GastoCrearDto): GastoDto? {
-        return gastosRepository.createGasto(token, gastoCrearDto)
+    suspend fun createGasto( gastoCrearDto: GastoCrearDto): GastoDto? {
+        return gastosRepository.createGasto(gastoCrearDto)
     }
 
     // Actualizar un gasto
-    suspend fun updateGasto(token: String, gastoDto: GastoDto): GastoDto? {
-        return gastosRepository.updateGasto(token, gastoDto)
+    suspend fun updateGasto(gastoDto: GastoDto): GastoDto? {
+        return gastosRepository.updateGasto(gastoDto)
     }
 
     // Eliminar un gasto por ID
-    suspend fun deleteGasto(token: String, id: Long): String? {
-        return gastosRepository.deleteGasto(token, id)
+    suspend fun deleteGasto(id: Long): String? {
+        return gastosRepository.deleteGasto(id)
     }
 }

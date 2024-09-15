@@ -87,28 +87,28 @@ class UsuariosService (
     }
 
     // Obtener la lista de todos los usuarios (API)
-    suspend fun getUsuariosApi(token: String): List<UsuarioDto>? {
-        return usuariosRepository.getUsuarios(token)
+    suspend fun getUsuariosApi(): List<UsuarioDto>? {
+        return usuariosRepository.getUsuarios()
     }
 
     // Obtener usuarios filtrados por una columna específica (API)
-    suspend fun getWhenDataApi(token: String, column: String, query: String): List<UsuarioDto>? {
-        return usuariosRepository.getWhenData(token, column, query)
+    suspend fun getUsuarioWhenDataApi(column: String, query: String): List<UsuarioDto>? {
+        return usuariosRepository.getUsuarioWhenData(column, query)
     }
 
     // Obtener un usuario por ID (API)
-    suspend fun getUsuarioByIdApi(token: String, id: Long): UsuarioDto? {
-        return usuariosRepository.getUsuarioById(token, id)
+    suspend fun getUsuarioByIdApi(id: Long): UsuarioDto? {
+        return usuariosRepository.getUsuarioById(id)
     }
 
     // Actualizar un usuario (API)
-    suspend fun putUsuarioApi(token: String, usuarioDto: UsuarioDto): UsuarioDto? {
-        return usuariosRepository.putUsuario(token, usuarioDto)
+    suspend fun putUsuarioApi(usuarioDto: UsuarioDto): UsuarioDto? {
+        return usuariosRepository.putUsuario(usuarioDto)
     }
 
     // Eliminar un usuario (API)
-    suspend fun deleteUsuarioApi(token: String, usuarioDeleteDto: UsuarioDeleteDto): String? {
-        return usuariosRepository.deleteUsuario(token, usuarioDeleteDto)
+    suspend fun deleteUsuarioApi(usuarioDeleteDto: UsuarioDeleteDto): String? {
+        return usuariosRepository.deleteUsuario(usuarioDeleteDto)
     }
 
     /**********/
@@ -176,7 +176,7 @@ class UsuariosService (
             // Guardar el resultado de la red en la base de datos
             override suspend fun saveNetworkResult(item: UsuarioWithTokenDto) {
                 // Guardar el usuario en Room
-                usuarioDao.cleanInsert(item.usuario.toEntity())
+                  usuarioDao.cleanInsert(item.usuario.toEntity())
             }
 
             // Decidir si debemos realizar la llamada a la API (fetch)
@@ -192,14 +192,14 @@ class UsuariosService (
     }
 
 
-    fun getUsuarioById(token: String, id: Long): Flow<Resource<out UsuarioDto?>> {
+    fun getUsuarioById(id: Long): Flow<Resource<out UsuarioDto?>> {
         return object : NetworkBoundResource<UsuarioDto, UsuarioDto>() {
             override fun loadFromDb(): Flow<UsuarioDto> {
                 return usuarioDao.getUsuarioWhereId(id).map { it.toDto() }
             }
 
             override suspend fun fetchFromNetwork(): UsuarioDto? {
-                return usuariosRepository.getUsuarioById(token, id)
+                return usuariosRepository.getUsuarioById(id)
             }
 
             override suspend fun saveNetworkResult(item: UsuarioDto) {
@@ -213,14 +213,14 @@ class UsuariosService (
         }.asFlow()
     }
 
-    fun getUsuarios(token: String): Flow<Resource<out List<UsuarioDto>?>> {
+    fun getUsuarios(): Flow<Resource<out List<UsuarioDto>?>> {
         return object : NetworkBoundResource<List<UsuarioDto>, List<UsuarioDto>>() {
             override fun loadFromDb(): Flow<List<UsuarioDto>> {
                 return usuarioDao.getAll().map { it.map { dbUsuario -> dbUsuario.toDto() } }
             }
 
             override suspend fun fetchFromNetwork(): List<UsuarioDto>? {
-                return usuariosRepository.getUsuarios(token)
+                return usuariosRepository.getUsuarios()
             }
 
             override suspend fun saveNetworkResult(item: List<UsuarioDto> ) {

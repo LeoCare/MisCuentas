@@ -24,6 +24,7 @@ import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -54,14 +55,11 @@ interface WebService {
 
     //Lista de Usuarios:
     @GET("usuarios")
-    suspend fun getUsuarios(
-        @Header("Authorization") token: String
-    ): Response<List<UsuarioDto>>
+    suspend fun getUsuarios(): Response<List<UsuarioDto>>
 
     //Obtener un dato en concreto:
     @GET("usuarios/WhenData")
-    suspend fun getWhenData(
-        @Header("Authorization") token: String,
+    suspend fun getUsuarioWhenData(
         @Query("c") column: String,
         @Query("q") query: String
     ): Response<List<UsuarioDto>>
@@ -69,21 +67,18 @@ interface WebService {
     //Datos de un usuario segun id:
     @GET("usuarios/{id}")
     suspend fun getUsuarioById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<UsuarioDto>
 
     //Actualizar usuario:
     @PUT("usuarios")
     suspend fun putUsuario(
-        @Header("Authorization") token: String,
         @Body usuario: UsuarioDto
     ): Response<UsuarioDto>
 
     //Eliminar usuario:
     @DELETE("usuarios")
     suspend fun deleteUsuario(
-        @Header("Authorization") token: String,
         @Body usuario: UsuarioDeleteDto
     ): Response<String>
     /************************/
@@ -92,35 +87,29 @@ interface WebService {
     /** SERVICIOS DE BALANCES **/
     // Obtener todos los balances
     @GET("balances")
-    suspend fun getBalances(
-        @Header("Authorization") token: String
-    ): Response<List<BalanceDto>>
+    suspend fun getBalances(): Response<List<BalanceDto>>
 
     // Obtener un balance por ID
     @GET("balances/{id}")
     suspend fun getBalanceById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<BalanceDto>
 
     // Crear un nuevo balance
     @POST("balances")
     suspend fun postBalance(
-        @Header("Authorization") token: String,
         @Body balanceCrearDto: BalanceCrearDto
     ): Response<BalanceDto>
 
     // Actualizar un balance existente
     @PUT("balances")
     suspend fun putBalance(
-        @Header("Authorization") token: String,
         @Body balanceDto: BalanceDto
     ): Response<BalanceDto>
 
     // Eliminar un balance por ID
     @DELETE("balances/{id}")
     suspend fun deleteBalance(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<String>
     /************************/
@@ -129,35 +118,36 @@ interface WebService {
     /** SERVICIOS DE PAGOS **/
     // Obtener todos los pagos
     @GET("pagos")
-    suspend fun getAllPagos(
-        @Header("Authorization") token: String
-    ): Response<List<PagoDto>>
+    suspend fun getAllPagos(): Response<List<PagoDto>>
 
     // Obtener un pago por ID
     @GET("pagos/{id}")
     suspend fun getPagoById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<PagoDto>
+
+    //Obtener un dato en concreto:
+    @GET("pagos/WhenData")
+    suspend fun getPagosWhenData(
+        @Query("c") column: String,
+        @Query("q") query: String
+    ): Response<List<PagoDto>>
 
     // Crear un nuevo pago
     @POST("pagos")
     suspend fun createPago(
-        @Header("Authorization") token: String,
         @Body pagoCrearDto: PagoCrearDto
     ): Response<PagoDto>
 
     // Actualizar un pago existente
     @PUT("pagos")
     suspend fun updatePago(
-        @Header("Authorization") token: String,
         @Body pagoDto: PagoDto
     ): Response<PagoDto>
 
     // Eliminar un pago por ID
     @DELETE("pagos/{id}")
     suspend fun deletePago(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<String>
     /************************/
@@ -166,35 +156,36 @@ interface WebService {
     /** SERVICIOS DE GASTOS **/
     // Obtener todos los gastos
     @GET("gastos")
-    suspend fun getAllGastos(
-        @Header("Authorization") token: String
-    ): Response<List<GastoDto>>
+    suspend fun getAllGastos(): Response<List<GastoDto>>
 
     // Obtener un gasto por ID
     @GET("gastos/{id}")
     suspend fun getGastoById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<GastoDto>
+
+    //Obtener un dato en concreto:
+    @GET("gastos/WhenData")
+    suspend fun getGastosWhenData(
+        @Query("c") column: String,
+        @Query("q") query: String
+    ): Response<List<GastoDto>>
 
     // Crear un nuevo gasto
     @POST("gastos")
     suspend fun createGasto(
-        @Header("Authorization") token: String,
         @Body gastoCrearDto: GastoCrearDto
     ): Response<GastoDto>
 
     // Actualizar un gasto existente
     @PUT("gastos")
     suspend fun updateGasto(
-        @Header("Authorization") token: String,
         @Body gastoDto: GastoDto
     ): Response<GastoDto>
 
     // Eliminar un gasto por ID
     @DELETE("gastos/{id}")
     suspend fun deleteGasto(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<String>
     /************************/
@@ -202,35 +193,36 @@ interface WebService {
     /** SERVICIOS DE PARTICIPANTES **/
     // Obtener todos los participantes
     @GET("participantes")
-    suspend fun getAllParticipantes(
-        @Header("Authorization") token: String
-    ): Response<List<ParticipanteDto>>
+    suspend fun getAllParticipantes(): Response<List<ParticipanteDto>>
 
     // Obtener un participante por ID
     @GET("participantes/{id}")
     suspend fun getParticipanteById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<ParticipanteDto>
+
+    //Obtener un dato en concreto:
+    @GET("participantes/WhenData")
+    suspend fun getParticipanteWhenData(
+        @Query("c") column: String,
+        @Query("q") query: String
+    ): Response<List<ParticipanteDto>>
 
     // Crear un nuevo participante
     @POST("participantes")
     suspend fun createParticipante(
-        @Header("Authorization") token: String,
         @Body participanteCrearDto: ParticipanteCrearDto
     ): Response<ParticipanteDto>
 
     // Actualizar un participante
     @PUT("participantes")
     suspend fun updateParticipante(
-        @Header("Authorization") token: String,
         @Body participanteDto: ParticipanteDto
     ): Response<ParticipanteDto>
 
     // Eliminar un participante por ID
     @DELETE("participantes/{id}")
     suspend fun deleteParticipante(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<String>
     /************************/
@@ -238,35 +230,36 @@ interface WebService {
     /** SERVICIOS DE HOJAS **/
     // Obtener todas las hojas
     @GET("hojas")
-    suspend fun getAllHojas(
-        @Header("Authorization") token: String
-    ): Response<List<HojaDto>>
+    suspend fun getAllHojas( ): Response<List<HojaDto>>
 
     // Obtener una hoja por ID
     @GET("hojas/{id}")
     suspend fun getHojaById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<HojaDto>
+
+    //Obtener un dato en concreto:
+    @GET("hojas/WhenData")
+    suspend fun getHojasWhenData(
+        @Query("c") column: String,
+        @Query("q") query: String
+    ): Response<List<HojaDto>>
 
     // Crear una nueva hoja
     @POST("hojas")
     suspend fun createHoja(
-        @Header("Authorization") token: String,
         @Body hojaCrearDto: HojaCrearDto
     ): Response<HojaDto>
 
     // Actualizar una hoja
     @PUT("hojas")
     suspend fun updateHoja(
-        @Header("Authorization") token: String,
         @Body hojaDto: HojaDto
     ): Response<HojaDto>
 
     // Eliminar una hoja por ID
     @DELETE("hojas/{id}")
     suspend fun deleteHoja(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<String>
     /************************/
@@ -274,35 +267,29 @@ interface WebService {
     /** SERVICIOS DE IMAGENES **/
     // Obtener todas las imágenes
     @GET("imagenes")
-    suspend fun getAllImagenes(
-        @Header("Authorization") token: String
-    ): Response<List<ImagenDto>>
+    suspend fun getAllImagenes(): Response<List<ImagenDto>>
 
     // Obtener una imagen por ID
     @GET("imagenes/{id}")
     suspend fun getImagenById(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<ImagenDto>
 
     // Crear una nueva imagen
     @POST("imagenes")
     suspend fun createImagen(
-        @Header("Authorization") token: String,
         @Body imagenCrearDto: ImagenCrearDto
     ): Response<ImagenDto>
 
     // Actualizar una imagen
     @PUT("imagenes")
     suspend fun updateImagen(
-        @Header("Authorization") token: String,
         @Body imagenDto: ImagenDto
     ): Response<ImagenDto>
 
     // Eliminar una imagen por ID
     @DELETE("imagenes/{id}")
     suspend fun deleteImagen(
-        @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<String>
     /************************/
@@ -310,19 +297,13 @@ interface WebService {
     /** SERVICIOS DE LOS TIPOS **/
     // Obtener todos los tipos de perfil
     @GET("tipos/perfil")
-    suspend fun getAllTipoPerfil(
-        @Header("Authorization") token: String
-    ): Response<List<TipoPerfilDto>>
+    suspend fun getAllTipoPerfil(): Response<List<TipoPerfilDto>>
 
     // Obtener todos los tipos de balance
     @GET("tipos/balance")
-    suspend fun getAllTipoBalance(
-        @Header("Authorization") token: String
-    ): Response<List<TipoBalanceDto>>
+    suspend fun getAllTipoBalance(): Response<List<TipoBalanceDto>>
 
     // Obtener todos los tipos de status
     @GET("tipos/status")
-    suspend fun getAllTipoStatus(
-        @Header("Authorization") token: String
-    ): Response<List<TipoStatusDto>>
+    suspend fun getAllTipoStatus(): Response<List<TipoStatusDto>>
 }

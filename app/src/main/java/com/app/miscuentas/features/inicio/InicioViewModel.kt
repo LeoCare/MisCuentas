@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.domain.dto.UsuarioDto
 import com.app.miscuentas.util.Validaciones
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,6 @@ class InicioViewModel @Inject constructor(
     private val hojasService: HojasService
 ) : ViewModel()
 {
-
     private val _inicioState = MutableStateFlow(InicioState())
     val inicioState: StateFlow<InicioState> = _inicioState
 
@@ -54,6 +54,7 @@ class InicioViewModel @Inject constructor(
     fun onRegistroPreferenceChanged(logeado: String){
         viewModelScope.launch {
             dataStoreConfig.putRegistroPreference(logeado)
+            dataStoreConfig.clearTokenPreference()
         }
     }
 

@@ -1,6 +1,7 @@
 package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
+
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.domain.dto.HojaCrearDto
@@ -11,23 +12,30 @@ class HojasRepository(
     private val tokenAuthenticator: TokenAuthenticator
 ) {
     // Obtener todas las hojas
-    suspend fun getAllHojas(token: String): List<HojaDto>? {
+    suspend fun getAllHojas(): List<HojaDto>? {
         return try {
-            val response = webService.getAllHojas(token)
+            val response = webService.getAllHojas()
             if (response.isSuccessful) {
                 response.body()
-            } else {
+            }
+            else {
                 throw Exception("Error al obtener hojas: ${response.code()} - ${response.message()}")
             }
+//        } catch (e: TokenExpiredException) {
+//            // Redirige al usuario a la pantalla de inicio de sesión
+//            // O muestra un mensaje de error, etc.
+//
+//            null
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
 
     // Obtener una hoja por ID
-    suspend fun getHojaById(token: String, id: Long): HojaDto? {
+    suspend fun getHojaById(id: Long): HojaDto? {
         return try {
-            val response = webService.getHojaById(token, id)
+            val response = webService.getHojaById(id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -38,10 +46,24 @@ class HojasRepository(
         }
     }
 
-    // Crear una nueva hoja
-    suspend fun createHoja(token: String, hojaCrearDto: HojaCrearDto): HojaDto? {
+    // Obtener una lista de hojas segun consulta
+    suspend fun getHojaBy(column: String, query: String): List<HojaDto>? {
         return try {
-            val response = webService.createHoja(token, hojaCrearDto)
+            val response = webService.getHojasWhenData(column, query)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener lista de hojas: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Crear una nueva hoja
+    suspend fun createHoja(hojaCrearDto: HojaCrearDto): HojaDto? {
+        return try {
+            val response = webService.createHoja(hojaCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -53,9 +75,9 @@ class HojasRepository(
     }
 
     // Actualizar una hoja
-    suspend fun updateHoja(token: String, hojaDto: HojaDto): HojaDto? {
+    suspend fun updateHoja(hojaDto: HojaDto): HojaDto? {
         return try {
-            val response = webService.updateHoja(token, hojaDto)
+            val response = webService.updateHoja(hojaDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -67,9 +89,9 @@ class HojasRepository(
     }
 
     // Eliminar una hoja por ID
-    suspend fun deleteHoja(token: String, id: Long): String? {
+    suspend fun deleteHoja(id: Long): String? {
         return try {
-            val response = webService.deleteHoja(token, id)
+            val response = webService.deleteHoja(id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -79,4 +101,5 @@ class HojasRepository(
             null
         }
     }
+
 }

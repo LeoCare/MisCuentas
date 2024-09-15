@@ -1,6 +1,7 @@
 package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.domain.dto.ParticipanteDto
 
 data class Participante(
     var idParticipante: Long = 0,
@@ -28,3 +29,17 @@ fun Participante.toEntityWithUsuario(idUsuarioParti: Long) = DbParticipantesEnti
     correo = correo,
     idUsuarioParti = idUsuarioParti
 )
+
+fun ParticipanteDto.toEntity() = DbParticipantesEntity(
+    idParticipante = idParticipante,
+    nombre = nombre,
+    correo = correo,
+    idUsuarioParti = idUsuario,
+    idHojaParti = idHoja
+)
+
+fun List<ParticipanteDto>.toEntityList(): List<DbParticipantesEntity> {
+    return this.map { participanteDto ->
+        participanteDto.toEntity()
+    }
+}

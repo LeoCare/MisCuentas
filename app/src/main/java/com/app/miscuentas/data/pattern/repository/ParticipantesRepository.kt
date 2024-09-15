@@ -12,9 +12,9 @@ class ParticipantesRepository(
 ) {
 
     // Obtener todos los participantes
-    suspend fun getAllParticipantes(token: String): List<ParticipanteDto>? {
+    suspend fun getAllParticipantes(): List<ParticipanteDto>? {
         return try {
-            val response = webService.getAllParticipantes(token)
+            val response = webService.getAllParticipantes()
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -26,9 +26,9 @@ class ParticipantesRepository(
     }
 
     // Obtener un participante por ID
-    suspend fun getParticipanteById(token: String, id: Long): ParticipanteDto? {
+    suspend fun getParticipanteById(id: Long): ParticipanteDto? {
         return try {
-            val response = webService.getParticipanteById(token, id)
+            val response = webService.getParticipanteById( id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -39,10 +39,24 @@ class ParticipantesRepository(
         }
     }
 
-    // Crear un nuevo participante
-    suspend fun createParticipante(token: String, participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
+    // Obtener participantes segun coincidan con la consulta
+    suspend fun getParticipanteBy(column: String, query: String): List<ParticipanteDto>? {
         return try {
-            val response = webService.createParticipante(token, participanteCrearDto)
+            val response = webService.getParticipanteWhenData(column, query)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener participantes: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
+        }
+    }
+
+    // Crear un nuevo participante
+    suspend fun createParticipante(participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
+        return try {
+            val response = webService.createParticipante( participanteCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -54,9 +68,9 @@ class ParticipantesRepository(
     }
 
     // Actualizar un participante
-    suspend fun updateParticipante(token: String, participanteDto: ParticipanteDto): ParticipanteDto? {
+    suspend fun updateParticipante(participanteDto: ParticipanteDto): ParticipanteDto? {
         return try {
-            val response = webService.updateParticipante(token, participanteDto)
+            val response = webService.updateParticipante( participanteDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -68,9 +82,9 @@ class ParticipantesRepository(
     }
 
     // Eliminar un participante por ID
-    suspend fun deleteParticipante(token: String, id: Long): String? {
+    suspend fun deleteParticipante(id: Long): String? {
         return try {
-            val response = webService.deleteParticipante(token, id)
+            val response = webService.deleteParticipante( id)
             if (response.isSuccessful) {
                 response.body()
             } else {

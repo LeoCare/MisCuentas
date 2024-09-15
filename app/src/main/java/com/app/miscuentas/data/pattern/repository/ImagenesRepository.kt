@@ -14,7 +14,7 @@ class ImagenesRepository(
     // Obtener todas las imágenes
     suspend fun getAllImagenes(token: String): List<ImagenDto>? {
         return try {
-            val response = webService.getAllImagenes(token)
+            val response = webService.getAllImagenes()
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -28,7 +28,7 @@ class ImagenesRepository(
     // Obtener una imagen por ID
     suspend fun getImagenById(token: String, id: Long): ImagenDto? {
         return try {
-            val response = webService.getImagenById(token, id)
+            val response = webService.getImagenById( id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -42,7 +42,7 @@ class ImagenesRepository(
     // Crear una nueva imagen
     suspend fun createImagen(token: String, imagenCrearDto: ImagenCrearDto): ImagenDto? {
         return try {
-            val response = webService.createImagen(token, imagenCrearDto)
+            val response = webService.createImagen( imagenCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -56,7 +56,7 @@ class ImagenesRepository(
     // Actualizar una imagen
     suspend fun updateImagen(token: String, imagenDto: ImagenDto): ImagenDto? {
         return try {
-            val response = webService.updateImagen(token, imagenDto)
+            val response = webService.updateImagen( imagenDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -70,7 +70,7 @@ class ImagenesRepository(
     // Eliminar una imagen por ID
     suspend fun deleteImagen(token: String, id: Long): String? {
         return try {
-            val response = webService.deleteImagen(token, id)
+            val response = webService.deleteImagen( id)
             if (response.isSuccessful) {
                 response.body()
             } else {

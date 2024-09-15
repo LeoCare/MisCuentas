@@ -66,9 +66,9 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
-    suspend fun getUsuarios(token: String): List<UsuarioDto>? {
+    suspend fun getUsuarios(): List<UsuarioDto>? {
         return try {
-            val response = webService.getUsuarios("Bearer $token")
+            val response = webService.getUsuarios()
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -79,9 +79,9 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
-    suspend fun getWhenData(token: String, column: String, query: String): List<UsuarioDto>? {
+    suspend fun getUsuarioWhenData(column: String, query: String): List<UsuarioDto>? {
         return try {
-            val response = webService.getWhenData("Bearer $token", column, query)
+            val response = webService.getUsuarioWhenData(column, query)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -92,9 +92,9 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
-    suspend fun getUsuarioById(token: String, id: Long): UsuarioDto? {
+    suspend fun getUsuarioById(id: Long): UsuarioDto? {
         return try {
-            val response = webService.getUsuarioById("Bearer $token", id)
+            val response = webService.getUsuarioById( id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -105,9 +105,9 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
-    suspend fun putUsuario(token: String, usuario: UsuarioDto): UsuarioDto? {
+    suspend fun putUsuario(usuario: UsuarioDto): UsuarioDto? {
         return try {
-            val response = webService.putUsuario("Bearer $token", usuario)
+            val response = webService.putUsuario(usuario)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -118,9 +118,9 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
-    suspend fun deleteUsuario(token: String, usuario: UsuarioDeleteDto): String? {
+    suspend fun deleteUsuario(usuario: UsuarioDeleteDto): String? {
         return try {
-            val response = webService.deleteUsuario("Bearer $token", usuario)
+            val response = webService.deleteUsuario(usuario)
             if (response.isSuccessful) {
                 response.body()
             } else {

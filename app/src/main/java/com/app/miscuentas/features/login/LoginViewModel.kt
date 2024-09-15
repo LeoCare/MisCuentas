@@ -8,9 +8,11 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.model.Participante
 import com.app.miscuentas.data.model.Usuario
 import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.model.toEntityList
 import com.app.miscuentas.data.network.BalancesService
 import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.data.network.PagosService
 import com.app.miscuentas.data.network.ParticipantesService
 import com.app.miscuentas.data.network.UsuariosService
 import com.app.miscuentas.data.pattern.repository.Resource
@@ -31,7 +33,7 @@ class LoginViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig,  // DATASTORE
     private val usuariosService: UsuariosService,
     private val participantesService: ParticipantesService,
-    private val pagosService: ParticipantesService,
+    private val pagosService: PagosService,
     private val gastosService: GastosService,
     private val hojasService: HojasService,
     private val balancesService: BalancesService
@@ -95,8 +97,8 @@ class LoginViewModel @Inject constructor(
                                  //VOLCAMOS TODOS LOS DATOS PERTENECIENTES A ESE USUARIO:
                                  // Si el login fue exitoso desde la API, limpia y vuelca datos
                                  if (resource.fromNetwork) {  // Solo si viene de la API
-                                     limpiarYVolcarLogin(usuario)
-                                 }
+                                      limpiarYVolcarLogin(usuario)
+                                }
                                  onIsLoadingOkChanged( false)
                                  //Esto permitira la navegacion:
                                  onRegistroDataStoreChanged(usuario.idUsuario, usuario.nombre) //si existe, actualiza el dataStore con el nombre
@@ -116,22 +118,27 @@ class LoginViewModel @Inject constructor(
 
     //Solo si el login es exitoso desde la API y no desde ROOM:
     suspend fun limpiarYVolcarLogin(usuario: UsuarioDto){
-        val token = dataStoreConfig.getTokenPreference()
-        val idRegistrado = usuario.idUsuario
 
-        // Obtener datos desde la API y guardarlos en Room
-        val hojas = token?.let { hojasService.getAllHojas(it) }?.filter { it.idUsuario == idRegistrado }
-//        val participantes = participantesService.getParticipantes(usuarioId)
-//        val pagos = apiService.getPagos(usuarioId)
-//        val gastos = apiService.getGastos(usuarioId)
+        // Obtener mis hojas y sus participantes.
+        //hojas:
+        val hojas = hojasService.getHojaBy("id_usuario", usuario.idUsuario.toString())
+        hojas?.forEach { hoja ->
+            //participantes:
+            val participantes = participantesService.getParticipanteBy("id_hoja", hoja.idHoja.toString())
+            if (participantes != null) {
+                hojasService.insertHojaConParticipantes(hoja.toEntity(), participantes.toEntityList())
 
+                participantes.forEach{ participante ->
+                    //gastos:
+                    val gastos = gastosService.getGastoBy("id_participante", participante.idParticipante.toString())
+                    if(gastos != null) gastosService.insertAllGastos(gastos.toEntityList())
+                    //pagos:
+                    val pagos = pagosService.getPagosBy("id_participante", participante.idParticipante.toString())
+                    if(pagos != null) pagosService.insertAllPagos(pagos.toEntityList())
+                }
 
-//        // Limpia e Insertar los datos en Room
-        hojas?.forEach { hojasService.insertHojaCalculo(it.toEntity()) }
-//        usuarioDao.insert(participantes.map { it.toEntity() })
-//        pagosDao.insert(pagos.map { it.toEntity() })
-//        gastosDao.insert(gastos.map { it.toEntity() })
-
+            }
+        }
     }
 
     /** Actualiza datastore con los datos de login (LOGIN) **/
@@ -188,7 +195,7 @@ class LoginViewModel @Inject constructor(
         val correo = _loginState.value.email
         val contrasenna = _loginState.value.contrasenna
         val perfil = "USER"
-        var idRegistro: Long = 0
+        val idRegistro: Long
 
         //Insert en API
         val usuarioApiOk = insertRegistroApi(contrasenna, correo, nombre, perfil)

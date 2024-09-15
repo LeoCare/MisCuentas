@@ -12,9 +12,9 @@ class GastosRepository(
 ) {
 
     // Obtener todos los gastos
-    suspend fun getAllGastos(token: String): List<GastoDto>? {
+    suspend fun getAllGastos(): List<GastoDto>? {
         return try {
-            val response = webService.getAllGastos(token)
+            val response = webService.getAllGastos()
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -26,9 +26,9 @@ class GastosRepository(
     }
 
     // Obtener un gasto por ID
-    suspend fun getGastoById(token: String, id: Long): GastoDto? {
+    suspend fun getGastoById(id: Long): GastoDto? {
         return try {
-            val response = webService.getGastoById(token, id)
+            val response = webService.getGastoById(id)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -39,10 +39,24 @@ class GastosRepository(
         }
     }
 
-    // Crear un nuevo gasto
-    suspend fun createGasto(token: String, gastoCrearDto: GastoCrearDto): GastoDto? {
+    // Obtener todos los gastos
+    suspend fun getGastoBy(column: String, query: String): List<GastoDto>? {
         return try {
-            val response = webService.createGasto(token, gastoCrearDto)
+            val response = webService.getGastosWhenData(column, query)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener gastos: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Crear un nuevo gasto
+    suspend fun createGasto(gastoCrearDto: GastoCrearDto): GastoDto? {
+        return try {
+            val response = webService.createGasto(gastoCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -54,9 +68,9 @@ class GastosRepository(
     }
 
     // Actualizar un gasto
-    suspend fun updateGasto(token: String, gastoDto: GastoDto): GastoDto? {
+    suspend fun updateGasto(gastoDto: GastoDto): GastoDto? {
         return try {
-            val response = webService.updateGasto(token, gastoDto)
+            val response = webService.updateGasto( gastoDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
@@ -68,9 +82,9 @@ class GastosRepository(
     }
 
     // Eliminar un gasto por ID
-    suspend fun deleteGasto(token: String, id: Long): String? {
+    suspend fun deleteGasto(id: Long): String? {
         return try {
-            val response = webService.deleteGasto(token, id)
+            val response = webService.deleteGasto( id)
             if (response.isSuccessful) {
                 response.body()
             } else {
