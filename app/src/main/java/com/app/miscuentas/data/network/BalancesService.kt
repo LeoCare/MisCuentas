@@ -9,6 +9,7 @@ import com.app.miscuentas.data.pattern.dao.DbBalanceDao
 import com.app.miscuentas.data.pattern.repository.BalancesRepository
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
+import com.app.miscuentas.domain.dto.ParticipanteDto
 
 class BalancesService(
     private val balanceDao: DbBalanceDao,
@@ -64,6 +65,11 @@ class BalancesService(
     // Obtener un balance por ID
     suspend fun getBalanceByIdApi(token: String, id: Long): BalanceDto? {
         return balancesRepository.getBalanceById(token, id)
+    }
+
+    // Obtener balances segun la condicion
+    suspend fun getBalanceByApi(column: String, query: String): List<BalanceDto>? {
+        return balancesRepository.getBalanceBy(column, query)
     }
 
     // Crear un nuevo balance

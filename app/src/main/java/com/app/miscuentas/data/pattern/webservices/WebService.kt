@@ -101,6 +101,13 @@ interface WebService {
         @Body balanceCrearDto: BalanceCrearDto
     ): Response<BalanceDto>
 
+    //Obtener un dato en concreto:
+    @GET("balances/WhenData")
+    suspend fun getBalanceWhenData(
+        @Query("c") column: String,
+        @Query("q") query: String
+    ): Response<List<BalanceDto>>
+
     // Actualizar un balance existente
     @PUT("balances")
     suspend fun putBalance(

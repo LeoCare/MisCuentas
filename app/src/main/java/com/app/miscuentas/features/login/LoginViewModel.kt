@@ -119,7 +119,6 @@ class LoginViewModel @Inject constructor(
     //Solo si el login es exitoso desde la API y no desde ROOM:
     suspend fun limpiarYVolcarLogin(usuario: UsuarioDto){
 
-        // Obtener mis hojas y sus participantes.
         //hojas:
         val hojas = hojasService.getHojaBy("id_usuario", usuario.idUsuario.toString())
         hojas?.forEach { hoja ->
@@ -136,7 +135,11 @@ class LoginViewModel @Inject constructor(
                     val pagos = pagosService.getPagosBy("id_participante", participante.idParticipante.toString())
                     if(pagos != null) pagosService.insertAllPagos(pagos.toEntityList())
                 }
-
+            }
+            //balances:
+            val balances = balancesService.getBalanceByApi("id_hoja", hoja.idHoja.toString())
+            if (balances != null) {
+                balancesService.insertBalancesForHoja(hoja.toEntity(), balances.toEntityList())
             }
         }
     }

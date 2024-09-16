@@ -5,6 +5,7 @@ import com.app.miscuentas.data.network.BalancesService
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
+import com.app.miscuentas.domain.dto.ParticipanteDto
 
 class BalancesRepository(
     private val webService: WebService,
@@ -35,6 +36,20 @@ class BalancesRepository(
                 throw Exception("Error al obtener balance: ${response.code()} - ${response.message()}")
             }
         } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Obtener balances segun coincidan con la consulta
+    suspend fun getBalanceBy(column: String, query: String): List<BalanceDto>? {
+        return try {
+            val response = webService.getBalanceWhenData(column, query)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al obtener balances: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
             null
         }
     }
