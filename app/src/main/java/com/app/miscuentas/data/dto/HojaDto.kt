@@ -16,7 +16,7 @@ data class HojaCrearDto(
     @SerializedName("titulo") val titulo: String,
     @SerializedName("fechaCreacion") val fechaCreacion: String,
     @SerializedName("fechaCierre") val fechaCierre: String?,
-    @SerializedName("limiteGastos") val limiteGastos: Double,
+    @SerializedName("limiteGastos") val limiteGastos: Double?,
     @SerializedName("status") val status: String,
     @SerializedName("idUsuario") val idUsuario: Long
 )

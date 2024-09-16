@@ -19,5 +19,8 @@ data class NuevaHojaState(
     val insertOk: Boolean = false,
     val maxIdHolaCalculo: Long = 0,
     val maxLineaHolaCalculo: Int = 0,
-    val hojaConParticipantes: HojaConParticipantes? = null
+    val hojaConParticipantes: HojaConParticipantes? = null,
+
+    //Valores API
+    val insertAPIOk: Boolean = false
 )

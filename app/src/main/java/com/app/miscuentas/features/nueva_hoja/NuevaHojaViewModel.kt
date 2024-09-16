@@ -10,6 +10,8 @@ import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.model.toEntityWithUsuario
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.UsuariosService
+import com.app.miscuentas.domain.dto.HojaCrearDto
+import com.app.miscuentas.domain.dto.HojaDto
 import com.app.miscuentas.util.Validaciones
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,6 +52,10 @@ class NuevaHojaViewModel @Inject constructor(
     fun onInsertOkFieldChanged(insert: Boolean) {
         _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = insert)
         vaciarTextFields() //Vacio estados
+    }
+
+    fun onInsertAPIOkFieldChanged(insert: Boolean) {
+        _nuevaHojaState.value = _nuevaHojaState.value.copy(insertAPIOk = insert)
     }
 
     fun onIdRegistroChanged(idUsuario: Long) {
@@ -84,8 +91,20 @@ class NuevaHojaViewModel @Inject constructor(
 
    /** LLAMADA A INSERTAR HOJA **/
     fun insertHoja() {
+        //Instancia hoja
+       val titulo = _nuevaHojaState.value.titulo
+       val fechaCreacion = Validaciones.fechaToStringFormat(LocalDate.now())?: LocalDate.now().toString()
+       val fechaCierre = _nuevaHojaState.value.fechaCierre.ifEmpty { null }
+       val limite = _nuevaHojaState.value.limiteGasto.ifEmpty { null }
+       val status = _nuevaHojaState.value.status
+       val idUsuarioHoja = _nuevaHojaState.value.idUsuario
+
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                //Insert en API
+                insertHojaApi(titulo, fechaCreacion, fechaCierre, limite?.toDouble(), status, idUsuarioHoja)
+
+                //Insert en Room
                 val hoja = instanceNuevaHoja() //obtiene hojaEntity
                 instaciaParticipantesConHojas(hoja.idHoja) //instancia lista de participantesEntitys
 
@@ -94,6 +113,31 @@ class NuevaHojaViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    /** INSERTA HOJA (API) **/
+    suspend fun insertHojaApi(
+        titulo: String,
+        fechaCreacion: String,
+        fechaCierre: String?,
+        limiteGastos: Double?,
+        status: String,
+        idUsuario: Long
+    ): HojaDto? {
+
+        var result: HojaDto? = null
+        val hojaCrearDto = HojaCrearDto(titulo, fechaCreacion, fechaCierre, limiteGastos, status, idUsuario)
+        try {
+            val hojaApi = hojasService.createHoja(hojaCrearDto)
+            if (hojaApi != null){
+                result = hojaApi // insert OK
+                onInsertAPIOkFieldChanged( true)
+            }
+        } catch (e: Exception) {
+            onInsertAPIOkFieldChanged( false)
+            result = null // inserción NOK
+        }
+        return result
     }
 
     /** METODOS PARA LA NUEVA HOJA EN ROOM **/
