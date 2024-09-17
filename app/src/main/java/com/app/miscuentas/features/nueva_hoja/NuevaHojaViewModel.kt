@@ -102,14 +102,12 @@ class NuevaHojaViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 //Insert en API
-                insertHojaApi(titulo, fechaCreacion, fechaCierre, limite?.toDouble(), status, idUsuarioHoja)
+                val hojaAPI = insertHojaApi(titulo, fechaCreacion, fechaCierre, limite?.toDouble(), status, idUsuarioHoja)
 
-                //Insert en Room
-                val hoja = instanceNuevaHoja() //obtiene hojaEntity
-                instaciaParticipantesConHojas(hoja.idHoja) //instancia lista de participantesEntitys
-
-                nuevaHojaState.value.listaParticipantesEntitys.let {
-                    insertrHojaConParticipantes(hoja, it)
+                if(hojaAPI != null){
+                    //Insert en Room
+                    val insertHoja = insertaHojaRoom(hojaAPI.idHoja, titulo, fechaCreacion, fechaCierre, limite?.toDouble(), status, idUsuarioHoja)
+                    onInsertOkFieldChanged(insertHoja)
                 }
             }
         }
@@ -140,16 +138,28 @@ class NuevaHojaViewModel @Inject constructor(
         return result
     }
 
-    /** METODOS PARA LA NUEVA HOJA EN ROOM **/
-    fun instanceNuevaHoja(): DbHojaCalculoEntity {
-        return  DbHojaCalculoEntity(
-            titulo = _nuevaHojaState.value.titulo,
-            fechaCreacion = Validaciones.fechaToStringFormat(LocalDate.now()),
-            fechaCierre = _nuevaHojaState.value.fechaCierre.ifEmpty { null },
-            limite = _nuevaHojaState.value.limiteGasto.ifEmpty { null },
-            status = _nuevaHojaState.value.status,
-            idUsuarioHoja = _nuevaHojaState.value.idUsuario
-        )
+
+    suspend fun insertaHojaRoom(
+        idHoja: Long,
+        titulo: String,
+        fechaCreacion: String,
+        fechaCierre: String?,
+        limiteGastos: Double?,
+        status: String,
+        idUsuario: Long
+    ): Boolean {
+
+        val hojaRoom = DbHojaCalculoEntity(idHoja, titulo, fechaCreacion, fechaCierre, limiteGastos.toString(), status, idUsuario) //obtiene hojaEntity
+        try{
+            instaciaParticipantesConHojas(hojaRoom.idHoja) //instancia lista de participantesEntitys
+
+            nuevaHojaState.value.listaParticipantesEntitys.let {
+                insertrHojaConParticipantes(hojaRoom, it)
+            }
+            return true //insercion OK
+        } catch (e: Exception) {
+            return false // inserción NOK
+        }
     }
 
     /** INSTANCIA PARTICIPANTES CON IDHOJA **/
@@ -162,7 +172,6 @@ class NuevaHojaViewModel @Inject constructor(
     /** METODO PARA INSERTAR LA HOJA Y LOS PARTICIPANTES RELACIONADOS **/
     suspend fun insertrHojaConParticipantes(hoja: DbHojaCalculoEntity, participantes: List<DbParticipantesEntity>) {
         hojasService.insertHojaConParticipantes(hoja, participantes)
-        _nuevaHojaState.value = _nuevaHojaState.value.copy(insertOk = true)
     }
 
     fun getIdRegistroPreference(){

@@ -8,6 +8,8 @@ import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.domain.dto.GastoCrearDto
+import com.app.miscuentas.domain.dto.GastoDto
 import com.app.miscuentas.util.Contabilidad.Contable.superaLimite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +48,9 @@ class NuevoGastoViewModel @Inject constructor (
     fun onInsertOKChanged(insert: Boolean){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(insertOk = insert)
     }
+    fun onInsertAPIOKChanged(insertAPI: Boolean){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(insertAPIOk = insertAPI)
+    }
 
     //recojo valor de parametro pasado por en navController. Borrar si no es necesario!!
     fun onIdHojaPrincipalChanged(idHoja: Long?){
@@ -69,39 +74,75 @@ class NuevoGastoViewModel @Inject constructor (
 
     /** METODO QUE INSERTA EL GASTO **/
     fun insertaGasto(){
-        val imprtGasto = nuevoGastoState.value.importe
+        val tipo = _nuevoGastoState.value.idGastoElegido
+        val concepto = _nuevoGastoState.value.concepto
+        val importe = _nuevoGastoState.value.importe.replace(',','.')
+        val fechaGasto = Validaciones.fechaToStringFormat(LocalDate.now()) ?: LocalDate.now().toString()
+        val idParticipante = _nuevoGastoState.value.idPagador
+        val importeGasto = nuevoGastoState.value.importe
         val hoja = nuevoGastoState.value.hojaActual
-        if(superaLimite(hoja, imprtGasto)){
+
+        if(superaLimite(hoja, importeGasto)){
             onSuperaLimiteChanged(true)
         }
         else {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
-                    val idParticipante = _nuevoGastoState.value.idPagador
-                    val gasto = instanciaNuevoGasto().toEntity(idParticipante)
+                    //Insert desde API
+                    val gastoAPIOk = insertGastoAPI(tipo, concepto, importe, fechaGasto, idParticipante, 0)
+                    if(gastoAPIOk != null){
 
-                    gastosService.insertaGasto(gasto)
-                    vaciarTextFields()
-                    onInsertOKChanged(true)
+                        //Insert en ROOM
+                        val insertRoomOK = insertGastoRoom(tipo, concepto, importe, fechaGasto, idParticipante, 0)
+                            if(insertRoomOK) {
+                            vaciarTextFields()
+                            onInsertOKChanged(true)
+                        }
+                    }
                 }
             }
         }
     }
 
-    fun instanciaNuevoGasto(): Gasto {
-        val tipo = _nuevoGastoState.value.idGastoElegido
-        val concepto = _nuevoGastoState.value.concepto
-        val importe = _nuevoGastoState.value.importe.replace(',','.')
-        val fechaGasto = Validaciones.fechaToStringFormat(LocalDate.now())
+    suspend fun insertGastoAPI(
+        tipo: Long,
+        concepto: String,
+        importe: String,
+        fechaGasto: String,
+        idParticipante: Long,
+        idImagen: Long
+    ): GastoDto? {
+        val result: GastoDto?
+        val gastoCrearDto = GastoCrearDto(tipo.toString(), concepto, importe.toDouble(), fechaGasto, idParticipante, idImagen)
 
-        return Gasto(
-            idGasto = 0,
-            tipo = tipo,
-            concepto = concepto,
-            importe = importe,
-            fechaGasto = fechaGasto,
-            fotoGastoUri = null
-        )
+        try{
+            val gastoAPI = gastosService.createGasto(gastoCrearDto)
+            return gastoAPI
+        }catch (e: Exception) {
+
+            result = null // inserción NOK
+        }
+        return result
+    }
+
+    suspend fun insertGastoRoom(
+        tipo: Long,
+        concepto: String,
+        importe: String,
+        fechaGasto: String,
+        idParticipante: Long,
+        idImagen: Long
+    ): Boolean {
+
+        val gasto = Gasto( 0,tipo, concepto, importe, fechaGasto, null).toEntity(idParticipante)
+
+        try{
+            gastosService.insertaGasto(gasto)
+            return true
+        }catch (e: Exception) {
+
+            return false // inserción NOK
+        }
     }
 
     private fun vaciarTextFields(){

@@ -18,6 +18,9 @@ data class NuevoGastoState(
     val lineaHojaLin: Int = 0,
     val maxLineaDetHolaCalculo: Int? = 0,
 
+    //Valores desde la API
+    val insertAPIOk: Boolean = false,
+
     //Valores de DataStore
     val idHoja: Long? = 0
 )
