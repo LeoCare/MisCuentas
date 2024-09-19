@@ -16,7 +16,7 @@ data class DbUsuariosEntity (
     @ColumnInfo(name = "nombre") val nombre: String = "",
     @ColumnInfo(name = "correo") val correo: String = "",
     @ColumnInfo(name = "contrasenna") val contrasenna: String = "",
-    @ColumnInfo(name = "perfil") val perfil: String? = "USER"
+    @ColumnInfo(name = "perfil") val perfil: String = "USER"
 )
 
 fun DbUsuariosEntity.toDomain() = Usuario(

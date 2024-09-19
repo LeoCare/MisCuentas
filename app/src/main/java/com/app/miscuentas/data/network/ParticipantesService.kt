@@ -1,16 +1,13 @@
 package com.app.miscuentas.data.network
 
-import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.model.Participante
 import com.app.miscuentas.data.model.toEntityWithHoja
 import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.pattern.repository.ParticipantesRepository
-import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.dto.HojaDto
-import com.app.miscuentas.domain.dto.ParticipanteCrearDto
-import com.app.miscuentas.domain.dto.ParticipanteDto
+import com.app.miscuentas.data.dto.ParticipanteCrearDto
+import com.app.miscuentas.data.dto.ParticipanteDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

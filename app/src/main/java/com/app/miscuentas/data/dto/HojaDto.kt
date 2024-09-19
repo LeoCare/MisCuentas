@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain.dto
+package com.app.miscuentas.data.dto
 
 import com.google.gson.annotations.SerializedName
 
@@ -7,7 +7,7 @@ data class HojaDto(
     @SerializedName("titulo") val titulo: String,
     @SerializedName("fechaCreacion") val fechaCreacion: String,
     @SerializedName("fechaCierre") val fechaCierre: String?,
-    @SerializedName("limiteGastos") val limiteGastos: Double,
+    @SerializedName("limiteGastos") val limiteGastos: Double?,
     @SerializedName("status") val status: String,
     @SerializedName("idUsuario") val idUsuario: Long
 )

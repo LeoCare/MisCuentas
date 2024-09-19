@@ -27,7 +27,7 @@ class Validaciones {
 
         /** FORMATEA UN STRING dd/MM/yyyy a tipo LOCALDATE **/
         fun fechaToDateFormat(fecha: String?): LocalDate?{
-            val format = "dd/MM/yyyy"
+            val format = "dd-MM-yyyy"
 
             return if (fecha != null){
                 val formatter = DateTimeFormatter.ofPattern(format)
@@ -38,7 +38,7 @@ class Validaciones {
 
         /** FORMATEA UN LOCALDATE a tipo String dd/MM/yyyy **/
         fun fechaToStringFormat(fecha: LocalDate?): String?{
-            val format = "dd/MM/yyyy"
+            val format = "dd-MM-yyyy"
 
             return if (fecha != null){
                 val formatter = DateTimeFormatter.ofPattern(format)

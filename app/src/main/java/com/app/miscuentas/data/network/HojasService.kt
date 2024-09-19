@@ -10,11 +10,10 @@ import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.model.HojaCalculo
-import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.pattern.dao.DbHojaCalculoDao
 import com.app.miscuentas.data.pattern.repository.HojasRepository
-import com.app.miscuentas.domain.dto.HojaCrearDto
-import com.app.miscuentas.domain.dto.HojaDto
+import com.app.miscuentas.data.dto.HojaCrearDto
+import com.app.miscuentas.data.dto.HojaDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

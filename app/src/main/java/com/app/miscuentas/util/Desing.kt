@@ -50,7 +50,7 @@ class Desing {
             //Instancio calendario y establezco como minima fecha el dia actual
             val datePickerDialog = DatePickerDialog(context, { _, year, monthOfYear, dayOfMonth ->
                 val selectedDate =
-                    "$dayOfMonth/${(monthOfYear + 1).toString().padStart(2, '0')}/$year"
+                    "$dayOfMonth-${(monthOfYear + 1).toString().padStart(2, '0')}-$year"
                 onDateSelected(selectedDate)
             }, mYear, mMonth, mDay)
 

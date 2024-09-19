@@ -1,7 +1,7 @@
 package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
-import com.app.miscuentas.domain.dto.ParticipanteDto
+import com.app.miscuentas.data.dto.ParticipanteDto
 
 data class Participante(
     var idParticipante: Long = 0,
@@ -10,10 +10,11 @@ data class Participante(
     var listaGastos: List<Gasto?> = listOf()
 )
 
-fun Participante.toEntity() = DbParticipantesEntity(
+fun Participante.toEntity(idHojaCalculo: Long) = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
-    correo = correo
+    correo = correo,
+    idHojaParti = idHojaCalculo
 )
 
 fun Participante.toEntityWithHoja(idHojaCalculo: Long) = DbParticipantesEntity(
@@ -23,11 +24,12 @@ fun Participante.toEntityWithHoja(idHojaCalculo: Long) = DbParticipantesEntity(
     idHojaParti = idHojaCalculo
 )
 
-fun Participante.toEntityWithUsuario(idUsuarioParti: Long) = DbParticipantesEntity(
+fun Participante.toEntityWithUsuario(idHojaCalculo: Long, idUsuarioParti: Long) = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
-    idUsuarioParti = idUsuarioParti
+    idUsuarioParti = idUsuarioParti,
+    idHojaParti = idHojaCalculo
 )
 
 fun ParticipanteDto.toEntity() = DbParticipantesEntity(

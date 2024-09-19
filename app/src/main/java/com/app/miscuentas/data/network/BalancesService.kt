@@ -9,7 +9,6 @@ import com.app.miscuentas.data.pattern.dao.DbBalanceDao
 import com.app.miscuentas.data.pattern.repository.BalancesRepository
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
-import com.app.miscuentas.domain.dto.ParticipanteDto
 
 class BalancesService(
     private val balanceDao: DbBalanceDao,

@@ -1,7 +1,7 @@
 package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
-import com.app.miscuentas.domain.dto.HojaDto
+import com.app.miscuentas.data.dto.HojaDto
 
 data class HojaCalculo(
     var idHoja: Long,

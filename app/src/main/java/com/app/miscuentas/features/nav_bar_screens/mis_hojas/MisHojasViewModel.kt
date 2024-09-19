@@ -145,27 +145,6 @@ class MisHojasViewModel @Inject constructor(
 
     }
 }
-    /** API **/
-    //rellena la lista de hojas del state
-//    suspend fun getPhotos(){
-//        viewModelScope.launch {
-//            try {
-//                val hojas = getMisHojas.getPhotos()
-//                if (hojas != null)  _hojasState.value = _hojasState.value.copy(listaHojas = hojas)
-//                Log.d(ContentValues.TAG, "llamada a getMisHojas")
-//            } catch (e: Exception) {
-//                Log.d(ContentValues.TAG, "getMisHojas excepcion: $e")
-//            }
-//        }
-//        delay(1000)
-//        _hojasState.value = _hojasState.value.copy(circularIndicator = false)
-//    }
 
-    /** API **/
-//    init {
-//        viewModelScope.launch(){
-//            getPhotos()
-//        }
-//    }
 
 

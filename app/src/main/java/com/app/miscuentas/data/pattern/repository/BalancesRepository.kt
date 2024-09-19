@@ -1,11 +1,9 @@
 package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
-import com.app.miscuentas.data.network.BalancesService
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
-import com.app.miscuentas.domain.dto.ParticipanteDto
 
 class BalancesRepository(
     private val webService: WebService,

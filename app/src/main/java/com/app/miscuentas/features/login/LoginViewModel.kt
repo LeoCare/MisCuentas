@@ -1,12 +1,11 @@
 package com.app.miscuentas.features.login
 
-import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import at.favre.lib.crypto.bcrypt.BCrypt
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.data.model.Participante
-import com.app.miscuentas.data.model.Usuario
+import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.model.toEntityList
 import com.app.miscuentas.data.network.BalancesService
@@ -15,16 +14,15 @@ import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.PagosService
 import com.app.miscuentas.data.network.ParticipantesService
 import com.app.miscuentas.data.network.UsuariosService
-import com.app.miscuentas.data.pattern.repository.Resource
 import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import com.app.miscuentas.domain.dto.UsuarioDto
+import com.app.miscuentas.domain.dto.UsuarioLoginDto
 import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -76,42 +74,39 @@ class LoginViewModel @Inject constructor(
     /**************************/
 
     /** Metodo para comprobar si existe ese usuario registrado (LOGIN) **/
-     fun iniciarSesion(){
+    fun iniciarSesion() {
         val correo = _loginState.value.email
         val contrasenna = _loginState.value.contrasenna
 
         viewModelScope.launch {
-             withContext(Dispatchers.IO) {
-                 usuariosService.getUsuarioByLogin(correo, contrasenna).collect { resource ->
-                     when (resource) {
-                         is Resource.Loading -> {
-                             onIsLoadingOkChanged(true)
-                         }
-                         is Resource.Success -> {
-                             // Usuario autenticado con éxito y token guardado
-                             val usuario = resource.data
-                             if (usuario == null) {
-                                 onMensajeChanged("Correo o Contraseña incorrectos!")
-                                 onIsLoadingOkChanged(false)
-                             } else {// Si el logeo es correcto..
-                                 //VOLCAMOS TODOS LOS DATOS PERTENECIENTES A ESE USUARIO:
-                                 // Si el login fue exitoso desde la API, limpia y vuelca datos
-                                 if (resource.fromNetwork) {  // Solo si viene de la API
-                                      limpiarYVolcarLogin(usuario)
-                                }
-                                 onIsLoadingOkChanged( false)
-                                 //Esto permitira la navegacion:
-                                 onRegistroDataStoreChanged(usuario.idUsuario, usuario.nombre) //si existe, actualiza el dataStore con el nombre
-                             }
-                         }
-                         is Resource.Error -> {// Si el logeo no es correcto..
-                             // Mostrar el mensaje de error
-                             Log.e("LoginError", resource.message ?: "Error desconocido")
-                             onMensajeChanged("Error en Correo o Contraseña!")
-                             onIsLoadingOkChanged( false)
-                         }
-                     }
-                 }
+            try {
+                onIsLoadingOkChanged(true)
+                val response = usuariosService.postLoginApi(UsuarioLoginDto(correo, contrasenna))
+                if (response != null) {
+                    // Guardar el usuario y el token
+                    usuariosService.cleanInsert(response.usuario.toEntity())
+                    // Actualizar el estado de la UI y cargar Room
+                    limpiarYVolcarLogin(response.usuario)
+                    onRegistroDataStoreChanged(response.usuario.idUsuario, response.usuario.nombre)
+                } else {
+                    onMensajeChanged("Correo o Contraseña incorrectos!")
+                }
+            } catch (e: Exception) {
+                // Si hay un error de red, intentar cargar los datos locales
+                val localUsuario = usuariosService.getUsuarioWhereLogin(correo).firstOrNull()
+                if (localUsuario != null) {
+                    val contrasennaValida = BCrypt.verifyer().verify(contrasenna.toCharArray(), localUsuario.contrasenna.toCharArray()).verified
+                    if (contrasennaValida) {
+                        // Inicio de sesión exitoso con datos locales
+                        onRegistroDataStoreChanged(localUsuario.idUsuario, localUsuario.nombre)
+                    } else {
+                        onMensajeChanged("Error en Correo o Contraseña!")
+                    }
+                } else {
+                    onMensajeChanged("Error en la red y no hay datos locales!")
+                }
+            } finally {
+                onIsLoadingOkChanged(false)
             }
         }
     }
@@ -162,33 +157,33 @@ class LoginViewModel @Inject constructor(
         val correo = _loginState.value.email
 
         viewModelScope.launch {
-            usuariosService.getRegistroByCorreo(correo).collect { resource ->
-                when (resource) {
-                    is Resource.Loading -> { // Muestra un spinner o indica que la operación está en curso
-                        onIsLoadingOkChanged(true)
-                    }
-
-                    is Resource.Success -> { // Verifica si el correo existe o es nulo, tanto en ROOM como en la API:
-                        val existeCorreoRegistro = resource.data
-
-                        if (existeCorreoRegistro == null) {
-                            // Si no existe, llamar a la función para insertar el registro
-                            insertRegistroCall()
-                        } else {// Si ya existe el correo:
-                            onMensajeChanged("El correo ya está registrado")
-                            onIsLoadingOkChanged( false)
-                        }
-                    }
-
-                    is Resource.Error -> {// No lo devuelven ni Room ni la API
-                        insertRegistroCall()
-                        onMensajeChanged(resource.message ?: "Error desconocido")
-                        onIsLoadingOkChanged( false)
-                    }
+            onIsLoadingOkChanged(true)
+            try {
+                // Primero, intentamos verificar el correo con la API
+                val usuarioDto = usuariosService.verifyCorreo(correo)
+                if (usuarioDto != null) {
+                    // El correo ya está registrado en la API
+                    onMensajeChanged("El correo ya está registrado")
+                } else {
+                    // El correo no está registrado en la API, proceder con el registro
+                    insertRegistroCall()
                 }
+            } catch (e: Exception) {
+                // Si hay un error en la red, intentamos verificar en la base de datos local
+                val localUsuarioEntity = usuariosService.getUsuarioWhereCorreo(correo).firstOrNull()
+                if (localUsuarioEntity != null) {
+                    // El correo ya está registrado en la base de datos local
+                    onMensajeChanged("El correo ya está registrado (datos locales)")
+                } else {
+                    // El correo no está registrado en la API ni en local, proceder con el registro
+                    insertRegistroCall()
+                }
+            } finally {
+                onIsLoadingOkChanged(false)
             }
         }
     }
+
 
     /** LLAMADA A INSERTAR REGISTRO ç
      * Aqui se llega ya que ese correo no se encuentra en la BBDD.
@@ -208,7 +203,8 @@ class LoginViewModel @Inject constructor(
             //Insert en Room
             val insertRoomOk = insertRegistroRoom(usuarioApiOk.usuario.contrasenna, correo, idRegistro, nombre, perfil)
             if (insertRoomOk) {
-                onRegistroDataStoreChanged(_loginState.value.idRegistro, _loginState.value.usuario)
+                onIdRegistroChanged(idRegistro)
+                onRegistroDataStoreChanged(idRegistro, _loginState.value.usuario)
             } else  onMensajeChanged("Ese correo ya esta registrado!")
         }
     }
@@ -247,12 +243,10 @@ class LoginViewModel @Inject constructor(
         perfil: String
     ): Boolean {
 
-        val usuarioRoom = Usuario(contrasenna, correo, idRegistro, nombre, perfil)
+        val usuarioRoom = DbUsuariosEntity(idRegistro, nombre, correo , contrasenna, perfil)
 
         try {
-            val participante = Participante(0, usuarioRoom.nombre, usuarioRoom.correo)
-            usuariosService.insertUsuarioConParticipantes(usuarioRoom, participante ) //Insert en ROOM
-            //onIdRegistroChanged(idRegistroRoom) //guardado el id del insert del registro
+            usuariosService.cleanInsert(usuarioRoom) //Insert en ROOM
             return true // insert OK
         } catch (e: Exception) {
             return false // inserción NOK

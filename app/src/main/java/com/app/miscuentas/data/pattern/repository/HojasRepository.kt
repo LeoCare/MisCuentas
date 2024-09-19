@@ -2,10 +2,9 @@ package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
 
-import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.dto.HojaCrearDto
-import com.app.miscuentas.domain.dto.HojaDto
+import com.app.miscuentas.data.dto.HojaCrearDto
+import com.app.miscuentas.data.dto.HojaDto
 
 class HojasRepository(
     private val webService: WebService,

@@ -2,9 +2,7 @@ package com.app.miscuentas.data.model
 
 import android.net.Uri
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.domain.dto.GastoDto
-import com.app.miscuentas.domain.dto.ParticipanteDto
 
 data class Gasto (
     var idGasto: Long,

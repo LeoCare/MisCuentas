@@ -24,7 +24,7 @@ class UsuariosRepository @Inject constructor(
                 throw Exception("Error al verificar el correo: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
-            null
+            throw Exception("Error de red al verificar el correo: ${e.message}", e)
         }
     }
 
@@ -62,7 +62,7 @@ class UsuariosRepository @Inject constructor(
                 throw Exception("Error al hacer login: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
-            null
+            throw Exception("Error de red al hacer login: ${e.message}", e)
         }
     }
 
