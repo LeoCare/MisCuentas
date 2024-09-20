@@ -67,8 +67,8 @@ class ParticipantesService(
     }
 
     // Obtener una hoja segun consulta
-    suspend fun getParticipanteBy(column: String, query: String):  List<ParticipanteDto>? {
-        return participantesRepository.getParticipanteBy(column, query)
+    suspend fun getParticipantesBy(column: String, query: String):  List<ParticipanteDto>? {
+        return participantesRepository.getParticipantesBy(column, query)
     }
 
     // Crear un nuevo participante

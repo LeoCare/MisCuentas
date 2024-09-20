@@ -22,7 +22,7 @@ data class DbHojaCalculoEntity (
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "idHoja") var idHoja: Long = 0,
     @ColumnInfo(name = "titulo") var titulo: String = "",
-    @ColumnInfo(name = "fechaCreacion") var fechaCreacion: String?,
+    @ColumnInfo(name = "fechaCreacion") var fechaCreacion: String,
     @ColumnInfo(name = "fechaCierre") var fechaCierre: String?,
     @ColumnInfo(name = "limite") var limite: String?,
     @ColumnInfo(name = "status") var status: String,

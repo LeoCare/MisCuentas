@@ -5,8 +5,8 @@ import com.app.miscuentas.data.dto.TipoPerfilDto
 import com.app.miscuentas.data.dto.TipoStatusDto
 import com.app.miscuentas.domain.dto.BalanceCrearDto
 import com.app.miscuentas.domain.dto.BalanceDto
-import com.app.miscuentas.domain.dto.GastoCrearDto
-import com.app.miscuentas.domain.dto.GastoDto
+import com.app.miscuentas.data.dto.GastoCrearDto
+import com.app.miscuentas.data.dto.GastoDto
 import com.app.miscuentas.data.dto.HojaCrearDto
 import com.app.miscuentas.data.dto.HojaDto
 import com.app.miscuentas.domain.dto.ImagenCrearDto
@@ -207,7 +207,7 @@ interface WebService {
 
     //Obtener un dato en concreto:
     @GET("participantes/WhenData")
-    suspend fun getParticipanteWhenData(
+    suspend fun getParticipantesWhenData(
         @Query("c") column: String,
         @Query("q") query: String
     ): Response<List<ParticipanteDto>>

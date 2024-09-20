@@ -6,7 +6,7 @@ import com.app.miscuentas.data.dto.HojaDto
 data class HojaCalculo(
     var idHoja: Long,
     var titulo: String,
-    var fechaCreacion: String?,
+    var fechaCreacion: String,
     var fechaCierre: String?,
     var limite: String?,
     var status: String,
@@ -35,8 +35,18 @@ fun HojaDto.toEntity() = DbHojaCalculoEntity(
     titulo = titulo,
     fechaCreacion = fechaCreacion,
     fechaCierre = fechaCierre,
-    limite = limiteGastos.toString(),
+    limite = limiteGastos?.toString(),
     status = status,
     idUsuarioHoja = idUsuario
 
+)
+
+fun HojaCalculo.toDto() = HojaDto(
+    idHoja = idHoja,
+    titulo = titulo,
+    fechaCreacion = fechaCreacion,
+    fechaCierre = fechaCierre,
+    limiteGastos = limite?.replace(',','.')?.toDouble(),
+    status = status,
+    idUsuario = idUsuarioHoja
 )

@@ -6,7 +6,7 @@ import com.app.miscuentas.data.dto.ParticipanteDto
 data class Participante(
     var idParticipante: Long = 0,
     var nombre: String,
-    var correo: String? = "",
+    var correo: String? = null,
     var listaGastos: List<Gasto?> = listOf()
 )
 

@@ -8,8 +8,8 @@ import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.network.HojasService
-import com.app.miscuentas.domain.dto.GastoCrearDto
-import com.app.miscuentas.domain.dto.GastoDto
+import com.app.miscuentas.data.dto.GastoCrearDto
+import com.app.miscuentas.data.dto.GastoDto
 import com.app.miscuentas.util.Contabilidad.Contable.superaLimite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -93,8 +93,8 @@ class NuevoGastoViewModel @Inject constructor (
                     if(gastoAPIOk != null){
 
                         //Insert en ROOM
-                        val insertRoomOK = insertGastoRoom(tipo, concepto, importe, fechaGasto, idParticipante, 0)
-                            if(insertRoomOK) {
+                        val insertRoomOK = insertGastoRoom(gastoAPIOk.idGasto, tipo, concepto, importe, fechaGasto, idParticipante, 0)
+                        if(insertRoomOK) {
                             vaciarTextFields()
                             onInsertOKChanged(true)
                         }
@@ -112,20 +112,18 @@ class NuevoGastoViewModel @Inject constructor (
         idParticipante: Long,
         idImagen: Long
     ): GastoDto? {
-        val result: GastoDto?
-        val gastoCrearDto = GastoCrearDto(tipo.toString(), concepto, importe.toDouble(), fechaGasto, idParticipante, idImagen)
+        val gastoCrearDto = GastoCrearDto(tipo.toString(), concepto, importe, fechaGasto, idParticipante, idImagen)
 
         try{
             val gastoAPI = gastosService.createGasto(gastoCrearDto)
             return gastoAPI
         }catch (e: Exception) {
-
-            result = null // inserción NOK
+            return null // inserción NOK
         }
-        return result
     }
 
-    suspend fun insertGastoRoom(
+    fun insertGastoRoom(
+        idGasto: Long?,
         tipo: Long,
         concepto: String,
         importe: String,
@@ -133,8 +131,8 @@ class NuevoGastoViewModel @Inject constructor (
         idParticipante: Long,
         idImagen: Long
     ): Boolean {
-
-        val gasto = Gasto( 0,tipo, concepto, importe, fechaGasto, null).toEntity(idParticipante)
+        val idGastoApi = idGasto ?: 0
+        val gasto = Gasto( idGastoApi,tipo, concepto, importe, fechaGasto, null).toEntity(idParticipante)
 
         try{
             gastosService.insertaGasto(gasto)

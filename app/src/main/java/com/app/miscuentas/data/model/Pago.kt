@@ -1,8 +1,6 @@
 package com.app.miscuentas.data.model
 
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
-import com.app.miscuentas.domain.dto.GastoDto
 import com.app.miscuentas.domain.dto.PagoDto
 
 

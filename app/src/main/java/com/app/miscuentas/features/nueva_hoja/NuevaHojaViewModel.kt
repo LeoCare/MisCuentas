@@ -109,18 +109,19 @@ class NuevaHojaViewModel @Inject constructor(
             withContext(Dispatchers.IO) {
                 //Insert desde API
                 val hojaAPI = insertHojaApi(titulo, fechaCreacion, fechaCierre, limite?.replace(',','.')?.toDouble(), status, idUsuarioHoja)
-
+                var participantesAPI: ParticipanteDto? =  null
                 if(hojaAPI != null){
                     //Instancia participantes
                     instaciaParticipantesConHojas(hojaAPI.idHoja) //instancia lista de participantesEntitys
                     nuevaHojaState.value.listaParticipantesEntitys.forEach { participante ->
                         //Insert participantes desde API
-                        val participantesAPI = insertParticipantesApi(participante.nombre, participante.correo,  participante.idHojaParti, participante.idUsuarioParti)
-                        if(participantesAPI != null){
-                            //Insert en Room
-                            val insertHoja = insertaHojaRoom(hojaAPI.idHoja, titulo, fechaCreacion, fechaCierre, limite?.replace(',','.')?.toDouble(), status, idUsuarioHoja)
-                            onInsertOkFieldChanged(insertHoja)
-                        }
+                        participantesAPI = insertParticipantesApi(participante.nombre, participante.correo,  participante.idHojaParti, participante.idUsuarioParti)
+
+                    }
+                    if(participantesAPI != null){
+                        //Insert en Room
+                        val insertHoja = insertaHojaRoom(hojaAPI.idHoja, titulo, fechaCreacion, fechaCierre, limite?.replace(',','.'), status, idUsuarioHoja)
+                        onInsertOkFieldChanged(insertHoja)
                     }
                 }
             }
@@ -140,13 +141,11 @@ class NuevaHojaViewModel @Inject constructor(
         var result: HojaDto? = null
         val hojaCrearDto = HojaCrearDto(titulo, fechaCreacion, fechaCierre, limiteGastos, status, idUsuario)
         try {
-            val hojaApi = hojasService.createHoja(hojaCrearDto)
+            val hojaApi = hojasService.createHojaApi(hojaCrearDto)
             if (hojaApi != null){
                 result = hojaApi // insert OK
-                onInsertAPIOkFieldChanged( true)
             }
         } catch (e: Exception) {
-            onInsertAPIOkFieldChanged( false)
             result = null // inserción NOK
         }
         return result
@@ -166,10 +165,8 @@ class NuevaHojaViewModel @Inject constructor(
             val participanteApi = participantesService.createParticipante(participanteCrearDto)
             if (participanteApi != null){
                 result = participanteApi // insert OK
-                onInsertAPIOkFieldChanged( true)
             }
         } catch (e: Exception) {
-            onInsertAPIOkFieldChanged( false)
             result = null // inserción NOK
         }
         return result
@@ -181,12 +178,12 @@ class NuevaHojaViewModel @Inject constructor(
         titulo: String,
         fechaCreacion: String,
         fechaCierre: String?,
-        limiteGastos: Double?,
+        limiteGastos: String?,
         status: String,
         idUsuario: Long
     ): Boolean {
 
-        val hojaRoom = DbHojaCalculoEntity(idHoja, titulo, fechaCreacion, fechaCierre, limiteGastos.toString(), status, idUsuario) //obtiene hojaEntity
+        val hojaRoom = DbHojaCalculoEntity(idHoja, titulo, fechaCreacion, fechaCierre, limiteGastos, status, idUsuario) //obtiene hojaEntity
         try{
             nuevaHojaState.value.listaParticipantesEntitys.let {
                 insertrHojaConParticipantesRoom(hojaRoom, it)

@@ -1,11 +1,7 @@
 package com.app.miscuentas.data.model
 
-import androidx.room.ColumnInfo
-import androidx.room.PrimaryKey
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.domain.dto.BalanceDto
-import com.app.miscuentas.domain.dto.GastoDto
 
 data class Balance(
     val idBalance: Long = 0,

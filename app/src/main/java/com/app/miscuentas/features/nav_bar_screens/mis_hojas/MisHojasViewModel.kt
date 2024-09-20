@@ -8,8 +8,10 @@ import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.data.model.HojaCalculo
+import com.app.miscuentas.data.model.toDto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.network.HojasService
+import com.app.miscuentas.data.network.ParticipantesService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -23,8 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MisHojasViewModel @Inject constructor(
     private val hojasService: HojasService,
-    private val dataStoreConfig: DataStoreConfig
-    /** API **/ // private val getMisHojas: GetMisHojas
+    private val dataStoreConfig: DataStoreConfig,
+    private val participantesService: ParticipantesService
 ): ViewModel(){
 
     private val _misHojasState by lazy { MutableStateFlow(MisHojasState()) }
@@ -34,6 +36,10 @@ class MisHojasViewModel @Inject constructor(
     fun onCircularIndicatorChanged(circular: Boolean){
         _misHojasState.value = _misHojasState.value.copy(circularIndicator = circular)
     }
+    fun onHojaAModificarChanged(hoja: HojaCalculo){
+        _misHojasState.value = _misHojasState.value.copy(hojaAModificar = hoja)
+    }
+
     /** ORDEN DE LAS HOJAS **/
     //Metodo que define el orden elegido
     fun onTipoOrdenChanged(ordenElegido: String){
@@ -94,19 +100,46 @@ class MisHojasViewModel @Inject constructor(
 
     //Actualizar status segun eleccion usuario
     fun updateStatusHoja() = viewModelScope.launch{
-        _misHojasState.value.hojaAModificar?.status = misHojasState.value.nuevoStatusHoja
-        withContext(Dispatchers.IO) {
-            hojasService.updateHoja(misHojasState.value.hojaAModificar!!.toEntity())
-            updatePreferenceIdHojaPrincipal(misHojasState.value.hojaAModificar!!.toEntity())
+        val hojaCalculo = _misHojasState.value.hojaAModificar
+        hojaCalculo?.let {
+            it.status = misHojasState.value.nuevoStatusHoja //modifico estatus
+            onHojaAModificarChanged(it) //guardo modificada
+
+            withContext(Dispatchers.IO) {
+                //Update Room
+                hojasService.updateHoja(it.toEntity())
+                //Update DataStore
+                updatePreferenceIdHojaPrincipal(it.toEntity())
+                //Update Api
+                val hojaDto = hojasService.updateHojaApi(it.toDto())
+                if (hojaDto == null) onPendienteSubirCambiosChanged(true)
+            }
         }
     }
 
 
     //Eliminar
     fun deleteHojaConParticipantes() = viewModelScope.launch{
-        withContext(Dispatchers.IO) {
-            hojasService.deleteHojaConParticipantes(misHojasState.value.hojaAModificar!!.toEntity())
-            updatePreferenceIdHojaPrincipal(misHojasState.value.hojaAModificar!!.toEntity())
+        val hojaCalculo = _misHojasState.value.hojaAModificar
+        hojaCalculo?.let {
+            withContext(Dispatchers.IO) {
+                try{
+                    //Delete Room
+                    hojasService.deleteHojaConParticipantes(it.toEntity())
+                    //Update DataStore
+                    updatePreferenceIdHojaPrincipal(it.toEntity())
+                    //Delete participantes desde Api
+                    participantesService.getParticipantesBy("id_hoja", hojaCalculo.idHoja.toString())?.forEach {
+                        participantesService.deleteParticipante(it.idParticipante)
+                    }
+                    //Delete hoja desde Api
+                    hojasService.deleteHojaApi(it.idHoja)
+
+                }catch (e: Exception) {
+                    onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                }
+
+            }
         }
     }
     /************************/
@@ -141,8 +174,12 @@ class MisHojasViewModel @Inject constructor(
         if (idRegistro != null) {
             _misHojasState.value = _misHojasState.value.copy(idRegistro = idRegistro)
 
+        }
     }
 
+    /** Pendiente subir cambios a la red **/
+    fun onPendienteSubirCambiosChanged(pendiente: Boolean){
+        _misHojasState.value = _misHojasState.value.copy(pendienteSubirCambios = pendiente)
     }
 }
 

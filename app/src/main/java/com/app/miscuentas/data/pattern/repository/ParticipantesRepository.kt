@@ -39,16 +39,16 @@ class ParticipantesRepository(
     }
 
     // Obtener participantes segun coincidan con la consulta
-    suspend fun getParticipanteBy(column: String, query: String): List<ParticipanteDto>? {
+    suspend fun getParticipantesBy(column: String, query: String): List<ParticipanteDto>? {
         return try {
-            val response = webService.getParticipanteWhenData(column, query)
+            val response = webService.getParticipantesWhenData(column, query)
             if (response.isSuccessful) {
                 response.body()
             } else {
                 throw Exception("Error al obtener participantes: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
-            null
+            throw Exception("Error de red al obtener participantes: ${e.message}\", e")
         }
     }
 
@@ -62,7 +62,7 @@ class ParticipantesRepository(
                 throw Exception("Error al crear participante: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
-            null
+            throw Exception("Error de red al crear participante: ${e.message}\", e")
         }
     }
 

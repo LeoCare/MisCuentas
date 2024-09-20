@@ -97,7 +97,7 @@ class HojasRepository(
                 throw Exception("Error al eliminar hoja: ${response.code()} - ${response.message()}")
             }
         } catch (e: Exception) {
-            null
+            throw Exception("Error de red al eliminar hoja: ${e.message}", e)
         }
     }
 

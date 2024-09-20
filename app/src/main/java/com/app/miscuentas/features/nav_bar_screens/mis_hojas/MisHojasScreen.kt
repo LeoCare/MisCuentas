@@ -484,8 +484,7 @@ fun Datoshojas(
                     text = hojaConParticipantes.hoja.fechaCierre ?: "-",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                /** API **/
-                /** API **/  //  Text(text = hoja.id)
+
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
             {
@@ -497,8 +496,7 @@ fun Datoshojas(
                     text = if(hojaConParticipantes.hoja.limite.isNullOrEmpty()) "-" else hojaConParticipantes.hoja.limite.toString(),
                     style = MaterialTheme.typography.bodyLarge
                 )
-                /** API **/
-                /** API **/  //  Text(text = hoja.id)
+
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
             {
@@ -507,11 +505,10 @@ fun Datoshojas(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = hojaConParticipantes.hoja.fechaCreacion!!,
+                    text = hojaConParticipantes.hoja.fechaCreacion,
                     style = MaterialTheme.typography.bodyLarge
                 )
-                /** API **/
-                /** API **/  //   Text(text = hoja.type)
+
             }
 
         }

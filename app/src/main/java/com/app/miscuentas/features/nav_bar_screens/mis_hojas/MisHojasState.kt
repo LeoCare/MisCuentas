@@ -15,5 +15,6 @@ data class MisHojasState(
     val idRegistro: Long = 0,
     val descending: Boolean = false,
     val ordenElegido: String = "Fecha Creacion",
-    val filtroElegido: String = "T"
+    val filtroElegido: String = "T",
+    val pendienteSubirCambios: Boolean = false
 )

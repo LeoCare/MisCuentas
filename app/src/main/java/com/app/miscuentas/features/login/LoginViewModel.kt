@@ -115,10 +115,10 @@ class LoginViewModel @Inject constructor(
     suspend fun limpiarYVolcarLogin(usuario: UsuarioDto){
 
         //hojas:
-        val hojas = hojasService.getHojaBy("id_usuario", usuario.idUsuario.toString())
+        val hojas = hojasService.getHojaByApi("id_usuario", usuario.idUsuario.toString())
         hojas?.forEach { hoja ->
             //participantes:
-            val participantes = participantesService.getParticipanteBy("id_hoja", hoja.idHoja.toString())
+            val participantes = participantesService.getParticipantesBy("id_hoja", hoja.idHoja.toString())
             if (participantes != null) {
                 hojasService.insertHojaConParticipantes(hoja.toEntity(), participantes.toEntityList())
 

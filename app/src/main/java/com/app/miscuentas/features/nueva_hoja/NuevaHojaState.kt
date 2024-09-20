@@ -22,5 +22,5 @@ data class NuevaHojaState(
     val hojaConParticipantes: HojaConParticipantes? = null,
 
     //Valores API
-    val insertAPIOk: Boolean = false
+    val insertAPIOk: Boolean = true
 )

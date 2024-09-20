@@ -77,32 +77,32 @@ class HojasService(
     /** API **/
     /**********/
     // Obtener todas las hojas
-    suspend fun getAllHojas(): List<HojaDto>? {
+    suspend fun getAllHojasApi(): List<HojaDto>? {
         return hojasRepository.getAllHojas()
     }
 
     // Obtener una hoja por ID
-    suspend fun getHojaById(id: Long): HojaDto? {
+    suspend fun getHojaByIdApi(id: Long): HojaDto? {
         return hojasRepository.getHojaById(id)
     }
 
     // Obtener una hoja segun consulta
-    suspend fun getHojaBy(column: String, query: String):  List<HojaDto>? {
+    suspend fun getHojaByApi(column: String, query: String):  List<HojaDto>? {
         return hojasRepository.getHojaBy(column, query)
     }
 
     // Crear una nueva hoja
-    suspend fun createHoja(hojaCrearDto: HojaCrearDto): HojaDto? {
+    suspend fun createHojaApi(hojaCrearDto: HojaCrearDto): HojaDto? {
         return hojasRepository.createHoja(hojaCrearDto)
     }
 
     // Actualizar una hoja
-    suspend fun updateHoja(hojaDto: HojaDto): HojaDto? {
+    suspend fun updateHojaApi(hojaDto: HojaDto): HojaDto? {
         return hojasRepository.updateHoja(hojaDto)
     }
 
     // Eliminar una hoja por ID
-    suspend fun deleteHoja(id: Long): String? {
+    suspend fun deleteHojaApi(id: Long): String? {
         return hojasRepository.deleteHoja(id)
     }
 }

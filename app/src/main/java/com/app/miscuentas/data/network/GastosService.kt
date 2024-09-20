@@ -4,15 +4,13 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Update
-import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.pattern.dao.DbGastoDao
 import com.app.miscuentas.data.pattern.repository.GastosRepository
-import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.dto.GastoCrearDto
-import com.app.miscuentas.domain.dto.GastoDto
+import com.app.miscuentas.data.dto.GastoCrearDto
+import com.app.miscuentas.data.dto.GastoDto
 
 class GastosService(
     private val gastoDao: DbGastoDao,

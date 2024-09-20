@@ -1,10 +1,9 @@
 package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
-import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.dto.GastoCrearDto
-import com.app.miscuentas.domain.dto.GastoDto
+import com.app.miscuentas.data.dto.GastoCrearDto
+import com.app.miscuentas.data.dto.GastoDto
 
 class GastosRepository(
     private val webService: WebService,
@@ -63,7 +62,7 @@ class GastosRepository(
                 throw Exception("Error al crear gasto: ${response.code()} - ${response.message()}")
             }
         } catch (e: Exception) {
-            null
+            throw Exception("Error en la red al crear gasto: ${e.message}\", e")
         }
     }
 

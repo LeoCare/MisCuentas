@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain.dto
+package com.app.miscuentas.data.dto
 
 import com.google.gson.annotations.SerializedName
 
@@ -15,7 +15,7 @@ data class GastoDto(
 data class GastoCrearDto(
     @SerializedName("tipo") val tipo: String,
     @SerializedName("concepto") val concepto: String,
-    @SerializedName("importe") val importe: Double,
+    @SerializedName("importe") val importe: String,
     @SerializedName("fechaGasto") val fechaGasto: String,
     @SerializedName("idParticipante") val idParticipante: Long,
     @SerializedName("idImagen") val idImagen: Long?
