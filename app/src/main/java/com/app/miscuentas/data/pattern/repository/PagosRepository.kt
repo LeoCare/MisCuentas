@@ -1,10 +1,9 @@
 package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
-import com.app.miscuentas.data.network.PagosService
 import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.dto.PagoCrearDto
-import com.app.miscuentas.domain.dto.PagoDto
+import com.app.miscuentas.data.dto.PagoCrearDto
+import com.app.miscuentas.data.dto.PagoDto
 
 class PagosRepository(
     private val webService: WebService,
@@ -56,21 +55,21 @@ class PagosRepository(
     // Crear un nuevo pago
     suspend fun createPago(pagoCrearDto: PagoCrearDto): PagoDto? {
         return try {
-            val response = webService.createPago( pagoCrearDto)
+            val response = webService.createPago(pagoCrearDto)
             if (response.isSuccessful) {
                 response.body()
             } else {
                 throw Exception("Error al crear pago: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
-            null
+            throw Exception("Error de red al crear pago: ${e.message}", e)
         }
     }
 
     // Actualizar un pago
     suspend fun updatePago(pagoDto: PagoDto): PagoDto? {
         return try {
-            val response = webService.updatePago( pagoDto)
+            val response = webService.updatePago(pagoDto)
             if (response.isSuccessful) {
                 response.body()
             } else {

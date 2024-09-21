@@ -6,9 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
+import com.app.miscuentas.data.model.toCrearDto
+import com.app.miscuentas.data.model.toDto
+import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.network.BalancesService
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.ImagenesService
@@ -116,14 +120,23 @@ class BalanceViewModel @Inject constructor(
         if (acreedor != null) {
             viewModelScope.launch{
                 calculoUpdatePago(deudor, acreedor)?.let {
-                    val pagoInsertado = pagosService.insertPago(it)
-                    if (pagoInsertado > 0) { //si el pago se ha insertado
-                        onPagoRealizadoChanged(true)
-                        updateIfHojaBalanceada() //compruebo si esta balanciado en su totalidad
+                    try{
+                        //Insert Pago desde Api
+                        val pagoApi = pagosService.createPago(it.toDomain().toCrearDto())
+
+                        pagoApi?.let { pago ->
+                            //Insert Pago Room
+                            val pagoInsertado = pagosService.insertPago(pago.toEntity())
+                            if (pagoInsertado > 0) { //si el pago se ha insertado
+                                onPagoRealizadoChanged(true)
+                                updateIfHojaBalanceada() //compruebo si esta balanciado en su totalidad
+                            }
+                        }
+                    }catch (e: Exception) {
+                        onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
                     }
                 }
             }
-
         }
     }
 
@@ -164,19 +177,32 @@ class BalanceViewModel @Inject constructor(
         nuevoMontoDeudor: Double,
         montoAcreedorRedondeado: Double
     ): Boolean {
-        val exitoDeudor = balanceDeudor?.let {
-            it.monto = nuevoMontoDeudor
-            if (it.monto == 0.0) it.tipo = "B"
-            balancesService.updateBalance(it)
-        } ?: false
+        try {
+            if (balanceDeudor != null && balanceAcreedor != null) {
+                //Ajustes deudor:
+                balanceDeudor.monto = nuevoMontoDeudor
+                if (balanceDeudor.monto == 0.0) balanceDeudor.tipo = "B"
+                //Ajustes Acreedor:
+                balanceAcreedor.monto = montoAcreedorRedondeado
+                if (balanceAcreedor.monto == 0.0) balanceAcreedor.tipo = "B"
 
-        val exitoAcreedor = balanceAcreedor?.let {
-            it.monto = montoAcreedorRedondeado
-            if (it.monto == 0.0) it.tipo = "B"
-            balancesService.updateBalance(it)
-        } ?: false
 
-        return exitoDeudor && exitoAcreedor
+                //Update Balances desde Api
+                val balanceDeudorApi = balancesService.putBalanceApi(balanceDeudor.toDomain().toDto())
+                val balanceAcreedorApi =
+                    balancesService.putBalanceApi(balanceAcreedor.toDomain().toDto())
+
+                if (balanceDeudorApi != null && balanceAcreedorApi != null) {
+                    //Update Balances Room
+                    balancesService.updateBalance(balanceDeudor)
+                    balancesService.updateBalance(balanceAcreedor)
+
+                } else return false
+            }
+            return true
+        }catch (e: Exception) {
+            return false
+        }
     }
 
 
@@ -195,7 +221,15 @@ class BalanceViewModel @Inject constructor(
                 hojaActualizada.status = "B"
                 viewModelScope.launch {
                     withContext(Dispatchers.IO){
-                        hojasService.updateHoja(hojaActualizada)
+                        try{
+                            //Update Hoja desde Api
+                            hojasService.updateHojaApi(hojaActualizada.toDomain().toDto())
+
+                            //Update Hoja Room
+                            hojasService.updateHoja(hojaActualizada)
+                        }catch (e: Exception) {
+                            onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                        }
                     }
                 }
             }
@@ -238,7 +272,7 @@ class BalanceViewModel @Inject constructor(
             monto = montoPagado,
             idFotoPago = idFotoPago,
             fechaPago = Validaciones.fechaToStringFormat(LocalDate.now())!!,
-            fechaConfirmacion = ""
+            fechaConfirmacion = null
         )
     }
 
@@ -291,7 +325,7 @@ class BalanceViewModel @Inject constructor(
                 pago.monto,
                 pago.fechaPago,
                 imagenBitmap,
-                (pago.fechaConfirmacion.isNotEmpty())
+                pago.fechaConfirmacion.isNullOrEmpty()
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
 
@@ -325,6 +359,11 @@ class BalanceViewModel @Inject constructor(
     fun obtenerFotoPago(idFoto: Long): Bitmap {
         val imagenByteArray = imagenesService.getFoto(idFoto).imagen
         return byteArrayToBitmap(imagenByteArray)
+    }
+
+    /** Pendiente subir cambios a la red **/
+    fun onPendienteSubirCambiosChanged(pendiente: Boolean){
+        _balanceState.value = _balanceState.value.copy(pendienteSubirCambios = pendiente)
     }
 
 }

@@ -2,14 +2,11 @@ package com.app.miscuentas.data.network
 
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
-import com.app.miscuentas.data.auth.TokenAuthenticator
-import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
 import com.app.miscuentas.data.pattern.dao.DbPagoDao
 import com.app.miscuentas.data.pattern.repository.PagosRepository
-import com.app.miscuentas.data.pattern.webservices.WebService
-import com.app.miscuentas.domain.dto.PagoCrearDto
-import com.app.miscuentas.domain.dto.PagoDto
+import com.app.miscuentas.data.dto.PagoCrearDto
+import com.app.miscuentas.data.dto.PagoDto
 
 class PagosService(
     private val pagoDao: DbPagoDao,

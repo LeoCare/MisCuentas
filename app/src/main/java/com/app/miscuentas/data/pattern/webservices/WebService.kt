@@ -11,8 +11,8 @@ import com.app.miscuentas.data.dto.HojaCrearDto
 import com.app.miscuentas.data.dto.HojaDto
 import com.app.miscuentas.domain.dto.ImagenCrearDto
 import com.app.miscuentas.domain.dto.ImagenDto
-import com.app.miscuentas.domain.dto.PagoCrearDto
-import com.app.miscuentas.domain.dto.PagoDto
+import com.app.miscuentas.data.dto.PagoCrearDto
+import com.app.miscuentas.data.dto.PagoDto
 import com.app.miscuentas.data.dto.ParticipanteCrearDto
 import com.app.miscuentas.data.dto.ParticipanteDto
 import com.app.miscuentas.domain.dto.UsuarioCrearDto

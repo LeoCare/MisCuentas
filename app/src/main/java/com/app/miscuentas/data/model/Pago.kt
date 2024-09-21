@@ -1,7 +1,8 @@
 package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
-import com.app.miscuentas.domain.dto.PagoDto
+import com.app.miscuentas.data.dto.PagoCrearDto
+import com.app.miscuentas.data.dto.PagoDto
 
 
 data class Pago(
@@ -11,7 +12,7 @@ data class Pago(
     val monto: Double,
     var idFotoPago: Long? = null,
     val fechaPago: String,
-    val fechaConfirmacion: String,
+    val fechaConfirmacion: String? = null
 )
 
 fun Pago.toEntity() = DbPagoEntity(
@@ -21,7 +22,7 @@ fun Pago.toEntity() = DbPagoEntity(
      monto = monto,
      idFotoPago = idFotoPago,
      fechaPago = fechaPago,
-     fechaConfirmacion = fechaConfirmacion,
+     fechaConfirmacion = fechaConfirmacion
 )
 
 fun PagoDto.toEntity() = DbPagoEntity(
@@ -31,7 +32,26 @@ fun PagoDto.toEntity() = DbPagoEntity(
     monto = monto,
     idFotoPago = idImagen,
     fechaPago = fechaPago,
-    fechaConfirmacion = fechaConfirmacion.toString(),
+    fechaConfirmacion = fechaConfirmacion.toString()
+)
+
+fun Pago.toCrearDto() = PagoCrearDto(
+    idBalance = idBalance,
+    idBalancePagado = idBalancePagado,
+    monto = monto.toString(),
+    idImagen = idFotoPago,
+    fechaPago = fechaPago,
+    fechaConfirmacion = fechaConfirmacion
+)
+
+fun DbPagoEntity.toDto() = PagoDto(
+    idPago = idPago,
+    idBalance = idBalance,
+    idBalancePagado = idBalancePagado,
+    monto = monto,
+    idImagen  = idFotoPago,
+    fechaPago = fechaPago,
+    fechaConfirmacion = fechaConfirmacion.toString()
 )
 
 fun List<PagoDto>.toEntityList(): List<DbPagoEntity> {

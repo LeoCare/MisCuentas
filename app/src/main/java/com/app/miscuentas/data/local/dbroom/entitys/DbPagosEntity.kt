@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.app.miscuentas.data.model.Pago
 
 @Entity(
     tableName = "t_pagos",
@@ -29,5 +30,15 @@ data class DbPagoEntity(
     @ColumnInfo(name = "monto") val monto: Double,
     @ColumnInfo(name = "idFotoPago") var idFotoPago: Long? = null,
     @ColumnInfo(name = "fechaPago") val fechaPago: String,
-    @ColumnInfo(name = "fechaConfirmacion") val fechaConfirmacion: String,
+    @ColumnInfo(name = "fechaConfirmacion") val fechaConfirmacion: String? = null,
+)
+
+fun DbPagoEntity.toDomain() = Pago(
+    idPago = idPago,
+    idBalance = idBalance,
+    idBalancePagado = idBalancePagado,
+    monto =monto,
+    idFotoPago = idFotoPago,
+    fechaPago = fechaPago,
+    fechaConfirmacion = fechaConfirmacion
 )
