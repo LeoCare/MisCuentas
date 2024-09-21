@@ -89,11 +89,11 @@ class NuevoGastoViewModel @Inject constructor (
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     //Insert desde API
-                    val gastoAPIOk = insertGastoAPI(tipo, concepto, importe, fechaGasto, idParticipante, 0)
+                    val gastoAPIOk = insertGastoAPI(tipo, concepto, importe, fechaGasto, idParticipante, null)
                     if(gastoAPIOk != null){
 
                         //Insert en ROOM
-                        val insertRoomOK = insertGastoRoom(gastoAPIOk.idGasto, tipo, concepto, importe, fechaGasto, idParticipante, 0)
+                        val insertRoomOK = insertGastoRoom(gastoAPIOk.idGasto, tipo, concepto, importe, fechaGasto, idParticipante)
                         if(insertRoomOK) {
                             vaciarTextFields()
                             onInsertOKChanged(true)
@@ -110,7 +110,7 @@ class NuevoGastoViewModel @Inject constructor (
         importe: String,
         fechaGasto: String,
         idParticipante: Long,
-        idImagen: Long
+        idImagen: Long?
     ): GastoDto? {
         val gastoCrearDto = GastoCrearDto(tipo.toString(), concepto, importe, fechaGasto, idParticipante, idImagen)
 
@@ -128,8 +128,7 @@ class NuevoGastoViewModel @Inject constructor (
         concepto: String,
         importe: String,
         fechaGasto: String,
-        idParticipante: Long,
-        idImagen: Long
+        idParticipante: Long
     ): Boolean {
         val idGastoApi = idGasto ?: 0
         val gasto = Gasto( idGastoApi,tipo, concepto, importe, fechaGasto, null).toEntity(idParticipante)

@@ -7,12 +7,12 @@ data class BalanceDto(
     @SerializedName("idHoja") val idHoja: Long,
     @SerializedName("idParticipante") val idParticipante: Long,
     @SerializedName("tipo") val tipo: String,
-    @SerializedName("monto") val monto: Double
+    @SerializedName("monto") val monto: String
 )
 
 data class BalanceCrearDto(
     @SerializedName("idHoja") val idHoja: Long,
     @SerializedName("idParticipante") val idParticipante: Long,
     @SerializedName("tipo") val tipo: String,
-    @SerializedName("monto") val monto: Double
+    @SerializedName("monto") val monto: String
 )

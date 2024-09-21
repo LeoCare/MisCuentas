@@ -605,6 +605,7 @@ fun GastoDesing(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            //Logo gasto
             Image(
                 painter = painterResource(id = listaIconosGastos[gasto!!.tipo.toInt() - 1].imagen),
                 contentDescription = "Icono del gasto",

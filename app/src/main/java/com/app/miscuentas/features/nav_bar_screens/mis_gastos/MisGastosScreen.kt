@@ -61,6 +61,7 @@ fun MisGastosScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ){
+        /* FILTROS */
         SeleccionFiltros(
             filtroElegido = gastosState.filtroElegido,
             ordenElegido = gastosState.ordenElegido,
@@ -75,6 +76,7 @@ fun MisGastosScreen(
             listaHojas = gastosState.hojasDelRegistrado,
             onEleccionEnTituloChanged = { viewModel.onEleccionEnTituloChanged(it)}
         )
+        /* LISTA DE GASTOS */
         Row(
             modifier = Modifier
                 .padding( 15.dp)

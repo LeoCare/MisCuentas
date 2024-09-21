@@ -5,10 +5,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
-import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
+import com.app.miscuentas.data.model.Balance
+import com.app.miscuentas.data.model.toCrearDto
+import com.app.miscuentas.data.model.toDto
+import com.app.miscuentas.data.model.toEntityList
 import com.app.miscuentas.data.network.BalancesService
 import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.network.HojasService
@@ -161,13 +165,25 @@ class GastosViewModel @Inject constructor(
 
 
     /** METODO QUE ELIMINA LA LINEA DE T_GASTOS **/
-    //Borrar
     suspend fun deleteGasto(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                gastosState.value.gastoABorrar?.let { gastosService.delete(it) }
-                withContext(Dispatchers.Main) {
-                    totalGastosHojaActual()
+        val gasto = gastosState.value.gastoABorrar
+        gasto?.let{
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    try{
+                        //Delete en Room
+                        gastosService.delete(it)
+
+                        //Delete desde Api
+                        gastosService.deleteGasto(it.idGasto)
+
+                        //Recargar info de los gastos una vez eliminado uno de ellos:
+                        withContext(Dispatchers.Main) {
+                            totalGastosHojaActual()
+                        }
+                    }catch(e: Exception){
+                        onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                    }
                 }
             }
         }
@@ -183,33 +199,69 @@ class GastosViewModel @Inject constructor(
     //Actualizar
     suspend fun updateHoja(status: String) = viewModelScope.launch{
         onCierreAceptado(false)
-        _gastosState.value.hojaAMostrar?.hoja?.status = status
-        withContext(Dispatchers.IO) {
-            hojasService.updateHoja(gastosState.value.hojaAMostrar?.hoja!!)
-            instanciarInsertarBalance()
+        val hojaConParticipantes =  _gastosState.value.hojaAMostrar
+        hojaConParticipantes?.let {
+            it.hoja.status = status
+            onHojaAMostrarChanged(it)
 
+            withContext(Dispatchers.IO) {
+                try {
+                    //Instancia e Insert Balance Room Y Api
+                    val instInsert = instanciarInsertarBalance()
+
+                    if (instInsert){
+                        //Update a F Hoja Room
+                        hojasService.updateHoja(it.hoja)
+
+                        //Update Hoja Api
+                        hojasService.updateHojaApi(it.hoja.toDomain().toDto())
+                    }
+
+                } catch (e: Exception) {
+                    onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                }
+            }
         }
     }
 
-    /** METODO QUE ACTUALIZA EL PREFERENCE DE IDHOJA A O PARA AQUELLA QUE NO ESTE ACTIVA **/
+    /** METODO QUE ACTUALIZA EL PREFERENCE DE IDHOJA A 'O' PARA AQUELLA QUE NO ESTE ACTIVA **/
     private suspend fun updatePreferenceIdHojaPrincipal() {
         dataStoreConfig.putIdHojaPrincipalPreference(0)
     }
 
 
     /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
-    private suspend fun instanciarInsertarBalance(){
+    private suspend fun instanciarInsertarBalance(): Boolean {
         val balanceDeuda = gastosState.value.balanceDeuda
         val hojaAMostrar = gastosState.value.hojaAMostrar
         val balances = instanciarBalance(balanceDeuda, hojaAMostrar)
 
-        insertBalancesForHoja(balances)
-        updatePreferenceIdHojaPrincipal()
+        val insertOk = insertBalancesForHoja(balances)
+        if (insertOk) updatePreferenceIdHojaPrincipal()
+        return insertOk
     }
 
     /** INSERTA DATOS EN T_BALANCE **/
-    private suspend fun insertBalancesForHoja(balances: List<DbBalancesEntity>){
-        balancesService.insertBalancesForHoja(gastosState.value.hojaAMostrar?.hoja!!, balances)
+    private suspend fun insertBalancesForHoja(balances: List<Balance>): Boolean{
+        val hojaEntity = gastosState.value.hojaAMostrar?.hoja
+        hojaEntity?.let { hoja ->
+            try{
+                //Insert desde Api
+                balances.forEach { balance ->
+                    val idBalanceApi = balancesService.postBalanceApi(balance.toCrearDto())?.idBalance
+                    if (idBalanceApi != null) balance.idBalance = idBalanceApi
+                }
+
+                //Insert en Room
+                balancesService.insertBalancesForHoja(hoja, balances.toEntityList())
+
+                return true
+            }catch (e: Exception) {
+                onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                return false
+            }
+        }
+        return false
     }
 
 
@@ -236,5 +288,8 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-
+    /** Pendiente subir cambios a la red **/
+    fun onPendienteSubirCambiosChanged(pendiente: Boolean){
+        _gastosState.value = _gastosState.value.copy(pendienteSubirCambios = pendiente)
+    }
 }

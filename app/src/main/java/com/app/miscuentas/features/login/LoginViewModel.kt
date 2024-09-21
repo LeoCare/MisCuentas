@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
+import com.app.miscuentas.data.model.dtoToEntityList
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.model.toEntityList
 import com.app.miscuentas.data.network.BalancesService
@@ -134,7 +135,7 @@ class LoginViewModel @Inject constructor(
             //balances:
             val balances = balancesService.getBalanceByApi("id_hoja", hoja.idHoja.toString())
             if (balances != null) {
-                balancesService.insertBalancesForHoja(hoja.toEntity(), balances.toEntityList())
+                balancesService.insertBalancesForHoja(hoja.toEntity(), balances.dtoToEntityList())
             }
         }
     }

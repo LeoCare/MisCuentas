@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Transaction
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
+import com.app.miscuentas.data.model.Balance
 import com.app.miscuentas.data.pattern.dao.DbBalanceDao
 import com.app.miscuentas.data.pattern.repository.BalancesRepository
 import com.app.miscuentas.domain.dto.BalanceCrearDto
@@ -57,13 +58,13 @@ class BalancesService(
     /** API **/
     /**********/
     // Obtener todos los balances
-    suspend fun getBalancesApi(token: String): List<BalanceDto>? {
-        return balancesRepository.getBalances(token)
+    suspend fun getBalancesApi(): List<BalanceDto>? {
+        return balancesRepository.getBalances()
     }
 
     // Obtener un balance por ID
-    suspend fun getBalanceByIdApi(token: String, id: Long): BalanceDto? {
-        return balancesRepository.getBalanceById(token, id)
+    suspend fun getBalanceByIdApi(id: Long): BalanceDto? {
+        return balancesRepository.getBalanceById(id)
     }
 
     // Obtener balances segun la condicion
@@ -72,18 +73,18 @@ class BalancesService(
     }
 
     // Crear un nuevo balance
-    suspend fun postBalanceApi(token: String, balanceCrearDto: BalanceCrearDto): BalanceDto? {
-        return balancesRepository.postBalance(token, balanceCrearDto)
+    suspend fun postBalanceApi(balanceCrearDto: BalanceCrearDto): BalanceDto? {
+        return balancesRepository.postBalance(balanceCrearDto)
     }
 
     // Actualizar un balance
-    suspend fun putBalanceApi(token: String, balanceDto: BalanceDto): BalanceDto? {
-        return balancesRepository.putBalance(token, balanceDto)
+    suspend fun putBalanceApi(balanceDto: BalanceDto): BalanceDto? {
+        return balancesRepository.putBalance(balanceDto)
     }
 
     // Eliminar un balance por ID
-    suspend fun deleteBalanceApi(token: String, id: Long): String? {
-        return balancesRepository.deleteBalance(token, id)
+    suspend fun deleteBalanceApi(id: Long): String? {
+        return balancesRepository.deleteBalance(id)
     }
 
 }

@@ -4,6 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.app.miscuentas.data.model.Balance
+import com.app.miscuentas.domain.dto.BalanceDto
 
 @Entity(
     tableName = "t_balance",
@@ -28,4 +30,12 @@ data class DbBalancesEntity(
     @ColumnInfo(name = "idParticipanteBalance", index = true) val idParticipanteBalance: Long,
     @ColumnInfo(name = "tipo") var tipo: String,
     @ColumnInfo(name = "monto") var monto: Double
+)
+
+fun DbBalancesEntity.toDomain() = Balance(
+    idBalance = idBalance,
+    idHojaBalance = idHojaBalance,
+    idParticipanteBalance = idParticipanteBalance,
+    tipo = tipo,
+    monto = monto
 )

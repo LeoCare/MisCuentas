@@ -106,13 +106,17 @@ class MisHojasViewModel @Inject constructor(
             onHojaAModificarChanged(it) //guardo modificada
 
             withContext(Dispatchers.IO) {
-                //Update Room
-                hojasService.updateHoja(it.toEntity())
-                //Update DataStore
-                updatePreferenceIdHojaPrincipal(it.toEntity())
-                //Update Api
-                val hojaDto = hojasService.updateHojaApi(it.toDto())
-                if (hojaDto == null) onPendienteSubirCambiosChanged(true)
+                try {
+                    //Update Room
+                    hojasService.updateHoja(it.toEntity())
+                    //Update DataStore
+                    updatePreferenceIdHojaPrincipal(it.toEntity())
+                    //Update Api
+                    hojasService.updateHojaApi(it.toDto())
+
+                } catch (e: Exception) {
+                    onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                }
             }
         }
     }

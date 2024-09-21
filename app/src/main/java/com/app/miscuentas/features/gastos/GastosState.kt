@@ -19,5 +19,6 @@ data class GastosState (
     val sumaParticipantes: Map<String, Double>? = null, //suma de gastos por participante
     val balanceDeuda: Map<String, Double>? = null, //importe que debe/recibe cada participante hasta antes del cierre
     val imagenBitmap: Bitmap? = null,
-    val mostrarFoto: Boolean = false
+    val mostrarFoto: Boolean = false,
+    val pendienteSubirCambios: Boolean = false
 )
