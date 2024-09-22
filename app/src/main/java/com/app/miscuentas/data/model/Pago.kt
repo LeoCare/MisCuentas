@@ -32,7 +32,7 @@ fun PagoDto.toEntity() = DbPagoEntity(
     monto = monto,
     idFotoPago = idImagen,
     fechaPago = fechaPago,
-    fechaConfirmacion = fechaConfirmacion.toString()
+    fechaConfirmacion = fechaConfirmacion
 )
 
 fun Pago.toCrearDto() = PagoCrearDto(

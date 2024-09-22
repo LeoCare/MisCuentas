@@ -11,5 +11,5 @@ data class PagoConParticipantes(
     val monto: Double,
     val fechaPago: String,
     var fotoPago: Bitmap?,
-    val confirmado: Boolean = false
+    val fechaConfirmacion: String? = null
 )

@@ -15,7 +15,6 @@ class JwtInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder = chain.request().newBuilder()
 
-        // Para asegurarme que tengo el token cargado, lo obtengo de forma síncrona desde el caché
         // Crear una corrutina en un contexto específico que no bloquee el hilo
         // Obtener el token y verificar si ha expirado
         val token = runBlocking {

@@ -520,7 +520,6 @@ fun PagoDesing(
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 12.dp)
             .fillMaxWidth()
-
     ) {
         Column(
             modifier = Modifier
@@ -557,7 +556,7 @@ fun PagoDesing(
                     Icon(
                         Icons.Filled.Handshake,
                         contentDescription = "Iconos de confirmacion del pago",
-                        tint = if (pago.confirmado) Color.Green else Color.DarkGray,
+                        tint = if (pago.fechaConfirmacion != null) Color.Green else Color.DarkGray,
                         modifier = Modifier.size(25.dp)
                     )
                 }

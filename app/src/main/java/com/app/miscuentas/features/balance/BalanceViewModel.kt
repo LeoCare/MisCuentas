@@ -128,8 +128,7 @@ class BalanceViewModel @Inject constructor(
                             //Insert Pago Room
                             val pagoInsertado = pagosService.insertPago(pago.toEntity())
                             if (pagoInsertado > 0) { //si el pago se ha insertado
-                                onPagoRealizadoChanged(true)
-                                updateIfHojaBalanceada() //compruebo si esta balanciado en su totalidad
+                                updateIfHojaBalanceada() //compruebo si esta balanceado en su totalidad
                             }
                         }
                     }catch (e: Exception) {
@@ -234,6 +233,8 @@ class BalanceViewModel @Inject constructor(
                 }
             }
         }
+        onPagoRealizadoChanged(true)
+        getPagos()
     }
 
     /** METODO QUE ACTUALIZA LA FOTO DEL  PAGO **/
@@ -325,7 +326,7 @@ class BalanceViewModel @Inject constructor(
                 pago.monto,
                 pago.fechaPago,
                 imagenBitmap,
-                pago.fechaConfirmacion.isNullOrEmpty()
+                pago.fechaConfirmacion
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
 
