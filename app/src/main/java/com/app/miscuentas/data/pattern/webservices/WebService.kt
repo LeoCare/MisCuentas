@@ -15,6 +15,8 @@ import com.app.miscuentas.data.dto.PagoCrearDto
 import com.app.miscuentas.data.dto.PagoDto
 import com.app.miscuentas.data.dto.ParticipanteCrearDto
 import com.app.miscuentas.data.dto.ParticipanteDto
+import com.app.miscuentas.data.model.RefreshTokenRequest
+import com.app.miscuentas.data.model.TokenResponse
 import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import com.app.miscuentas.domain.dto.UsuarioDeleteDto
 import com.app.miscuentas.domain.dto.UsuarioDto
@@ -30,6 +32,11 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface WebService {
+    /** REFRESH TOKEN **/
+    @GET("usuarios/refreshToken")
+    suspend fun refreshToken(
+        @Body refreshTokenRequest: RefreshTokenRequest
+    ): Response<TokenResponse>
 
     /** SERVICIOS DE USUARIOS **/
     //Registrar usuario:

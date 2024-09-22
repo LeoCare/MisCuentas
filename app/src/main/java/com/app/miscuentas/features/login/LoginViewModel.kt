@@ -4,6 +4,7 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.favre.lib.crypto.bcrypt.BCrypt
+import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
 import com.app.miscuentas.data.model.dtoToEntityList
@@ -35,7 +36,8 @@ class LoginViewModel @Inject constructor(
     private val pagosService: PagosService,
     private val gastosService: GastosService,
     private val hojasService: HojasService,
-    private val balancesService: BalancesService
+    private val balancesService: BalancesService,
+    private val tokenAuthenticator: TokenAuthenticator
 
 ) : ViewModel(){
 
@@ -80,12 +82,13 @@ class LoginViewModel @Inject constructor(
         val contrasenna = _loginState.value.contrasenna
 
         viewModelScope.launch {
+            onIsLoadingOkChanged(true)
             try {
-                onIsLoadingOkChanged(true)
                 val response = usuariosService.postLoginApi(UsuarioLoginDto(correo, contrasenna))
                 if (response != null) {
-                    // Guardar el usuario y el token
+                    // Guardar el usuario y los tokens
                     usuariosService.cleanInsert(response.usuario.toEntity())
+                    tokenAuthenticator.saveTokens(response.accessToken, response.refreshToken)
                     // Actualizar el estado de la UI y cargar Room
                     limpiarYVolcarLogin(response.usuario)
                     onRegistroDataStoreChanged(response.usuario.idUsuario, response.usuario.nombre)
@@ -261,7 +264,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
             val registrado = dataStoreConfig.getRegistroPreference()
-            val token = dataStoreConfig.getTokenPreference()
+            val token = dataStoreConfig.getAccessTokenPreference()
 
             if (registrado != null && token != null && inicioHuella == "SI") startBiometricAuthentication()
             else if (registrado != null && token != null) onLoginOkChanged(true)

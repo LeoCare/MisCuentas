@@ -24,7 +24,8 @@ data class UsuarioLoginDto(
 
 data class UsuarioWithTokenDto(
     @SerializedName("usuario") val usuario: UsuarioDto,
-    @SerializedName("token") val token: String
+    @SerializedName("accessToken") val accessToken: String,
+    @SerializedName("refreshToken") val refreshToken: String
 )
 
 data class UsuarioDeleteDto(

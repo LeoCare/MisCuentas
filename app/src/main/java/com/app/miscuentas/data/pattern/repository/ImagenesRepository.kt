@@ -3,10 +3,12 @@ package com.app.miscuentas.data.pattern.repository
 import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.network.ImagenesService
 import com.app.miscuentas.data.pattern.webservices.WebService
+import com.app.miscuentas.di.WithInterceptor
 import com.app.miscuentas.domain.dto.ImagenCrearDto
 import com.app.miscuentas.domain.dto.ImagenDto
 
 class ImagenesRepository(
+    @WithInterceptor
     private val webService: WebService,
     private val tokenAuthenticator: TokenAuthenticator
 ) {

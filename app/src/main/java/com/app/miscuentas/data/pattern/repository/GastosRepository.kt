@@ -4,8 +4,10 @@ import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.data.dto.GastoCrearDto
 import com.app.miscuentas.data.dto.GastoDto
+import com.app.miscuentas.di.WithInterceptor
 
 class GastosRepository(
+    @WithInterceptor
     private val webService: WebService,
     private val tokenAuthenticator: TokenAuthenticator
 ) {

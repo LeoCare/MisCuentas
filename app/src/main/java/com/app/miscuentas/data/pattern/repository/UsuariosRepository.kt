@@ -3,6 +3,7 @@ package com.app.miscuentas.data.pattern.repository
 
 import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.pattern.webservices.WebService
+import com.app.miscuentas.di.WithInterceptor
 import com.app.miscuentas.domain.dto.UsuarioCrearDto
 import com.app.miscuentas.domain.dto.UsuarioDeleteDto
 import com.app.miscuentas.domain.dto.UsuarioDto
@@ -11,6 +12,7 @@ import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
 import javax.inject.Inject
 
 class UsuariosRepository @Inject constructor(
+    @WithInterceptor
     private val webService: WebService,
     private val tokenAuthenticator: TokenAuthenticator // Injecta el TokenAuthenticator
 ) {
@@ -35,7 +37,7 @@ class UsuariosRepository @Inject constructor(
                 val usuarioWithToken = response.body()
                 // Guardar el token
                 usuarioWithToken?.let {
-                    tokenAuthenticator.saveToken(it.token)
+                    tokenAuthenticator.saveTokens(it.accessToken, it.refreshToken)
                 }
                 usuarioWithToken
             } else {
@@ -54,7 +56,7 @@ class UsuariosRepository @Inject constructor(
 
                 // Guardar el token
                 usuarioWithToken?.let {
-                    tokenAuthenticator.saveToken(it.token)
+                    tokenAuthenticator.saveTokens(it.accessToken, it.refreshToken)
                 }
 
                 usuarioWithToken

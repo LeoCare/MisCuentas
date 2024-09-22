@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
+import com.app.miscuentas.data.domain.AuthState
 import com.app.miscuentas.util.Imagen.Companion.permisosRequeridos
 
 
@@ -29,6 +30,7 @@ fun SplashScreen(
     viewModel: SplashViewModel = hiltViewModel()
 ) {
     val splashState by viewModel.splashState.collectAsState()
+    val authState by viewModel.authState.collectAsState()
     val context = LocalContext.current
 
     @Composable
@@ -67,7 +69,7 @@ fun SplashScreen(
     //Luego de la comprobacion inicial del viewmodel:
     LaunchedEffect(splashState.continuar) {
         if(splashState.continuar) {
-            if (splashState.autoInicio) onInicioNavigate()
+            if (splashState.autoInicio && authState == AuthState.Authenticated) onInicioNavigate()
             else onLoginNavigate()
         }
     }

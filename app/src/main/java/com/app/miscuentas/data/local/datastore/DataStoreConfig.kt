@@ -25,7 +25,8 @@ object DataStoreKeys {
     val IDHOJAPRINCIPAL = longPreferencesKey("IDHOJAPRINCIPAL")
     val PERMISOCAMARA = booleanPreferencesKey("PERMISOCAMARA")
     val PERMISOSALMACENAMIENTO = booleanPreferencesKey("PERMISOSALMACENAMIENTO")
-    val TOKEN = stringPreferencesKey("JWT_TOKEN")
+    val ACCESS_TOKEN_KEY = stringPreferencesKey("ACCESS_TOKEN")
+    val REFRESH_TOKEN_KEY = stringPreferencesKey("REFRESH_TOKEN")
 }
 
 class DataStoreConfig @Inject constructor(
@@ -171,26 +172,50 @@ class DataStoreConfig @Inject constructor(
     }
 
     /** Guardar el token JWT en DataStore */
-    suspend fun putTokenPreference(token: String) {
+    suspend fun putAccessTokenPreference(token: String) {
         context.dataStore.edit { preferences ->
-            preferences[DataStoreKeys.TOKEN] = token
+            preferences[DataStoreKeys.ACCESS_TOKEN_KEY] = token
         }
     }
 
     /** Obtener el token JWT desde DataStore */
-    suspend fun getTokenPreference(): String? {
+    suspend fun getAccessTokenPreference(): String? {
         return try {
             val preferences = context.dataStore.data.first()
-            preferences[DataStoreKeys.TOKEN]
+            preferences[DataStoreKeys.ACCESS_TOKEN_KEY]
         }catch (e: Exception){
             null
         }
     }
 
     /** Eliminar el token JWT de DataStore */
-    suspend fun clearTokenPreference() {
+    suspend fun clearAccessTokenPreference() {
         context.dataStore.edit { preferences ->
-            preferences.remove(DataStoreKeys.TOKEN)
+            preferences.remove(DataStoreKeys.ACCESS_TOKEN_KEY)
+        }
+    }
+
+    /** Guardar el token JWT en DataStore */
+    suspend fun putRefreshTokenPreference(token: String) {
+        context.dataStore.edit { preferences ->
+            preferences[DataStoreKeys.REFRESH_TOKEN_KEY] = token
+        }
+    }
+
+    /** Obtener el token JWT desde DataStore */
+    suspend fun getRefreshTokenPreference(): String? {
+        return try {
+            val preferences = context.dataStore.data.first()
+            preferences[DataStoreKeys.REFRESH_TOKEN_KEY]
+        }catch (e: Exception){
+            null
+        }
+    }
+
+    /** Eliminar el token JWT de DataStore */
+    suspend fun clearRefreshTokenPreference() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(DataStoreKeys.REFRESH_TOKEN_KEY)
         }
     }
 }

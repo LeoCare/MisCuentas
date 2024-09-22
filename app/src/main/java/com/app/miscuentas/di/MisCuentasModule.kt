@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.app.miscuentas.data.auth.JwtInterceptor
 import com.app.miscuentas.data.auth.TokenAuthenticator
+import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DbMisCuentas
 import com.app.miscuentas.data.pattern.repository.BalancesRepository
@@ -37,9 +38,19 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
+import javax.inject.Qualifier
 
 /***** MISHOJAS *****/
 /********************/
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class WithoutInterceptor
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class WithInterceptor
+
 @Module
 @InstallIn(SingletonComponent::class)
 object MisHojasModule {
@@ -94,22 +105,66 @@ object MisHojasModule {
         DataStoreConfig(context)
     /*****************/
 
-    /** AUTENTICACION DI **/
+    /** PARA SOLICITUDES SIN AUTENTICACION DI **/
+    /**********************/
+    /** Cliente OkHttp sin interceptor, para TokenAuthenticator */
+    @Provides
+    @Singleton
+    @WithoutInterceptor
+    fun provideOkHttpClientWithoutInterceptor(): OkHttpClient {
+        return OkHttpClient.Builder().build()
+    }
+
+    /** WebService sin interceptor, para TokenAuthenticator */
+    @Provides
+    @Singleton
+    @WithoutInterceptor
+    fun provideWebServiceWithoutInterceptor(
+        @WithoutInterceptor okHttpClientWithoutInterceptor: OkHttpClient
+    ): WebService {
+        return Retrofit.Builder()
+            //.baseUrl("https://api-miscuentas.leondev.es/")
+            .baseUrl("http://192.168.7.27:8080/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClientWithoutInterceptor)
+            .build()
+            .create(WebService::class.java)
+    }
+
+    /** TokenAuthenticator que utiliza el WebService sin interceptor */
+    @Provides
+    @Singleton
+    fun provideTokenAuthenticator(
+        dataStoreConfig: DataStoreConfig,
+        @WithoutInterceptor webService: WebService
+    ): TokenAuthenticator {
+        return TokenAuthenticator(dataStoreConfig, webService)
+    }
+    /*****************/
+
+
+    /** PARA SOLICITUDES CON AUTENTICACION DI **/
     /**********************/
     @Provides
     @Singleton
-    fun provideTokenAuthenticator(dataStoreConfig: DataStoreConfig): TokenAuthenticator {
-        return TokenAuthenticator(dataStoreConfig)
+    fun provideSessionManager(
+        tokenAuthenticator: TokenAuthenticator,
+        dataStoreConfig: DataStoreConfig
+    ): SessionManager {
+        return SessionManager(tokenAuthenticator, dataStoreConfig)
     }
 
+    /** JwtInterceptor que utiliza TokenAuthenticator */
     @Provides
     @Singleton
-    fun provideJwtInterceptor(tokenAuthenticator: TokenAuthenticator): JwtInterceptor {
-        return JwtInterceptor(tokenAuthenticator)
+    fun provideJwtInterceptor(tokenAuthenticator: TokenAuthenticator, sessionManager: SessionManager): JwtInterceptor {
+        return JwtInterceptor(tokenAuthenticator, sessionManager)
     }
 
+    /** Cliente OkHttp con interceptor */
     @Provides
     @Singleton
+    @WithInterceptor
     fun provideOkHttpClient(jwtInterceptor: JwtInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(jwtInterceptor)
@@ -120,9 +175,13 @@ object MisHojasModule {
 
     /** WEBSERVICES DI **/
     /********************/
+    /** WebService general que utiliza el cliente con interceptor */
     @Provides
     @Singleton
-    fun provideWebService(okHttpClient: OkHttpClient): WebService {
+    @WithInterceptor
+    fun provideWebService(
+        @WithInterceptor okHttpClient: OkHttpClient
+    ): WebService {
         return Retrofit.Builder()
             //.baseUrl("https://api-miscuentas.leondev.es/")
             .baseUrl("http://192.168.7.27:8080/") //config para pruebas locales con movil fisico
@@ -135,7 +194,7 @@ object MisHojasModule {
     /** USUARIO DI */
     @Provides
     @Singleton
-    fun provideUsuariosRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): UsuariosRepository {
+    fun provideUsuariosRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): UsuariosRepository {
         return UsuariosRepository(webService, tokenAuthenticator)
     }
 
@@ -151,7 +210,7 @@ object MisHojasModule {
     /** BALANCE DI */
     @Provides
     @Singleton
-    fun provideBalancesRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): BalancesRepository {
+    fun provideBalancesRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): BalancesRepository {
         return BalancesRepository(webService, tokenAuthenticator)
     }
 
@@ -165,7 +224,7 @@ object MisHojasModule {
     /** PARTICIPANTES DI */
     @Provides
     @Singleton
-    fun provideParticipantesRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): ParticipantesRepository {
+    fun provideParticipantesRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): ParticipantesRepository {
         return ParticipantesRepository(webService, tokenAuthenticator)
     }
 
@@ -178,7 +237,7 @@ object MisHojasModule {
     /** PAGOS DI */
     @Provides
     @Singleton
-    fun providePagosRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): PagosRepository {
+    fun providePagosRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): PagosRepository {
         return PagosRepository(webService, tokenAuthenticator)
     }
 
@@ -191,7 +250,7 @@ object MisHojasModule {
     /** GASTOS DI */
     @Provides
     @Singleton
-    fun provideGastosRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): GastosRepository {
+    fun provideGastosRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): GastosRepository {
         return GastosRepository(webService, tokenAuthenticator)
     }
 
@@ -204,7 +263,7 @@ object MisHojasModule {
     /** HOJAS DI */
     @Provides
     @Singleton
-    fun provideHojasRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): HojasRepository {
+    fun provideHojasRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): HojasRepository {
         return HojasRepository(webService, tokenAuthenticator)
     }
 
@@ -217,7 +276,7 @@ object MisHojasModule {
     /** IMAGENES DI */
     @Provides
     @Singleton
-    fun provideImagenesRepository(webService: WebService, tokenAuthenticator: TokenAuthenticator): ImagenesRepository {
+    fun provideImagenesRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): ImagenesRepository {
         return ImagenesRepository(webService, tokenAuthenticator)
     }
 

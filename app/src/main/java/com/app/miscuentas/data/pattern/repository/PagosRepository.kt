@@ -4,8 +4,10 @@ import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.data.dto.PagoCrearDto
 import com.app.miscuentas.data.dto.PagoDto
+import com.app.miscuentas.di.WithInterceptor
 
 class PagosRepository(
+    @WithInterceptor
     private val webService: WebService,
     private val tokenAuthenticator: TokenAuthenticator
 ) {

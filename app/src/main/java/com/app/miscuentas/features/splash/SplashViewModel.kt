@@ -4,6 +4,8 @@ import android.Manifest
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.domain.AuthState
+import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DATABASE_VERSION
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -18,11 +20,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val dataStoreConfig: DataStoreConfig  // DATASTORE
+    private val dataStoreConfig: DataStoreConfig,  // DATASTORE
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _splashState = MutableStateFlow(SplashState())
     val splashState: StateFlow<SplashState> = _splashState
+    val authState: StateFlow<AuthState> = sessionManager.authState
 
     fun onContinuarChanged(continuar: Boolean){
         _splashState.value = _splashState.value.copy(continuar = continuar)

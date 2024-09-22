@@ -3,6 +3,7 @@ package com.app.miscuentas.features.inicio
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.network.HojasService
@@ -20,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class InicioViewModel @Inject constructor(
     private val dataStoreConfig: DataStoreConfig, // DATASTORE
-    private val hojasService: HojasService
+    private val hojasService: HojasService,
+    private val sessionManager: SessionManager
 ) : ViewModel()
 {
     private val _inicioState = MutableStateFlow(InicioState())
@@ -51,10 +53,9 @@ class InicioViewModel @Inject constructor(
         }
     }
 
-    fun onRegistroPreferenceChanged(logeado: String){
+    fun cerrarSesion(permitido: Boolean, logeado: String){
         viewModelScope.launch {
-            dataStoreConfig.putRegistroPreference(logeado)
-            dataStoreConfig.clearTokenPreference()
+            sessionManager.logout(permitido, logeado)
         }
     }
 

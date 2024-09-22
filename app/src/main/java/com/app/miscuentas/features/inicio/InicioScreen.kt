@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
+import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.features.navegacion.MiTopBar
 import com.app.miscuentas.util.Desing
@@ -132,7 +133,7 @@ fun Inicio(
             MyDrawer(
                 context,
                 { viewModel.onInicioHuellaChanged(it) },
-                { viewModel.onRegistroPreferenceChanged(it) },
+                viewModel :: cerrarSesion ,
                 inicioState.registrado,
                 inicioState.huellaDigital,
                 onNavSplash
@@ -343,7 +344,7 @@ fun ImagenCustom(
 fun MyDrawer(
     context: Context,
     onInicioHuellaChanged: (Boolean) -> Unit,
-    onRegistroPreferenceChanged: (String) -> Unit,
+    cerrarSesion: (Boolean,String) -> Unit,
     registradoState: String,
     inicioState: Boolean,
     onNavSplash: () -> Unit
@@ -549,8 +550,7 @@ fun MyDrawer(
                         text = "Cerrar sesion") },
                     selected = false,
                     onClick = {
-                        onInicioHuellaChanged(false)
-                        onRegistroPreferenceChanged("")
+                        cerrarSesion(false, "")
                         miCoroutine.launch {
                             delay(500)
                             onNavSplash()

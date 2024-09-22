@@ -5,8 +5,10 @@ import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.data.dto.HojaCrearDto
 import com.app.miscuentas.data.dto.HojaDto
+import com.app.miscuentas.di.WithInterceptor
 
 class HojasRepository(
+    @WithInterceptor
     private val webService: WebService,
     private val tokenAuthenticator: TokenAuthenticator
 ) {
