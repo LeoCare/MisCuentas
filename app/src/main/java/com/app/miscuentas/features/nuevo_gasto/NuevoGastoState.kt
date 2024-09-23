@@ -10,6 +10,7 @@ data class NuevoGastoState(
     val pagador: String = "",
     val idPagador: Long = 0,
     val superaLimite: Boolean = false,
+    val cierreSesion: Boolean = false,
 
     //Valores de la BBDD Room
     val insertOk: Boolean = false,

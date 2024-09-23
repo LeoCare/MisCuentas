@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
@@ -38,7 +39,8 @@ class GastosViewModel @Inject constructor(
     private val hojasService: HojasService,
     private val balancesService: BalancesService,
     private val gastosService: GastosService,
-    private val imagenesService: ImagenesService
+    private val imagenesService: ImagenesService,
+    private val sessionManager: SessionManager
 ): ViewModel() {
 
     private val _gastosState = MutableStateFlow(GastosState())
@@ -285,6 +287,13 @@ class GastosViewModel @Inject constructor(
                 onImagenBitmapChanged(byteArrayToBitmap(imagen))
                 onMostrarFotoChanged(true)
             }
+        }
+    }
+
+    /** Cierre de sesion al no poder refrescar el token vencido **/
+    fun cerrarSesion(){
+        viewModelScope.launch {
+            sessionManager.logout()
         }
     }
 

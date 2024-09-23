@@ -88,7 +88,7 @@ class LoginViewModel @Inject constructor(
                 if (response != null) {
                     // Guardar el usuario y los tokens
                     usuariosService.cleanInsert(response.usuario.toEntity())
-                    tokenAuthenticator.saveTokens(response.accessToken, response.refreshToken)
+                    //tokenAuthenticator.saveTokens(response.accessToken, response.refreshToken)
                     // Actualizar el estado de la UI y cargar Room
                     limpiarYVolcarLogin(response.usuario)
                     onRegistroDataStoreChanged(response.usuario.idUsuario, response.usuario.nombre)

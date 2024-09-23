@@ -133,7 +133,7 @@ fun Inicio(
             MyDrawer(
                 context,
                 { viewModel.onInicioHuellaChanged(it) },
-                viewModel :: cerrarSesion ,
+                viewModel::cerrarSesion,
                 inicioState.registrado,
                 inicioState.huellaDigital,
                 onNavSplash
@@ -344,7 +344,7 @@ fun ImagenCustom(
 fun MyDrawer(
     context: Context,
     onInicioHuellaChanged: (Boolean) -> Unit,
-    cerrarSesion: (Boolean,String) -> Unit,
+    cerrarSesion: () -> Unit,
     registradoState: String,
     inicioState: Boolean,
     onNavSplash: () -> Unit
@@ -550,7 +550,7 @@ fun MyDrawer(
                         text = "Cerrar sesion") },
                     selected = false,
                     onClick = {
-                        cerrarSesion(false, "")
+                        cerrarSesion()
                         miCoroutine.launch {
                             delay(500)
                             onNavSplash()

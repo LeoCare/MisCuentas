@@ -33,7 +33,7 @@ import retrofit2.http.Query
 
 interface WebService {
     /** REFRESH TOKEN **/
-    @GET("usuarios/refreshToken")
+    @POST("usuarios/refreshToken")
     suspend fun refreshToken(
         @Body refreshTokenRequest: RefreshTokenRequest
     ): Response<TokenResponse>

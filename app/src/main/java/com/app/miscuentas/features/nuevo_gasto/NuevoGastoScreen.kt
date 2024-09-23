@@ -68,6 +68,7 @@ import java.text.NumberFormat
 fun NuevoGasto(
     innerPadding: PaddingValues,
     idHojaPrincipal: Long?,
+    onNavSplash: () -> Unit,
     navigateUp: () -> Unit,
     viewModel: NuevoGastoViewModel = hiltViewModel()
 ) {
@@ -83,7 +84,12 @@ fun NuevoGasto(
     LaunchedEffect(idHojaPrincipal) {
         viewModel.onIdHojaPrincipalChanged(idHojaPrincipal)
     }
-
+    LaunchedEffect(nuevoGastoState.cierreSesion) {
+        when { (nuevoGastoState.cierreSesion) -> {
+            viewModel.cerrarSesion()
+            onNavSplash()
+        } }
+    }
     LaunchedEffect(nuevoGastoState.insertOk) {
         when { (nuevoGastoState.insertOk) -> navigateUp() }
     }

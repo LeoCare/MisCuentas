@@ -53,9 +53,9 @@ class InicioViewModel @Inject constructor(
         }
     }
 
-    fun cerrarSesion(permitido: Boolean, logeado: String){
+    fun cerrarSesion(){
         viewModelScope.launch {
-            sessionManager.logout(permitido, logeado)
+            sessionManager.logout()
         }
     }
 

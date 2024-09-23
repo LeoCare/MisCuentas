@@ -14,10 +14,10 @@ class SessionManager @Inject constructor(
     private val _authState = MutableStateFlow<AuthState>(AuthState.Authenticated)
     val authState: StateFlow<AuthState> get() = _authState
 
-    suspend fun logout(permitido: Boolean, logeado: String) {
+    suspend fun logout() {
         tokenAuthenticator.clearTokens()
-        dataStoreConfig.putInicoHuellaPreference(permitido)
-        dataStoreConfig.putRegistroPreference(logeado)
+        dataStoreConfig.putInicoHuellaPreference(false)
+        dataStoreConfig.putRegistroPreference("")
         _authState.value = AuthState.Unauthenticated
     }
 

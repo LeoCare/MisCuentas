@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.miscuentas.features.MainActivityViewModel
+import com.app.miscuentas.features.splash.NavigateToSplash
 import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
 
@@ -34,9 +35,10 @@ fun NavGraphBuilder.nuevoGastoScreen(
         // idHoja es la clave utilizada para pasar los datos
         it.arguments?.getLong(NUEVO_GASTO_ID_HOJA_PRINCIPAL)?.let { idHoja ->
             NuevoGasto(
-                innerPadding,
-                idHoja,
-                { navHostController.popBackStack() }
+                innerPadding = innerPadding,
+                idHojaPrincipal = idHoja,
+                onNavSplash = { navHostController.NavigateToSplash() },
+                navigateUp = { navHostController.popBackStack() }
             )
         }
 

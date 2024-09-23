@@ -2,6 +2,7 @@ package com.app.miscuentas.features.nuevo_gasto
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.data.model.Gasto
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class NuevoGastoViewModel @Inject constructor (
     private val hojasService: HojasService,
-    private val gastosService: GastosService
+    private val gastosService: GastosService,
+    private val sessionManager: SessionManager
 ): ViewModel()
 {
     val _nuevoGastoState = MutableStateFlow(NuevoGastoState())
@@ -50,6 +52,9 @@ class NuevoGastoViewModel @Inject constructor (
     }
     fun onInsertAPIOKChanged(insertAPI: Boolean){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(insertAPIOk = insertAPI)
+    }
+    fun onCierreSesionChanged(cerrar: Boolean){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(cierreSesion = cerrar)
     }
 
     //recojo valor de parametro pasado por en navController. Borrar si no es necesario!!
@@ -99,6 +104,7 @@ class NuevoGastoViewModel @Inject constructor (
                             onInsertOKChanged(true)
                         }
                     }
+                    else onCierreSesionChanged(true)
                 }
             }
         }
@@ -145,6 +151,13 @@ class NuevoGastoViewModel @Inject constructor (
     private fun vaciarTextFields(){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(importe = "")
         _nuevoGastoState.value = _nuevoGastoState.value.copy(concepto = "")
+    }
+
+    /** Cerrar sesion **/
+    fun cerrarSesion(){
+        viewModelScope.launch {
+            sessionManager.logout()
+        }
     }
 
 }
