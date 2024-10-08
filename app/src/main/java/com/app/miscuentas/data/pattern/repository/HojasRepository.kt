@@ -43,7 +43,7 @@ class HojasRepository(
                 throw Exception("Error al obtener hoja: ${response.code()} - ${response.message()}")
             }
         } catch (e: Exception) {
-            null
+            throw Exception("Error de red al obtener hoja: ${e.message}", e)
         }
     }
 

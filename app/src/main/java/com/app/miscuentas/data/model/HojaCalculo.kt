@@ -11,7 +11,8 @@ data class HojaCalculo(
     var limite: String?,
     var status: String,
     var participantesHoja: List<Participante?>,
-    var idUsuarioHoja: Long = 0
+    var idUsuarioHoja: Long = 0,
+    var propietaria: String = "S"
 ){
     /** Asigna la fecha de tipo LocalDate a _fechaCierre **/
 //    var _fechaCierre: LocalDate?
@@ -27,7 +28,8 @@ fun HojaCalculo.toEntity() = DbHojaCalculoEntity(
     fechaCierre = fechaCierre,
     limite = limite,
     status = status,
-    idUsuarioHoja = idUsuarioHoja
+    idUsuarioHoja = idUsuarioHoja,
+    propietaria = propietaria
 )
 
 fun HojaDto.toEntity() = DbHojaCalculoEntity(

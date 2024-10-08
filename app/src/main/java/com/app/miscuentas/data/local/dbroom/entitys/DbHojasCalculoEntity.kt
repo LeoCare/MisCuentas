@@ -26,7 +26,8 @@ data class DbHojaCalculoEntity (
     @ColumnInfo(name = "fechaCierre") var fechaCierre: String?,
     @ColumnInfo(name = "limite") var limite: String?,
     @ColumnInfo(name = "status") var status: String,
-    @ColumnInfo(name = "idUsuarioHoja", index = true) var idUsuarioHoja: Long = 0
+    @ColumnInfo(name = "idUsuarioHoja", index = true) var idUsuarioHoja: Long = 0,
+    @ColumnInfo(name = "propietaria") var propietaria: String = "S"
 )
 
 fun DbHojaCalculoEntity.toDomain(participantes: List<Participante> = listOf()) = HojaCalculo(
@@ -37,6 +38,7 @@ fun DbHojaCalculoEntity.toDomain(participantes: List<Participante> = listOf()) =
     limite = limite,
     status = status,
     participantesHoja = participantes,
-    idUsuarioHoja = idUsuarioHoja
+    idUsuarioHoja = idUsuarioHoja,
+    propietaria = propietaria
 )
 
