@@ -116,7 +116,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    //Solo si el login es exitoso desde la API y no desde ROOM:
+    /** Solo si el login es exitoso desde la API y no desde ROOM: **/
     suspend fun limpiarYVolcarLogin(usuario: UsuarioDto){
 
         //hojas propietarias:
@@ -126,6 +126,7 @@ class LoginViewModel @Inject constructor(
         volcarHojasNoPropietarias(usuario.idUsuario)
     }
 
+    /** Metodo que obtiene hojas y balances desde la API par el volcado local (Room) **/
     suspend fun volcarHojas(idUsuario: Long){
         //hojas propietarias:
         val hojas = hojasService.getHojaByApi("id_usuario", idUsuario.toString())
@@ -141,7 +142,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    /** Hojas creadas por mi **/
+    /** Hojas creadas por el usuario logeado **/
     suspend fun volcarParticipantes(hoja: DbHojaCalculoEntity){
         val participantes = participantesService.getParticipantesBy("id_hoja", hoja.idHoja.toString())
         if (participantes != null) {

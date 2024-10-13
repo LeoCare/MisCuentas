@@ -21,6 +21,7 @@ import com.app.miscuentas.data.pattern.repository.ParticipantesRepository
 import com.app.miscuentas.data.network.ParticipantesService
 import com.app.miscuentas.data.pattern.repository.UsuariosRepository
 import com.app.miscuentas.data.network.UsuariosService
+import com.app.miscuentas.data.pattern.DataUpdates
 import com.app.miscuentas.data.pattern.dao.DbBalanceDao
 import com.app.miscuentas.data.pattern.dao.DbImagenDao
 import com.app.miscuentas.data.pattern.dao.DbGastoDao
@@ -170,7 +171,6 @@ object MisHojasModule {
             .addInterceptor(jwtInterceptor)
             .build()
     }
-    /*****************/
 
 
     /** WEBSERVICES DI **/
@@ -190,6 +190,7 @@ object MisHojasModule {
             .build()
             .create(WebService::class.java)
     }
+    /*********************/
 
     /** USUARIO DI */
     @Provides
@@ -204,9 +205,6 @@ object MisHojasModule {
         return UsuariosService(usuarioDao, usuariosRepository )
     }
 
-    /*****************/
-
-
     /** BALANCE DI */
     @Provides
     @Singleton
@@ -219,7 +217,6 @@ object MisHojasModule {
     fun provideBalancesService(balanceDao: DbBalanceDao, balancesRepository: BalancesRepository): BalancesService {
         return BalancesService(balanceDao, balancesRepository )
     }
-    /*****************/
 
     /** PARTICIPANTES DI */
     @Provides
@@ -284,5 +281,17 @@ object MisHojasModule {
     @Singleton
     fun provideImagenesService(fotoDao: DbImagenDao, imagenesRepository: ImagenesRepository): ImagenesService {
         return ImagenesService(fotoDao, imagenesRepository)
+    }
+
+    /** DATAUPDATES DI **/
+    @Provides
+    @Singleton
+    fun provideDataUpdates(
+        hojasService: HojasService,
+        balancesService: BalancesService,
+        participantesService: ParticipantesService,
+        pagosService: PagosService,
+        gastosService: GastosService): DataUpdates{
+        return DataUpdates(hojasService, balancesService, participantesService, pagosService, gastosService)
     }
 }

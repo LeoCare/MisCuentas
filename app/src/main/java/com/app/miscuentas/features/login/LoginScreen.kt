@@ -66,15 +66,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.util.BiometricAuthenticator
 
-
-//BORRAR ESTO, SOLO ES PARA PREVISUALIZAR
-//@Preview
-//@Composable
-//fun Prev(){
-//    val navController = rememberNavController()
-//    Login(statePermisoCamara = statePermisoCamara) { navController.navigate("inicio") }
-//}
-
 /** Composable principal de la Screen **/
 @Composable
 fun Login(

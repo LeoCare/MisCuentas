@@ -57,7 +57,8 @@ class SplashViewModel @Inject constructor(
         val inicioHuella: String?
         val registrado: String?
 
-        try {//si la version de la bbdd cambia -> limpio las preference
+        try {
+            //si la version de la bbdd cambia -> limpio las preference
             if (versionGuardada == null || versionActual  > versionGuardada) {
                 // Limpiar DataStore
                 clearDataStore()
