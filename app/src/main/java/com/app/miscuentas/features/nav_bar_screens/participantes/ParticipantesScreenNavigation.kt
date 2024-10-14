@@ -20,6 +20,6 @@ fun NavGraphBuilder.participantesScreen(
 ){
     composable(route = PARTICIPANTES_ROUTE) {
         mainActivityViewModel.setTitle(PARTICIPANTES_ROUTE)
-        ParticipantesScreen { navHostController.navigateUp() }
+        ParticipantesScreen(innerPadding)
     }
 }

@@ -115,7 +115,7 @@ class NuevaHojaViewModel @Inject constructor(
                     instaciaParticipantesConHojas(hojaAPI.idHoja) //instancia lista de participantesEntitys
                     nuevaHojaState.value.listaParticipantesEntitys.forEach { participante ->
                         //Insert participantes desde API
-                        participantesAPI = insertParticipantesApi(participante.nombre, participante.correo,  participante.idHojaParti, participante.idUsuarioParti)
+                        participantesAPI = insertParticipantesApi(participante.nombre, participante.correo,  participante.tipo, participante.idHojaParti, participante.idUsuarioParti)
 
                     }
                     if(participantesAPI != null){
@@ -155,12 +155,13 @@ class NuevaHojaViewModel @Inject constructor(
     suspend fun insertParticipantesApi(
         nombre: String,
         correo: String?,
+        tipo: String,
         idHoja: Long,
         idUsuario: Long?
     ): ParticipanteDto? {
 
         var result: ParticipanteDto? = null
-        val participanteCrearDto = ParticipanteCrearDto(nombre, correo, idUsuario, idHoja)
+        val participanteCrearDto = ParticipanteCrearDto(nombre, correo, tipo, idUsuario, idHoja)
         try {
             val participanteApi = participantesService.createParticipante(participanteCrearDto)
             if (participanteApi != null){

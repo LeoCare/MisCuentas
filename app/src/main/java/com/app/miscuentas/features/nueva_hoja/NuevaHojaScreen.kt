@@ -366,7 +366,8 @@ fun Participantes(
                         addParticipate(
                             Participante(
                                 idParticipante = 0,
-                                nombre = statusParticipante
+                                nombre = statusParticipante,
+                                tipo = "LOCAL"
                             )
                         )
                         onParticipanteFieldChange("")

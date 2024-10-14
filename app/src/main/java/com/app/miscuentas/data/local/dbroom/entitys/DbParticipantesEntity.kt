@@ -33,7 +33,8 @@ data class DbParticipantesEntity (
     @ColumnInfo(name = "nombre") val nombre: String,
     @ColumnInfo(name = "correo") var correo: String? = null,
     @ColumnInfo(name = "idUsuarioParti") var idUsuarioParti: Long? = null,
-    @ColumnInfo(name = "idHojaParti", index = true) var idHojaParti: Long
+    @ColumnInfo(name = "idHojaParti", index = true) var idHojaParti: Long,
+    @ColumnInfo(name = "tipo") var tipo: String
 )
 
 fun DbParticipantesEntity.toDomain(gastos: List<Gasto> = listOf()) = Participante(

@@ -50,11 +50,11 @@ class MisGastosViewModel @Inject constructor(
     }
     fun onFiltroHojaElegidoChanged(hojaElegida: Long){
         _misGastosState.value = _misGastosState.value.copy(filtroHojaElegido = hojaElegida)
-        mostrarHoja()
+        mostrarGastos()
     }
     fun onFiltroTipoElegidoChanged(tipoElegido: Long){
         _misGastosState.value = _misGastosState.value.copy(filtroTipoElegido = tipoElegido)
-        mostrarTipo()
+        mostrarPorTipo()
     }
     fun onListaGastosAMostrarChanged(listaGastosAMostrar: List<DbGastosEntity>?){
         _misGastosState.value = _misGastosState.value.copy(listaGastosAMostrar = listaGastosAMostrar)
@@ -99,7 +99,7 @@ class MisGastosViewModel @Inject constructor(
     }
 
     /** FILTRAR POR: **/
-    private fun mostrarTipo() {
+    private fun mostrarPorTipo() {
         val listaFiltrada = _misGastosState.value.listaGastos
             .filter {
                 it.tipo == _misGastosState.value.filtroTipoElegido
@@ -107,7 +107,7 @@ class MisGastosViewModel @Inject constructor(
         onListaGastosAMostrarChanged(listaFiltrada)
     }
 
-    private fun mostrarHoja() {
+    private fun mostrarGastos() {
         val idUsuario = misGastosState.value.idUsuario
         val listaFiltrada = _misGastosState.value.hojasDelRegistrado
             .filter {

@@ -7,6 +7,7 @@ data class Participante(
     var idParticipante: Long = 0,
     var nombre: String,
     var correo: String? = null,
+    val tipo: String = "NPRO",
     var listaGastos: List<Gasto?> = listOf()
 )
 
@@ -14,6 +15,7 @@ fun Participante.toEntity(idHojaCalculo: Long) = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
+    tipo = tipo,
     idHojaParti = idHojaCalculo
 )
 
@@ -21,6 +23,7 @@ fun Participante.toEntityWithHoja(idHojaCalculo: Long) = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
+    tipo = tipo,
     idHojaParti = idHojaCalculo
 )
 
@@ -28,6 +31,7 @@ fun Participante.toEntityWithUsuario(idHojaCalculo: Long, idUsuarioParti: Long) 
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
+    tipo = tipo,
     idUsuarioParti = idUsuarioParti,
     idHojaParti = idHojaCalculo
 )
@@ -36,6 +40,7 @@ fun ParticipanteDto.toEntity() = DbParticipantesEntity(
     idParticipante = idParticipante,
     nombre = nombre,
     correo = correo,
+    tipo = tipo,
     idUsuarioParti = idUsuario,
     idHojaParti = idHoja
 )
