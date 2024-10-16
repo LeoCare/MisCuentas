@@ -69,8 +69,16 @@ fun SplashScreen(
     //Luego de la comprobacion inicial del viewmodel:
     LaunchedEffect(splashState.continuar) {
         if(splashState.continuar) {
-            if (splashState.autoInicio && authState == AuthState.Authenticated) onInicioNavigate()
-            else onLoginNavigate()
+            if (splashState.autoInicio && authState == AuthState.Authenticated){
+                Toast.makeText(context, splashState.mensaje, Toast.LENGTH_SHORT).show()
+                onInicioNavigate()
+            }
+            else {
+                Toast.makeText(context, splashState.mensaje, Toast.LENGTH_SHORT).show()
+                onLoginNavigate()
+            }
+        }else{
+            Toast.makeText(context, splashState.mensaje, Toast.LENGTH_SHORT).show()
         }
     }
 

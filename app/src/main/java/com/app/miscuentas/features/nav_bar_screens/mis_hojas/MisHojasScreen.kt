@@ -74,7 +74,7 @@ fun MisHojasScreen(
         viewModel.getIdRegistroPreference()
     }
 
-    //obtiene las hojas del resitrado
+    //obtiene las hojas del registrado
     LaunchedEffect(hojaState.idRegistro){
         viewModel.getAllHojaConParticipantes()
     }

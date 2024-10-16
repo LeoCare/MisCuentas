@@ -4,30 +4,41 @@ import android.Manifest
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import at.favre.lib.crypto.bcrypt.BCrypt
 import com.app.miscuentas.data.domain.AuthState
 import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DATABASE_VERSION
+import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.network.UsuariosService
+import com.app.miscuentas.data.pattern.DataUpdates
+import com.app.miscuentas.domain.dto.UsuarioLoginDto
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    private val dataStoreConfig: DataStoreConfig,  // DATASTORE
-    private val sessionManager: SessionManager
+    private val dataUpdates: DataUpdates,
+    private val dataStoreConfig: DataStoreConfig,
+    private val sessionManager: SessionManager,
+    private val usuariosService: UsuariosService
 ) : ViewModel() {
 
     private val _splashState = MutableStateFlow(SplashState())
     val splashState: StateFlow<SplashState> = _splashState
     val authState: StateFlow<AuthState> = sessionManager.authState
 
+    fun onMensajeChanged(mensaje: String) {
+        _splashState.value = _splashState.value.copy(mensaje = mensaje)
+    }
     fun onContinuarChanged(continuar: Boolean){
         _splashState.value = _splashState.value.copy(continuar = continuar)
     }
@@ -75,9 +86,34 @@ class SplashViewModel @Inject constructor(
                     onAutoInicioChanged(false)
                 }
             }
-            onContinuarChanged(true)
+            ActualizarDatos()
         }catch (ex: Exception){
             null
+        }
+    }
+
+    fun ActualizarDatos() {
+        viewModelScope.launch {
+            val idUsuario = dataStoreConfig.getIdRegistroPreference()
+            if (idUsuario != null){
+                try {
+                    // Actualizar el estado de la UI y cargar Room
+                    dataUpdates.limpiarYVolcarLogin(idUsuario)
+                    onMensajeChanged("Datos actualizados!")
+                    onContinuarChanged(true)
+                } catch (e: Exception) {
+                    // Si hay un error de red, intentar cargar los datos locales
+                    val localUsuario = usuariosService.getRegistroWhereId(idUsuario).firstOrNull()
+                    if (localUsuario != null) {
+                        onMensajeChanged("Los datos no estan actualizados. Problema de red!")
+                        onContinuarChanged(true)
+                    } else {
+                        onMensajeChanged("Error en la red y no hay datos locales!")
+                        clearDataStore()
+                        onContinuarChanged(false)
+                    }
+                }
+            }
         }
     }
 

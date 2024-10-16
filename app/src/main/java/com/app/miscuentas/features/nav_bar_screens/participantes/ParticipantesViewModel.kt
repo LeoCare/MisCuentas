@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.data.local.dbroom.entitys.toDto
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.model.Participante
+import com.app.miscuentas.data.model.toDto
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.ParticipantesService
 import com.app.miscuentas.util.Validaciones
@@ -89,7 +92,20 @@ class ParticipantesViewModel @Inject constructor(
                             hojaConParticipantes ->
                         hojaConParticipantes.participantes
                     }
+                onParticipantesChanged(todosParticipantes)
                 onListaParticipantesAMostrarChanged(todosParticipantes)
+            }
+        }
+    }
+
+    /** Metodo que actualiza el correo del participante **/
+    fun onParticipanteWithCorreoChanged(participanteWithNewCorreo: DbParticipantesEntity) = viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            //Update desde API
+            val participanteApi = participantesService.updateParticipante(participanteWithNewCorreo.toDto())
+            if(participanteApi != null) {
+                //Update en Room
+                participantesService.update(participanteWithNewCorreo)
             }
         }
     }

@@ -291,7 +291,14 @@ object MisHojasModule {
         balancesService: BalancesService,
         participantesService: ParticipantesService,
         pagosService: PagosService,
-        gastosService: GastosService): DataUpdates{
-        return DataUpdates(hojasService, balancesService, participantesService, pagosService, gastosService)
+        gastosService: GastosService,
+        usuariosService: UsuariosService): DataUpdates{
+        return DataUpdates(
+            hojasService,
+            balancesService,
+            participantesService,
+            pagosService,
+            gastosService,
+            usuariosService)
     }
 }

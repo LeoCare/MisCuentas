@@ -7,7 +7,7 @@ data class Participante(
     var idParticipante: Long = 0,
     var nombre: String,
     var correo: String? = null,
-    val tipo: String = "NPRO",
+    val tipo: String = "LOCAL",
     var listaGastos: List<Gasto?> = listOf()
 )
 
@@ -43,6 +43,15 @@ fun ParticipanteDto.toEntity() = DbParticipantesEntity(
     tipo = tipo,
     idUsuarioParti = idUsuario,
     idHojaParti = idHoja
+)
+
+fun Participante.toDto( idHojaCalculo: Long, idUsuarioParti: Long) = ParticipanteDto(
+    idParticipante = idParticipante,
+    nombre = nombre,
+    correo = correo,
+    tipo = tipo,
+    idUsuario = idUsuarioParti,
+    idHoja = idHojaCalculo,
 )
 
 fun List<ParticipanteDto>.toEntityList(): List<DbParticipantesEntity> {

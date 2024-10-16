@@ -80,6 +80,10 @@ class NuevaHojaViewModel @Inject constructor(
 
     fun addParticipanteRegistrado(idRegistrado: Long, participante: Participante) {
         val partiRegistrado = participante.toEntityWithUsuario(0, idRegistrado)
+
+        if (partiRegistrado.correo != null) partiRegistrado.tipo = "ONLINE"
+        else partiRegistrado.tipo = "LOCAL"
+
         val updatedList =_nuevaHojaState.value.listaParticipantesEntitys + partiRegistrado
         _nuevaHojaState.value = _nuevaHojaState.value.copy(
             participanteRegistrado = partiRegistrado,
@@ -89,8 +93,10 @@ class NuevaHojaViewModel @Inject constructor(
 
     fun deleteUltimoParticipante() {
         if (_nuevaHojaState.value.listaParticipantesEntitys.isNotEmpty()) {
-            val updatedList = _nuevaHojaState.value.listaParticipantesEntitys.dropLast(1)
-            onListParticipantesEntityFieldChanged( updatedList)
+            if(nuevaHojaState.value.listaParticipantesEntitys.last().correo == null){
+                val updatedList = _nuevaHojaState.value.listaParticipantesEntitys.dropLast(1)
+                onListParticipantesEntityFieldChanged( updatedList)
+            }
         }
     }
 
@@ -110,6 +116,7 @@ class NuevaHojaViewModel @Inject constructor(
                 //Insert desde API
                 val hojaAPI = insertHojaApi(titulo, fechaCreacion, fechaCierre, limite?.replace(',','.')?.toDouble(), status, idUsuarioHoja)
                 var participantesAPI: ParticipanteDto? =  null
+
                 if(hojaAPI != null){
                     //Instancia participantes
                     instaciaParticipantesConHojas(hojaAPI.idHoja) //instancia lista de participantesEntitys

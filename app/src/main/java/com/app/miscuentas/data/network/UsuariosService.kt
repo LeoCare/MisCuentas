@@ -1,5 +1,6 @@
 package com.app.miscuentas.data.network
 
+import androidx.room.Transaction
 import com.app.miscuentas.data.local.dbroom.entitys.DbUsuariosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.model.Participante
@@ -27,6 +28,10 @@ class UsuariosService (
     //  Registro de usuario (Room))
     suspend fun cleanInsert(usuario: DbUsuariosEntity): Long {
         return usuarioDao.cleanInsert(usuario)
+    }
+
+    suspend fun cleanAllUsuariosExcept(idUsuario: Long){
+        return usuarioDao.clearAllUsuariosExcept(idUsuario)
     }
 
     //  Registro de usuario (Room))
@@ -78,7 +83,7 @@ class UsuariosService (
         return usuariosRepository.postLogin(usuarioLoginDto)
     }
 
-    // Iniciar sesión de un usuario (API)
+    // Verificar existencia del correo (API)
     suspend fun verifyCorreo(correo: String): UsuarioDto? {
         return usuariosRepository.verifyCorreo(correo)
     }

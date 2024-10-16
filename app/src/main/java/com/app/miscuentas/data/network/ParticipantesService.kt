@@ -8,6 +8,7 @@ import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.pattern.repository.ParticipantesRepository
 import com.app.miscuentas.data.dto.ParticipanteCrearDto
 import com.app.miscuentas.data.dto.ParticipanteDto
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -24,7 +25,10 @@ class ParticipantesService(
     suspend fun insertAll(idHojaCalculo: Long, participante: Participante) =
         participantesDao.insertAll( participante.toEntityWithHoja(idHojaCalculo))
 
-    suspend fun update(idHojaCalculo: Long, participante: Participante) =
+    suspend fun update( participante: DbParticipantesEntity) =
+        participantesDao.update(participante)
+
+    suspend fun updateWithHoja(idHojaCalculo: Long, participante: Participante) =
         participantesDao.update(participante.toEntityWithHoja(idHojaCalculo))
 
     suspend fun delete(idHojaCalculo: Long, participante: Participante) =

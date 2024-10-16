@@ -96,7 +96,7 @@ class UsuariosRepository @Inject constructor(
 
     suspend fun getUsuarioById(id: Long): UsuarioDto? {
         return try {
-            val response = webService.getUsuarioById( id)
+            val response = webService.getUsuarioById(id)
             if (response.isSuccessful) {
                 response.body()
             } else {

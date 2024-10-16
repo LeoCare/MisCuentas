@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
+import com.app.miscuentas.data.dto.ParticipanteDto
 import com.app.miscuentas.data.model.Gasto
 import com.app.miscuentas.data.model.Participante
 
@@ -42,4 +43,13 @@ fun DbParticipantesEntity.toDomain(gastos: List<Gasto> = listOf()) = Participant
     nombre = nombre,
     correo = correo,
     listaGastos = gastos
+)
+
+fun DbParticipantesEntity.toDto() = ParticipanteDto(
+    idParticipante = idParticipante,
+    nombre = nombre,
+    correo = correo,
+    tipo = tipo,
+    idUsuario = idUsuarioParti,
+    idHoja = idHojaParti
 )

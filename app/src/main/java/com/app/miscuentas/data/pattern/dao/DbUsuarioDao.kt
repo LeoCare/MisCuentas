@@ -49,6 +49,9 @@ interface DbUsuarioDao {
     @Query("DELETE FROM  t_usuarios")
     suspend fun clearAllUsuarios()
 
+    @Query("DELETE FROM  t_usuarios WHERE idUsuario != :idUsuario")
+    suspend fun clearAllUsuariosExcept(idUsuario: Long)
+
     @Query("DELETE FROM t_participantes")
     suspend fun clearAllParticipantes()
 
