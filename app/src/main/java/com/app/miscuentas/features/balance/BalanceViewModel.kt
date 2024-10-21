@@ -3,6 +3,7 @@ package com.app.miscuentas.features.balance
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
@@ -36,12 +37,16 @@ class BalanceViewModel @Inject constructor(
     private val hojasService: HojasService,
     private val balancesService: BalancesService,
     private val pagosService: PagosService,
-    private val imagenesService: ImagenesService
+    private val imagenesService: ImagenesService,
+    private val dataStoreConfig: DataStoreConfig
 ): ViewModel() {
 
     val _balanceState = MutableStateFlow(BalanceState())
     val balanceState: StateFlow<BalanceState> = _balanceState
 
+    fun onIdRegistradoChanged(id: Long){
+        _balanceState.value = _balanceState.value.copy(idRegistrado = id)
+    }
     fun onBalanceDeudaChanged(mapaDeuda: Map<String,Double>){
         _balanceState.value = _balanceState.value.copy(balanceDeuda = mapaDeuda)
     }
@@ -62,6 +67,14 @@ class BalanceViewModel @Inject constructor(
     }
     fun onNewFotoPagoChanged(pago: PagoConParticipantes?){
         _balanceState.value = _balanceState.value.copy(pagoNewFoto = pago)
+    }
+
+    //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
+    suspend fun getIdRegistroPreference() {
+        val idRegistro = dataStoreConfig.getIdRegistroPreference()
+        if (idRegistro != null) {
+            onIdRegistradoChanged(idRegistro)
+        }
     }
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:

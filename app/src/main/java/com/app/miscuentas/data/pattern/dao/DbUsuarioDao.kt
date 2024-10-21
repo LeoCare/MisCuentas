@@ -34,6 +34,12 @@ interface DbUsuarioDao {
         return insert(usuario)
     }
 
+    @Transaction
+    suspend fun cleanUserAndInsert(usuario: DbUsuariosEntity): Long {
+        delete(usuario)
+        return insert(usuario)
+    }
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(usuario: DbUsuariosEntity): Long
 
@@ -70,4 +76,7 @@ interface DbUsuarioDao {
     //Obtener usuario resgistrado al olvidar la contraseña
     @Query("SELECT * FROM t_usuarios WHERE correo = :correo")
     fun getUsuarioWhereCorreo(correo: String): Flow<DbUsuariosEntity?>
+
+    @Query("SELECT correo FROM t_usuarios WHERE idUsuario = :idUsuario")
+    fun getCorreoWhereId(idUsuario: Long): String
 }

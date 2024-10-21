@@ -357,7 +357,7 @@ fun SeleccionFiltros(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(30.dp)
+            .height(20.dp)
             .background(MaterialTheme.colorScheme.primaryContainer),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
@@ -365,7 +365,7 @@ fun SeleccionFiltros(
         Text(
             style = MaterialTheme.typography.titleMedium,
             text = "Mostrar $filtroElegido ${if (eleccionEnTitulo != "") ": $eleccionEnTitulo" else ""}",
-            color = Color.White
+            color = Color.DarkGray
         )
     }
 }

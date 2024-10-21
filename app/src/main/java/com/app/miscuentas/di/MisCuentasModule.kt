@@ -292,13 +292,15 @@ object MisHojasModule {
         participantesService: ParticipantesService,
         pagosService: PagosService,
         gastosService: GastosService,
-        usuariosService: UsuariosService): DataUpdates{
+        usuariosService: UsuariosService,
+        dataStoreConfig: DataStoreConfig): DataUpdates{
         return DataUpdates(
             hojasService,
             balancesService,
             participantesService,
             pagosService,
             gastosService,
-            usuariosService)
+            usuariosService,
+            dataStoreConfig)
     }
 }

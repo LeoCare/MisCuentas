@@ -101,7 +101,8 @@ fun GastosScreen(
     if (showDialog) {
         MiAviso(
             show = true,
-            texto = mensaje,
+            titulo = "IMPORTANTE",
+            mensaje = mensaje,
             cerrar = {
                 showDialog = false
             }
@@ -250,7 +251,8 @@ fun GastosContent(
     var showDialog by rememberSaveable { mutableStateOf(false) }
     if (showDialog) MiAviso(
         show = true,
-        texto = "Para realizar el Balance, primero FINALIZA la hoja.",
+        titulo = "IMPORTANTE",
+        mensaje = "Para realizar el Balance, primero FINALIZA la hoja.",
         cerrar = { showDialog = false },
     )
 
@@ -574,7 +576,8 @@ fun GastoDesing(
         if(statusHoja != "C"){
            MiAviso(
                show = true,
-               texto = mensaje, //"La hoja esta cerrada, no se puede eliminar",
+               titulo = "IMPORTANTE",
+               mensaje = mensaje, //"La hoja esta cerrada, no se puede eliminar",
                cerrar = { showDialog = false }
            )
         }else{
@@ -705,7 +708,8 @@ fun OpcionesGasto(
     if (showDialog){
         MiAviso(
             show = true,
-            texto = mensaje,
+            titulo = "IMPORTANTE",
+            mensaje = mensaje,
             cerrar = { showDialog = false }
         )
     }

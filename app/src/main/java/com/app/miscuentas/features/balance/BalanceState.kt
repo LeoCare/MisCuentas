@@ -8,6 +8,7 @@ import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 
 data class BalanceState (
+    val idRegistrado: Long = 0,
     val imagenBitmap: Bitmap? = null,
     val hojaAMostrar: HojaConParticipantes? = null,
     val hojaConBalances: HojaConBalances? = null,

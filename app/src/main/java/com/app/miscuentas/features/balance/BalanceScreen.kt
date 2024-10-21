@@ -93,6 +93,7 @@ fun BalanceScreen(
     val context = LocalContext.current
 
     LaunchedEffect(key1 = Unit) {
+        viewModel.getIdRegistroPreference()
         viewModel.onHojaAMostrar(idHojaAMostrar)
     }
 
@@ -102,7 +103,8 @@ fun BalanceScreen(
     if (showDialog) {
         MiAviso(
             show = true,
-            texto = mensaje,
+            titulo = "IMPORTANTE",
+            mensaje = mensaje,
             cerrar = {
                 showDialog = false
             }
@@ -474,6 +476,7 @@ fun BalanceDesing(
                         }
                     }
                     Spacer(Modifier.height(10.dp))
+                    if(participante.tipo == "LOCAL" || participante.idUsuarioParti == idRegistrado)
                     Icon(
                         modifier = Modifier
                             .size(20.dp),
@@ -645,11 +648,11 @@ fun ResolucionBox(
             .toMap() // Convertir de nuevo a mapa
         MiDialogoWithOptions(
             show = true,
-            participantes = listaParticipantesSinPrimero,
+            opciones = listaParticipantesSinPrimero,
             titulo = titulo,
             mensaje = mensaje,
             cancelar = { showDialogWhitOptions = false },
-            onParticipantSelected = {
+            onOptionSelected = {
                 opcionSeleccionada = it
                 showDialogWhitOptions = false
             }
@@ -684,7 +687,8 @@ fun ResolucionBox(
     if (showDialog) {
         MiAviso(
             show = true,
-            texto = mensaje,
+            titulo = "IMPORTANTE",
+            mensaje = mensaje,
             cerrar = {
                 showDialog = false
 

@@ -16,8 +16,9 @@ class SessionManager @Inject constructor(
 
     suspend fun logout() {
         tokenAuthenticator.clearTokens()
-        dataStoreConfig.putInicoHuellaPreference(false)
-        dataStoreConfig.putRegistroPreference("")
+//        dataStoreConfig.putInicoHuellaPreference(false)
+//        dataStoreConfig.putRegistroPreference("")
+        dataStoreConfig.clearDataStore()
         _authState.value = AuthState.Unauthenticated
     }
 

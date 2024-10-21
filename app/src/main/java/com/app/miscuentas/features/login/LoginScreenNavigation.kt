@@ -11,7 +11,9 @@ import com.app.miscuentas.features.splash.SPLASH_ROUTE
 const val LOGIN_ROUTE = "LOGIN"
 
 fun NavHostController.NavigateToLogin() {
-    this.navigate(LOGIN_ROUTE)
+    this.navigate(LOGIN_ROUTE) {
+        popUpTo(SPLASH_ROUTE) { inclusive = true } // Elimina Splash de la pila
+    }
 }
 
 fun NavGraphBuilder.loginScreen(

@@ -1,5 +1,6 @@
 package com.app.miscuentas.util
 
+import android.util.Patterns
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -47,6 +48,26 @@ class Validaciones {
             else null
         }
 
+        /** VALIDA LA SINTAXIS DEL CORREO **/
+        fun emailCorrecto(correo: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(correo).matches()
+
+
+        /** VALIDA UNA CONTRASEÑA  **/
+        fun contrasennaOk(contrasena: String): Boolean {
+            if (contrasena.length < 4) {
+                return false
+            }
+            var tieneNumero = false
+            var tieneMinus = false
+
+            for (char in contrasena) {
+                when {
+                    char.isDigit() -> tieneNumero = true
+                    char.isLowerCase() -> tieneMinus = true
+                }
+            }
+            return tieneNumero  && tieneMinus
+        }
     }
 
 }

@@ -13,6 +13,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 @Dao
 interface DbHojaCalculoDao {
@@ -48,10 +49,16 @@ interface DbHojaCalculoDao {
     fun getAllHojaConParticipantes(): Flow<List<HojaConParticipantes>>
 
     @Transaction
+    @Query("SELECT * FROM t_hojas_cab ORDER BY idHoja DESC")
+    fun getHojasConParticipantes(): List<HojaConParticipantes>
+
+    @Transaction
+    @Query("SELECT * FROM t_hojas_cab ORDER BY idHoja DESC")
+    fun getHojasConParticipantesFlow(): Flow<List<HojaConParticipantes>>
+
+    @Transaction
     @Query("SELECT * FROM t_hojas_cab WHERE idUsuarioHoja = :idUsuario ORDER BY idHoja DESC")
     fun getAllHojaConParticipantes(idUsuario: Long): Flow<List<HojaConParticipantes>>
-
-
 
     //Obtener el ID de la ultima hoja creada para la insercion en t_hojas_cab_lin
     @Query("SELECT MAX(idHoja) FROM t_hojas_cab")

@@ -65,6 +65,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.util.BiometricAuthenticator
+import com.app.miscuentas.util.Validaciones.Companion.contrasennaOk
+import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
 
 /** Composable principal de la Screen **/
 @Composable
@@ -95,8 +97,6 @@ fun Login(
             onNavigate,
             { viewModel.onBiometricAuthenticationSuccess() },
             { viewModel.onBiometricAuthenticationFailed() },
-            { viewModel.contrasennaOk(it) },
-            { viewModel.emailOk(it) },
             { viewModel.onMensajeChanged(it) },
             { viewModel.onUsuarioFieldChanged(it) },
             { viewModel.onContrasennaFieldChanged(it) },
@@ -116,8 +116,6 @@ private fun LoginContent(
     onNavigate: () -> Unit,
     bioAuthSuccess: () -> Unit,
     bioAuthFailed: () -> Unit,
-    contrasennaOk: (String) -> Boolean,
-    emailOk: (String) -> Boolean,
     mensajeChanged: (String) -> Unit,
     onUsuarioFieldChanged: (String) -> Unit,
     onContrasennaFieldChanged: (String) -> Unit,
@@ -163,7 +161,7 @@ private fun LoginContent(
     // Actualiza el mensaje de error, al presionar el boton, si corresponde actualiza el estado de 'loginOk'.
     val onBotonInicioClick = {
         when { //Mensajes de error:
-            !emailOk(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
+            !emailCorrecto(loginState.email) -> uiErrorMessage.value = "Email incorrecto"
             !contrasennaOk(loginState.contrasenna) -> uiErrorMessage.value = "Pass con 6 dígitos mínimo (num, mayúsc. y minúsc.)"
             loginState.registro && loginState.usuario.isEmpty() -> uiErrorMessage.value = "Falta usuario"
 

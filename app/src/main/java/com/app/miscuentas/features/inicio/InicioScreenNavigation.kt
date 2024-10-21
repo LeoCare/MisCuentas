@@ -14,7 +14,9 @@ import com.app.miscuentas.features.splash.SPLASH_ROUTE
 const val INICIO_ROUTE = "INICIO"
 
 fun NavHostController.NavigateToInicio() {
-    this.navigate(INICIO_ROUTE)
+    this.navigate(INICIO_ROUTE) {
+        popUpTo(SPLASH_ROUTE) { inclusive = true } // Elimina Splash de la pila
+    }
 }
 
 fun NavGraphBuilder.inicioScreen(

@@ -6,6 +6,7 @@ data class SplashState(
     val permisosTratados: Boolean = false,
     val continuar: Boolean = false,
     val autoInicio: Boolean = false,
-    val mensaje: String = "",
+    val mensaje: String? = null,
+    val isRefreshing: Boolean = false
 )
 

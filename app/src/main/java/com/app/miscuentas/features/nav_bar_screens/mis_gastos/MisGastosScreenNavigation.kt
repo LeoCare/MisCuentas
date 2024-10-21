@@ -5,7 +5,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.app.miscuentas.features.MainActivityViewModel
-import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
 const val MIS_GASTOS_ROUTE = "MIS GASTOS"
 

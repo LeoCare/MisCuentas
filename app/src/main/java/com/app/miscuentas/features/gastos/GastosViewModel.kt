@@ -177,7 +177,7 @@ class GastosViewModel @Inject constructor(
                         gastosService.delete(it)
 
                         //Delete desde Api
-                        gastosService.deleteGasto(it.idGasto)
+                        gastosService.deleteGastoAPI(it.idGasto)
 
                         //Recargar info de los gastos una vez eliminado uno de ellos:
                         withContext(Dispatchers.Main) {

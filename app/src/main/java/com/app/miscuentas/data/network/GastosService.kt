@@ -45,32 +45,32 @@ class GastosService(
     /** API **/
     /**********/
     // Obtener todos los gastos
-    suspend fun getAllGastos(): List<GastoDto>? {
+    suspend fun getAllGastosAPI(): List<GastoDto>? {
         return gastosRepository.getAllGastos()
     }
 
     // Obtener un gasto por ID
-    suspend fun getGastoById(id: Long): GastoDto? {
+    suspend fun getGastoByIdAPI(id: Long): GastoDto? {
         return gastosRepository.getGastoById(id)
     }
 
     // Obtener un gasto por ID
-    suspend fun getGastoBy(column: String, query: String): List<GastoDto>? {
+    suspend fun getGastoByAPI(column: String, query: String): List<GastoDto>? {
         return gastosRepository.getGastoBy(column, query)
     }
 
     // Crear un nuevo gasto
-    suspend fun createGasto( gastoCrearDto: GastoCrearDto): GastoDto? {
+    suspend fun createGastoAPI( gastoCrearDto: GastoCrearDto): GastoDto? {
         return gastosRepository.createGasto(gastoCrearDto)
     }
 
     // Actualizar un gasto
-    suspend fun updateGasto(gastoDto: GastoDto): GastoDto? {
+    suspend fun updateGastoAPI(gastoDto: GastoDto): GastoDto? {
         return gastosRepository.updateGasto(gastoDto)
     }
 
     // Eliminar un gasto por ID
-    suspend fun deleteGasto(id: Long): String? {
+    suspend fun deleteGastoAPI(id: Long): String? {
         return gastosRepository.deleteGasto(id)
     }
 }

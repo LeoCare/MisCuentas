@@ -1,24 +1,36 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
+import android.util.Log
+import androidx.compose.material3.MaterialTheme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
+import com.app.miscuentas.data.local.dbroom.entitys.toDto
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.util.Validaciones
 import com.app.miscuentas.data.model.HojaCalculo
+import com.app.miscuentas.data.model.Usuario
 import com.app.miscuentas.data.model.toDto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.ParticipantesService
+import com.app.miscuentas.data.network.UsuariosService
+import com.app.miscuentas.data.pattern.DataUpdates
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.internal.notifyAll
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -26,20 +38,66 @@ import javax.inject.Inject
 class MisHojasViewModel @Inject constructor(
     private val hojasService: HojasService,
     private val dataStoreConfig: DataStoreConfig,
-    private val participantesService: ParticipantesService
+    private val participantesService: ParticipantesService,
+    private val dataUpdates: DataUpdates
 ): ViewModel(){
 
-    private val _misHojasState by lazy { MutableStateFlow(MisHojasState()) }
+    private val _misHojasState = MutableStateFlow(MisHojasState())
     val misHojasState: StateFlow<MisHojasState> = _misHojasState
 
+    init {
+        viewModelScope.launch {
+            onIsRefreshingChanged(true)
+            getIdRegistroPreference()
+            getAllHojaConParticipantes()
+            onIsRefreshingChanged(false)
+        }
+    }
 
-    fun onCircularIndicatorChanged(circular: Boolean){
-        _misHojasState.value = _misHojasState.value.copy(circularIndicator = circular)
+    fun onIsRefreshingChanged(refrescar: Boolean){
+        _misHojasState.update { currentState ->
+            currentState.copy(isRefreshing = refrescar)
+        }
+    }
+    fun onIdRegistradoChanged(idRegistrado: Long){
+        _misHojasState.update { currentState ->
+            currentState.copy(idRegistro = idRegistrado)
+        }
+    }
+    fun onPendienteSubirCambiosChanged(pendiente: Boolean){
+        _misHojasState.value = _misHojasState.value.copy(pendienteSubirCambios = pendiente)
+    }
+    fun onListaHojasConParticipantesChanged(hojasConParticipantes: List<HojaConParticipantes>){
+        _misHojasState.update { currentState ->
+            currentState.copy(listaHojasConParticipantes = hojasConParticipantes)
+        }
     }
     fun onHojaAModificarChanged(hoja: HojaCalculo){
-        _misHojasState.value = _misHojasState.value.copy(hojaAModificar = hoja)
+        _misHojasState.update { currentState ->
+            currentState.copy(hojaAModificar = hoja)
+        }
+    }
+    fun onHojasAMostrarChanged(hojas: List<HojaConParticipantes>){
+        _misHojasState.update { currentState ->
+            currentState.copy(listaHojasAMostrar = hojas)
+        }
+    }
+    fun onFiltroElegidoChanged(filtro: String){
+        _misHojasState.value = _misHojasState.value.copy(filtroElegido = filtro)
+        if (filtro == "Todos") onHojasAMostrarChanged(misHojasState.value.listaHojasConParticipantes)
     }
 
+    fun onFiltroTipoElegidoChanged(tipoElegido: String){
+        _misHojasState.value = _misHojasState.value.copy(filtroTipoElegido = tipoElegido)
+        mostrarPorTipo()
+    }
+    fun onFiltroEstadoElegidoChanged(estadoElegido: String){
+        _misHojasState.value = _misHojasState.value.copy(filtroEstadoElegido = estadoElegido)
+        mostrarPorEstado()
+    }
+    fun onEleccionEnTituloChanged(eleccionEnTitulo: String){
+        _misHojasState.value = _misHojasState.value.copy(eleccionEnTitulo = eleccionEnTitulo)
+    }
     /** ORDEN DE LAS HOJAS **/
     //Metodo que define el orden elegido
     fun onTipoOrdenChanged(ordenElegido: String){
@@ -53,7 +111,7 @@ class MisHojasViewModel @Inject constructor(
     }
 
     private fun ordenHoja() {
-        val ordenado = _misHojasState.value.listaHojasConParticipantes?.let { lista ->
+        val ordenado = misHojasState.value.listaHojasConParticipantes.let { lista ->
             val comparator = when (_misHojasState.value.ordenElegido) {
                 "Fecha Creacion" -> compareBy<HojaConParticipantes> { Validaciones.fechaToDateFormat(it.hoja.fechaCreacion) }
                 "Fecha Cierre" -> compareBy { Validaciones.fechaToDateFormat(it.hoja.fechaCierre) }
@@ -61,22 +119,17 @@ class MisHojasViewModel @Inject constructor(
             }
             comparator?.let { if (_misHojasState.value.descending) lista.sortedWith(it.reversed()) else lista.sortedWith(it) }
         }
-        _misHojasState.value = _misHojasState.value.copy(listaHojasAMostrar = ordenado)
+        if (ordenado != null) {
+            onHojasAMostrarChanged(ordenado)
+        }
     }
     /************************/
 
 
-    /** MOSTRAR POR: **/
-    //Metodo que define el tipo a mostrar
-    fun onMostrarFiltroChanged(filtroElegido: String){
-        _misHojasState.value = _misHojasState.value.copy(filtroElegido = filtroElegido)
-        mostrarSolo()
-    }
-
-
-    private fun mostrarSolo() {
-        val filtrado = _misHojasState.value.listaHojasConParticipantes?.filter {
-            when (_misHojasState.value.filtroElegido) {
+    /** FILTRAR POR: **/
+    private fun mostrarPorEstado() {
+        val filtrado = misHojasState.value.listaHojasConParticipantes.filter {
+            when (misHojasState.value.filtroEstadoElegido) {
                 "A" -> it.hoja.status == "A"
                 "F" -> it.hoja.status == "F"
                 "C" -> it.hoja.status == "C"
@@ -84,7 +137,20 @@ class MisHojasViewModel @Inject constructor(
                 else -> true
             }
         }
-        _misHojasState.value = _misHojasState.value.copy(listaHojasAMostrar = filtrado)
+        onHojasAMostrarChanged(filtrado)
+    }
+
+    private fun mostrarPorTipo() {
+        // Filtrar las hojas según la lógica deseada
+        val listaFiltrada = _misHojasState.value.listaHojasConParticipantes.filter { hojaConParticipantes ->
+            when (misHojasState.value.filtroTipoElegido) {
+                "Propietaria" -> hojaConParticipantes.hoja.propietaria == "S"
+                "Invitado" -> hojaConParticipantes.hoja.propietaria == "N" && hojaConParticipantes.participantes.any { it.participante.idUsuarioParti == misHojasState.value.idRegistro }
+                "SinConfirmar" -> hojaConParticipantes.hoja.propietaria == "N" && hojaConParticipantes.participantes.all { it.participante.idUsuarioParti != misHojasState.value.idRegistro }
+                else -> true
+            }
+        }
+        onHojasAMostrarChanged(listaFiltrada)
     }
     /************************/
 
@@ -98,23 +164,65 @@ class MisHojasViewModel @Inject constructor(
         _misHojasState.value = _misHojasState.value.copy(hojaAModificar = hojaCalculo, nuevoStatusHoja = status)
     }
 
-    //Actualizar status segun eleccion usuario
+    /** Actualizar status segun eleccion usuario **/
     fun updateStatusHoja() = viewModelScope.launch{
-        val hojaCalculo = _misHojasState.value.hojaAModificar
+        val hojaCalculo = misHojasState.value.hojaAModificar
         hojaCalculo?.let {
             it.status = misHojasState.value.nuevoStatusHoja //modifico estatus
             onHojaAModificarChanged(it) //guardo modificada
 
             withContext(Dispatchers.IO) {
                 try {
+                    onIsRefreshingChanged(true)
                     //Update Room
                     hojasService.updateHoja(it.toEntity())
                     //Update DataStore
                     updatePreferenceIdHojaPrincipal(it.toEntity())
                     //Update Api
                     hojasService.updateHojaApi(it.toDto())
-
+                    getAllHojaConParticipantes()
+                    onIsRefreshingChanged(false)
                 } catch (e: Exception) {
+                    onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                }
+            }
+        }
+    }
+
+    //Colocar idUsuario = TRUE o eliminar correo = FALSE
+    fun updateUnirmeHoja(acepto: Boolean) = viewModelScope.launch{
+        val hojaCalculo = misHojasState.value.hojaAModificar
+        val hojaConParticipantes = misHojasState.value.listaHojasAMostrar.find { it.hoja.idHoja == hojaCalculo?.idHoja }
+        val miCorreo = dataStoreConfig.getCorreoRegistroPreference()
+
+        hojaConParticipantes?.let {
+            val participanteAModificar = it.participantes.find { hoja -> hoja.participante.correo == miCorreo }
+
+            participanteAModificar?.participante?.let { participante ->
+                try {
+                    if(acepto) {//Unirme
+                        participante.idUsuarioParti = misHojasState.value.idRegistro
+                        participante.tipo = "ONLINE"
+                        onIsRefreshingChanged(true)
+                        //Update Room
+                        participantesService.update(participante)
+                        //Update Api
+                        participantesService.updateParticipanteAPI(participante.toDto())
+                        getAllHojaConParticipantes()
+                        onIsRefreshingChanged(false)
+                    }
+                    else { //No unirme
+                        participante.correo = null
+                        onIsRefreshingChanged(true)
+                        //Update Room
+                        hojasService.deleteHojaConParticipantes(hojaConParticipantes.hoja)
+                        //Update Api
+                        participantesService.updateParticipanteAPI(participante.toDto())
+                        getAllHojaConParticipantes()
+                        onIsRefreshingChanged(false)
+                    }
+                }
+                catch (e: Exception) {
                     onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
                 }
             }
@@ -133,8 +241,8 @@ class MisHojasViewModel @Inject constructor(
                     //Update DataStore
                     updatePreferenceIdHojaPrincipal(it.toEntity())
                     //Delete participantes desde Api
-                    participantesService.getParticipantesBy("id_hoja", hojaCalculo.idHoja.toString())?.forEach {
-                        participantesService.deleteParticipante(it.idParticipante)
+                    participantesService.getParticipantesByAPI("id_hoja", hojaCalculo.idHoja.toString())?.forEach {
+                        participantesService.deleteParticipanteAPI(it.idParticipante)
                     }
                     //Delete hoja desde Api
                     hojasService.deleteHojaApi(it.idHoja)
@@ -142,9 +250,9 @@ class MisHojasViewModel @Inject constructor(
                 }catch (e: Exception) {
                     onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
                 }
-
             }
         }
+        getAllHojaConParticipantes()
     }
     /************************/
 
@@ -157,34 +265,35 @@ class MisHojasViewModel @Inject constructor(
     }
 
     //Metodo que obtiene la lista de hojas, ordena por defecto y para el circularIndicator
-    fun getAllHojaConParticipantes() = viewModelScope.launch {
+    suspend fun getAllHojaConParticipantes() {
         withContext(Dispatchers.IO) {
-            hojasService.getAllHojaConParticipantes(misHojasState.value.idRegistro).collect {listaHojasConParticipantes ->
-                //guardo la lista de hojas
-                _misHojasState.value = _misHojasState.value.copy(listaHojasConParticipantes = listaHojasConParticipantes)
-
-                mostrarSolo() //lleno la listaHojasAMostrar con la lista original
-                delay(1000)
-                onCircularIndicatorChanged(false)
-            }
+            val listaHojasConParticipantes = hojasService.getHojasConParticipantes()
+            //guardo la lista de hojas
+            onListaHojasConParticipantesChanged(listaHojasConParticipantes)
+            mostrarPorEstado()
         }
     }
-
 
 
     //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
-    fun getIdRegistroPreference() = viewModelScope.launch {
+    suspend fun getIdRegistroPreference()  {
         val idRegistro = dataStoreConfig.getIdRegistroPreference()
         if (idRegistro != null) {
-            _misHojasState.value = _misHojasState.value.copy(idRegistro = idRegistro)
-
+            onIdRegistradoChanged(idRegistro)
         }
     }
 
-    /** Pendiente subir cambios a la red **/
-    fun onPendienteSubirCambiosChanged(pendiente: Boolean){
-        _misHojasState.value = _misHojasState.value.copy(pendienteSubirCambios = pendiente)
+    fun ActualizarDatos(){
+        viewModelScope.launch {
+            onIsRefreshingChanged(true)
+            dataUpdates.limpiarYVolcarLogin(misHojasState.value.idRegistro)
+            getAllHojaConParticipantes()
+            onIsRefreshingChanged(false)
+        }
     }
+
+
+
 }
 
 

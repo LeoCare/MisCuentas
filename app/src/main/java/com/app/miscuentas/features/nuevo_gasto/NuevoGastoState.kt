@@ -4,6 +4,7 @@ import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 
 data class NuevoGastoState(
+    val idRegistrado: Long = 0,
     val importe: String = "",
     val idGastoElegido: Long = 1,
     val concepto: String = "Varios",

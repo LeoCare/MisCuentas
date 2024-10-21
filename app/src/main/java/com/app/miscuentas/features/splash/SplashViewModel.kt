@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -48,72 +49,84 @@ class SplashViewModel @Inject constructor(
     fun onPermisoTratadoChanged(tratado: Boolean){
         _splashState.value = _splashState.value.copy(permisosTratados = tratado)
     }
-
+    fun onIsRefreshingChanged(refrescar: Boolean){
+        _splashState.update { currentState ->
+            currentState.copy(isRefreshing = refrescar)
+        }
+    }
     /** Comprueba y limpia datastore si es necesario **/
     fun checkAndClearDataStore() {
+        onIsRefreshingChanged(true)
         viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                val versionActual = DATABASE_VERSION
-                val versionGuardada = dataStoreConfig.getDatabaseVersion()
+            withContext(Dispatchers.IO) {
+                try{
+                    val versionActual = DATABASE_VERSION
+                    val versionGuardada = withContext(Dispatchers.IO) { dataStoreConfig.getDatabaseVersion() }
 
-                //Comprobamos si la bbdd ha cambiado y es necesario limpiar las preferences
-                checkAndClearDataStore(versionActual, versionGuardada)
-            }
-        }
-    }
-
-
-    /** METODO PARA COMPROBAR LAS PREFERENCE Y BORRARLAS SI FUERA NECESARIO **/
-    suspend fun checkAndClearDataStore(versionActual: Int, versionGuardada: Int?) {
-        val inicioHuella: String?
-        val registrado: String?
-
-        try {
-            //si la version de la bbdd cambia -> limpio las preference
-            if (versionGuardada == null || versionActual  > versionGuardada) {
-                // Limpiar DataStore
-                clearDataStore()
-                // Actualizar la versión de la base de datos en DataStore
-                dataStoreConfig.saveDatabaseVersion(versionActual)
-            }
-            else {//si no, las recoge y actua en consecuencia
-                inicioHuella = dataStoreConfig.getInicoHuellaPreference()
-                registrado = dataStoreConfig.getRegistroPreference()
-
-                if (registrado != null && inicioHuella != "SI") {
-                    onAutoInicioChanged(true)
-                } else {
-                    onAutoInicioChanged(false)
+                    if (versionGuardada == null || versionActual > versionGuardada) {
+                        limpiarDataStore(versionActual)
+                    } else {
+                        cargarPreferencias()
+                    }
+                    actualizarDatos()
+                }
+                catch (e: Exception) {
+                    onMensajeChanged("Error al cargar los datos.") //algo a fallado en las solicitudes
                 }
             }
-            ActualizarDatos()
-        }catch (ex: Exception){
-            null
+        }
+
+    }
+
+    /** Elimina lod datos de la DataStorePreferences **/
+    private suspend fun limpiarDataStore(versionActual: Int) {
+        withContext(Dispatchers.IO) {
+            clearDataStore()
+            dataStoreConfig.saveDatabaseVersion(versionActual)
         }
     }
 
-    fun ActualizarDatos() {
+    /** Carga los datos de la DataStorePreferences **/
+    private suspend fun cargarPreferencias() {
+        val inicioHuella = dataStoreConfig.getInicoHuellaPreference()
+        val registrado = dataStoreConfig.getRegistroPreference()
+        if (registrado != null && inicioHuella != "SI") {
+            onAutoInicioChanged(true)
+        } else {
+            onAutoInicioChanged(false)
+        }
+    }
+
+    /** Comienzo de la actualizacion de todos los datos del usuario registrado **/
+    private fun actualizarDatos() {
         viewModelScope.launch {
             val idUsuario = dataStoreConfig.getIdRegistroPreference()
-            if (idUsuario != null){
+            if (idUsuario != null) {
                 try {
-                    // Actualizar el estado de la UI y cargar Room
-                    dataUpdates.limpiarYVolcarLogin(idUsuario)
+                    withContext(Dispatchers.IO) {
+                        dataUpdates.limpiarYVolcarLogin(idUsuario)
+                    }
                     onMensajeChanged("Datos actualizados!")
                     onContinuarChanged(true)
                 } catch (e: Exception) {
-                    // Si hay un error de red, intentar cargar los datos locales
-                    val localUsuario = usuariosService.getRegistroWhereId(idUsuario).firstOrNull()
-                    if (localUsuario != null) {
-                        onMensajeChanged("Los datos no estan actualizados. Problema de red!")
-                        onContinuarChanged(true)
-                    } else {
-                        onMensajeChanged("Error en la red y no hay datos locales!")
-                        clearDataStore()
-                        onContinuarChanged(false)
-                    }
+                    manejarErrorActualizacionDatos(idUsuario, e)
                 }
+            } else {
+                onContinuarChanged(true)
             }
+        }
+    }
+
+    /** Obtiene el id del registrado si hay algun error de red y deja continuar **/
+    private suspend fun manejarErrorActualizacionDatos(idUsuario: Long, e: Exception) {
+        val localUsuario = usuariosService.getRegistroWhereId(idUsuario).firstOrNull()
+        if (localUsuario != null) {
+            onMensajeChanged("Los datos no están actualizados. Problema de red!")
+            onContinuarChanged(true)
+        } else {
+            onMensajeChanged("Error en la red y no hay datos locales!")
+            clearDataStore()
+            onContinuarChanged(false)
         }
     }
 

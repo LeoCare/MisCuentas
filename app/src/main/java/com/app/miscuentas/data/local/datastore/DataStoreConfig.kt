@@ -22,6 +22,7 @@ object DataStoreKeys {
     val REGISTRADO = stringPreferencesKey("REGISTRADO")
     val INICIOHUELLA = stringPreferencesKey("INICIOHUELLA")
     val IDREGISTRADO = longPreferencesKey("IDREGISTRADO")
+    val CORREOREGISTRO = stringPreferencesKey("CORREOREGISTRO")
     val IDHOJAPRINCIPAL = longPreferencesKey("IDHOJAPRINCIPAL")
     val PERMISOCAMARA = booleanPreferencesKey("PERMISOCAMARA")
     val PERMISOSALMACENAMIENTO = booleanPreferencesKey("PERMISOSALMACENAMIENTO")
@@ -90,6 +91,26 @@ class DataStoreConfig @Inject constructor(
         return try {
             val preferences = context.dataStore.data.first()
             preferences[DataStoreKeys.IDREGISTRADO]
+
+        }catch (e: Exception){
+            null
+        }
+    }
+
+    /** Metodo para guardar el Id de la hoja principal */
+    suspend fun putCorreoRegistroPreference(correo: String?){
+        if (correo != null) {
+            context.dataStore.edit { preferences ->
+                preferences[DataStoreKeys.CORREOREGISTRO] = correo
+            }
+        }
+    }
+
+    /** Metodo que retorna el id del usuario registrado */
+    suspend fun getCorreoRegistroPreference(): String? {
+        return try {
+            val preferences = context.dataStore.data.first()
+            preferences[DataStoreKeys.CORREOREGISTRO]
 
         }catch (e: Exception){
             null

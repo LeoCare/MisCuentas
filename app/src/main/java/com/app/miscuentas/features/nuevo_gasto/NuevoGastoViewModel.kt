@@ -2,6 +2,7 @@ package com.app.miscuentas.features.nuevo_gasto
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.util.Validaciones
@@ -11,6 +12,7 @@ import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.dto.GastoCrearDto
 import com.app.miscuentas.data.dto.GastoDto
+import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.util.Contabilidad.Contable.superaLimite
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -25,12 +27,16 @@ import javax.inject.Inject
 class NuevoGastoViewModel @Inject constructor (
     private val hojasService: HojasService,
     private val gastosService: GastosService,
-    private val sessionManager: SessionManager
-): ViewModel()
-{
-    val _nuevoGastoState = MutableStateFlow(NuevoGastoState())
+    private val sessionManager: SessionManager,
+    private val dataStoreConfig: DataStoreConfig
+): ViewModel() {
+
+    private val _nuevoGastoState = MutableStateFlow(NuevoGastoState())
     val nuevoGastoState: StateFlow<NuevoGastoState> = _nuevoGastoState
 
+    fun onIdRegistradoChanged(id: Long){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(idRegistrado = id)
+    }
     fun onImporteTextFieldChanged(importe: String){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(importe = importe)
     }
@@ -65,7 +71,17 @@ class NuevoGastoViewModel @Inject constructor (
         }
     }
 
-    //Actualizo la hojaActual
+
+    //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
+    suspend fun getIdRegistroPreference() {
+        val idRegistro = dataStoreConfig.getIdRegistroPreference()
+        if (idRegistro != null) {
+            onIdRegistradoChanged(idRegistro)
+        }
+    }
+
+
+        //Actualizo la hojaActual
     suspend fun getHojaCalculo(){
         //Hoja a la cual sumarle este nuevo gasto
         val id = _nuevoGastoState.value.idHoja!!
@@ -73,8 +89,6 @@ class NuevoGastoViewModel @Inject constructor (
             _nuevoGastoState.value = _nuevoGastoState.value.copy(hojaActual = it) //Actualizo state con la hoja actual
         }
     }
-
-
 
 
     /** METODO QUE INSERTA EL GASTO **/
@@ -121,7 +135,7 @@ class NuevoGastoViewModel @Inject constructor (
         val gastoCrearDto = GastoCrearDto(tipo.toString(), concepto, importe, fechaGasto, idParticipante, idImagen)
 
         try{
-            val gastoAPI = gastosService.createGasto(gastoCrearDto)
+            val gastoAPI = gastosService.createGastoAPI(gastoCrearDto)
             return gastoAPI
         }catch (e: Exception) {
             return null // inserción NOK

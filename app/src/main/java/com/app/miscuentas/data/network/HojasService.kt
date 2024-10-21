@@ -15,6 +15,7 @@ import com.app.miscuentas.data.pattern.repository.HojasRepository
 import com.app.miscuentas.data.dto.HojaCrearDto
 import com.app.miscuentas.data.dto.HojaDto
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
 class HojasService(
@@ -55,6 +56,12 @@ class HojasService(
 
     fun getAllHojaConParticipantes(): Flow<List<HojaConParticipantes>> =
         hojaCalculoDao.getAllHojaConParticipantes().map { list -> list.map { it } }
+
+    fun getHojasConParticipantes(): List<HojaConParticipantes> =
+        hojaCalculoDao.getHojasConParticipantes().map { it }
+
+    fun getHojasConParticipantesFlow(): Flow<List<HojaConParticipantes>> =
+        hojaCalculoDao.getHojasConParticipantesFlow().map { list -> list.map { it } }
 
     fun getAllHojaConParticipantes(idRegistro: Long): Flow<List<HojaConParticipantes>> =
         hojaCalculoDao.getAllHojaConParticipantes(idRegistro).map { list -> list.map { it } }

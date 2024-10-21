@@ -82,12 +82,10 @@ class LoginViewModel @Inject constructor(
             try {
                 val response = usuariosService.postLoginApi(UsuarioLoginDto(correo, contrasenna))
                 if (response != null) {
-                    // Guardar el usuario y los tokens
-                    usuariosService.cleanInsert(response.usuario.toEntity())
-
                     // Actualizar el estado de la UI y cargar Room
+                    onRegistroDataStoreChanged(response.usuario.idUsuario, response.usuario.nombre, response.usuario.correo)
                     dataUpdates.limpiarYVolcarLogin(response.usuario.idUsuario)
-                    onRegistroDataStoreChanged(response.usuario.idUsuario, response.usuario.nombre)
+
                 } else {
                     onMensajeChanged("Correo o Contraseña incorrectos!")
                 }
@@ -98,7 +96,7 @@ class LoginViewModel @Inject constructor(
                     val contrasennaValida = BCrypt.verifyer().verify(contrasenna.toCharArray(), localUsuario.contrasenna.toCharArray()).verified
                     if (contrasennaValida) {
                         // Inicio de sesión exitoso con datos locales
-                        onRegistroDataStoreChanged(localUsuario.idUsuario, localUsuario.nombre)
+                        onRegistroDataStoreChanged(localUsuario.idUsuario, localUsuario.nombre, localUsuario.correo)
                     } else {
                         onMensajeChanged("Error en Correo o Contraseña!")
                     }
@@ -112,9 +110,10 @@ class LoginViewModel @Inject constructor(
     }
 
     /** Actualiza datastore con los datos de login (LOGIN) **/
-    suspend fun onRegistroDataStoreChanged(idRegistro: Long, usuario: String){
+    suspend fun onRegistroDataStoreChanged(idRegistro: Long, usuario: String, correo: String){
         dataStoreConfig.putRegistroPreference(usuario)
         dataStoreConfig.putIdRegistroPreference(idRegistro)
+        dataStoreConfig.putCorreoRegistroPreference(correo)
         onLoginOkChanged(true)
     }
 
@@ -164,7 +163,7 @@ class LoginViewModel @Inject constructor(
         val nombre = _loginState.value.usuario
         val correo = _loginState.value.email
         val contrasenna = _loginState.value.contrasenna
-        val perfil = "USER"
+        val perfil = "ADMIN"
         val idRegistro: Long
 
         //Insert en API
@@ -176,7 +175,7 @@ class LoginViewModel @Inject constructor(
             val insertRoomOk = insertRegistroRoom(usuarioApiOk.usuario.contrasenna, correo, idRegistro, nombre, perfil)
             if (insertRoomOk) {
                 onIdRegistroChanged(idRegistro)
-                onRegistroDataStoreChanged(idRegistro, _loginState.value.usuario)
+                onRegistroDataStoreChanged(idRegistro, _loginState.value.usuario, correo)
             } else  onMensajeChanged("Ese correo ya esta registrado!")
         }
     }
@@ -260,31 +259,6 @@ class LoginViewModel @Inject constructor(
         _loginState.value = _loginState.value.copy(
             biometricAuthenticationState = LoginState.BiometricAuthenticationState.AuthenticationFailed
         )
-    }
-
-
-    /** COMPROBACIONES **/
-    // Metodos que comprueban la sintaxis del correo
-    fun emailOk(email: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-
-    // Metodos que comprueban la sintaxis de la contraseña
-    fun contrasennaOk(contrasena: String): Boolean {
-        if (contrasena.length < 6) {
-            return false
-        }
-
-        var tieneNumero = false
-        var tieneMayus = false
-        var tieneMinus = false
-
-        for (char in contrasena) {
-            when {
-                char.isDigit() -> tieneNumero = true
-                char.isUpperCase() -> tieneMayus = true
-                char.isLowerCase() -> tieneMinus = true
-            }
-        }
-        return tieneNumero && tieneMayus && tieneMinus
     }
 
 }

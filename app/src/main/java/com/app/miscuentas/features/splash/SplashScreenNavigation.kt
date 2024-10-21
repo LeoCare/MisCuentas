@@ -10,7 +10,9 @@ import com.app.miscuentas.features.login.NavigateToLogin
 const val SPLASH_ROUTE = "SPLASH"
 
 fun NavHostController.NavigateToSplash() {
-    this.navigate(SPLASH_ROUTE)
+    this.navigate(SPLASH_ROUTE) {
+        popUpTo(SPLASH_ROUTE) { inclusive = true } // Elimina Splash de la pila
+    }
 }
 
 fun NavGraphBuilder.splashScreen(
@@ -20,7 +22,7 @@ fun NavGraphBuilder.splashScreen(
     composable(route = SPLASH_ROUTE) {
         mainActivityViewModel.setTitle(SPLASH_ROUTE)
         SplashScreen(
-            onLoginNavigate = { navHostController.NavigateToLogin() },
+            onLoginNavigate = { navHostController.NavigateToLogin() } ,
             onInicioNavigate = { navHostController.NavigateToInicio() }
         )
     }

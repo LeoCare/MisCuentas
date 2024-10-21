@@ -1,5 +1,10 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,9 +30,16 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Handshake
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,10 +51,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -57,64 +68,112 @@ import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.model.HojaCalculo
 import com.app.miscuentas.util.Desing
+import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions2
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 /** Contenedor del resto de elementos para la pestaña Hojas **/
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MisHojasScreen(
     innerPadding: PaddingValues?,
     onNavGastos: (Long) -> Unit,
     viewModel: MisHojasViewModel = hiltViewModel()
 ) {
-
+    val coroutineScope = rememberCoroutineScope()
     val hojaState by viewModel.misHojasState.collectAsState()
 
-    //obtiene id del registrado para obtener sus hojas (ver siguiente Launched)
-    LaunchedEffect(Unit) {
-        viewModel.getIdRegistroPreference()
-    }
-
-    //obtiene las hojas del registrado
-    LaunchedEffect(hojaState.idRegistro){
-        viewModel.getAllHojaConParticipantes()
-    }
+    // Estado del SwipeRefresh
+    val pullRefreshState  = rememberPullRefreshState(
+        refreshing = hojaState.isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                //METODO PARA REFRESCAR LOS DATOS
+                viewModel.ActualizarDatos()
+            }
+        }
+    )
 
     LaunchedEffect(hojaState.opcionSelected){
         when(hojaState.opcionSelected) {
             "Finalizar","Anular" -> { viewModel.updateStatusHoja() }
             "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
+            "Unirme" -> { viewModel.updateUnirmeHoja(true) }
+            "NoAcepto" -> { viewModel.updateUnirmeHoja(false) }
         }
     }
-
-    if (hojaState.circularIndicator){
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues())
+            .pullRefresh(pullRefreshState)
+    ) {
+        SeleccionFiltros(
+            filtroElegido = hojaState.filtroElegido,
+            ordenElegido = hojaState.ordenElegido,
+            descending = hojaState.descending,
+            eleccionEnTitulo = hojaState.eleccionEnTitulo,
+            onTipoOrdenChanged = viewModel::onTipoOrdenChanged,
+            onDescendingChanged = viewModel::onDescendingChanged,
+            onFiltroElegidoChanged = viewModel::onFiltroElegidoChanged,
+            onFiltroTipoElegidoChanged = viewModel::onFiltroTipoElegidoChanged,
+            onFiltroEstadoElegidoChanged = viewModel::onFiltroEstadoElegidoChanged,
+            onEleccionEnTituloChanged = viewModel::onEleccionEnTituloChanged
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = MaterialTheme.colorScheme.secondary
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.tertiaryContainer
+            )
+            Text(
+                text = "Propietaria",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.inverseSurface
+            )
+            Text(
+                text = "Invitado",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.scrim
+            )
+            Text(
+                text = "Sin confirmar",
+                style = MaterialTheme.typography.bodyMedium
             )
         }
-    } else {
-        Column(
-            modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues())
-        ) {
-            SeleccionFiltros(
-                filtroElegido = hojaState.filtroElegido,
-                ordenElegido = hojaState.ordenElegido,
-                descending = hojaState.descending,
-                onMostrarFiltroChanged = viewModel::onMostrarFiltroChanged,
-                onTipoOrdenChanged = viewModel::onTipoOrdenChanged,
-                onDescendingChanged = viewModel::onDescendingChanged
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+        if(hojaState.isRefreshing){
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                // Indicador de recarga
+                PullRefreshIndicator(
+                    refreshing = true,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+        else {
             HojasList(
                 innerPadding,
                 hojaState.listaHojasAMostrar,
+                hojaState.idRegistro,
                 onNavGastos,
                 viewModel::onOpcionSelectedChanged,
-                viewModel::onStatusChanged
+                viewModel::onStatusChanged,
+                viewModel::onHojaAModificarChanged
             )
         }
     }
@@ -126,10 +185,15 @@ fun SeleccionFiltros(
     filtroElegido: String,
     ordenElegido: String,
     descending: Boolean,
-    onMostrarFiltroChanged: (String) -> Unit,
+    onFiltroElegidoChanged: (String) -> Unit,
+    onFiltroEstadoElegidoChanged: (String) -> Unit,
+    onFiltroTipoElegidoChanged: (String) -> Unit,
+    eleccionEnTitulo: String,
     onTipoOrdenChanged: (String) -> Unit,
-    onDescendingChanged: (Boolean) -> Unit
+    onDescendingChanged: (Boolean) -> Unit,
+    onEleccionEnTituloChanged: (String) -> Unit
 ) {
+    var isFilterExpanded by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(vertical = 7.dp, horizontal = 27.dp)) {
         Spacer(modifier = Modifier.height(10.dp))
@@ -147,67 +211,90 @@ fun SeleccionFiltros(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
-                onClick = { onMostrarFiltroChanged("C") },
+                onClick = {
+                    isFilterExpanded =
+                        if (isFilterExpanded){
+                            when(filtroElegido){
+                                "Tipo"-> false
+                                else -> true
+                            }
+                        }  else true
+                    onFiltroElegidoChanged("Tipo")
+                },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filtroElegido == "C") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (filtroElegido == "Tipo") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (filtroElegido == "C") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "Tipo") 37.dp else 32.dp)
             ){
                 Text(
-                    text = "Activ.",
+                    text = "Tipo",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (filtroElegido == "C") Color.White else Color.Black
+                    color = if (filtroElegido == "Tipo") Color.White else Color.Black
                 )
             }
             Button(
-                onClick = { onMostrarFiltroChanged("F") },
+                onClick = {
+                    isFilterExpanded =
+                        if (isFilterExpanded){
+                            when(filtroElegido){
+                                "Estado"-> false
+                                else -> true
+                            }
+                        }  else true
+                    onFiltroElegidoChanged("Estado")
+                },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filtroElegido == "F") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (filtroElegido == "Estado") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (filtroElegido == "F") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "Estado") 37.dp else 32.dp)
             ){
                 Text(
-                    text = "Finali.",
+                    text = "Estado",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (filtroElegido == "F") Color.White else Color.Black
+                    color = if (filtroElegido == "Estado") Color.White else Color.Black
                 )
             }
             Button(
-                onClick = { onMostrarFiltroChanged("A") },
+                onClick = {
+                    isFilterExpanded = false
+                    onFiltroElegidoChanged("Todos")
+                    onEleccionEnTituloChanged("")
+                },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filtroElegido == "A") MaterialTheme.colorScheme.primary else Color.White
+                    backgroundColor = if (filtroElegido == "Todos") MaterialTheme.colorScheme.primary else Color.White
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (filtroElegido == "A") 37.dp else 32.dp)
-            ){
-                Text(
-                    text = "Anul.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (filtroElegido == "A") Color.White else Color.Black
-                )
-            }
-            Button(
-                onClick = { onMostrarFiltroChanged("T") },
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (filtroElegido == "T") MaterialTheme.colorScheme.primary else Color.White
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(if (filtroElegido == "T") 37.dp else 32.dp)
+                    .height(if (filtroElegido == "Todos") 37.dp else 32.dp)
             ){
                 Text(
                     text = "Todos",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (filtroElegido == "T") Color.White else Color.Black
+                    color = if (filtroElegido == "Todos") Color.White else Color.Black
                 )
             }
-
         }
+        //Expandible para los filtros
+        AnimatedVisibility(
+            visible = isFilterExpanded,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .padding(16.dp)
+            ) {
+                if(filtroElegido == "Tipo") FiltroTipos({onFiltroTipoElegidoChanged(it)}, { onEleccionEnTituloChanged(it)})
+                else if(filtroElegido == "Estado") FiltroEstados({onFiltroEstadoElegidoChanged(it)}, { onEleccionEnTituloChanged(it)})
+            }
+        }
+
 
         /** ORDEN **/
         Spacer(modifier = Modifier.height(10.dp))
@@ -273,7 +360,7 @@ fun SeleccionFiltros(
             Text(
                 text = "Descendente",
                 fontWeight = FontWeight.Black,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
@@ -286,42 +373,158 @@ fun SeleccionFiltros(
         modifier = Modifier
             .fillMaxWidth()
             .height(20.dp)
-            .background(Color.LightGray),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){
         Text(
             style = MaterialTheme.typography.titleMedium,
-            text = "Mostrar  ${
-                when (filtroElegido) {
-                    "C" -> "Activas"
-                    "F" -> "Finalizadas"
-                    "B" -> "Balanceadas"
-                    "A" -> "Anuladas"
-                    else  -> "Todos"
-                }
-            }"
-
+            text = "Mostrar por $filtroElegido ${if (eleccionEnTitulo != "") ": $eleccionEnTitulo" else ""}",
+            color = Color.DarkGray
         )
     }
 }
+
+
+@Composable
+fun FiltroTipos(
+    onFiltroTipoElegidoChanged: (String) -> Unit,
+    onEleccionEnTituloChanged: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.tertiaryContainer
+            )
+            Text(
+                text = "Propietaria",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
+                modifier = Modifier
+                    .clickable {
+                        onEleccionEnTituloChanged("Propietaria")
+                        onFiltroTipoElegidoChanged("Propietaria")
+                    }
+            )
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.inverseSurface
+            )
+            Text(
+                text = "Invitado",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
+                modifier = Modifier
+                    .clickable {
+                        onEleccionEnTituloChanged("Invitado")
+                        onFiltroTipoElegidoChanged("Invitado")
+                    }
+            )
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.scrim
+            )
+            Text(
+                text = "Sin confirmar",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
+                modifier = Modifier
+                    .clickable {
+                        onEleccionEnTituloChanged("SinConfirmar")
+                        onFiltroTipoElegidoChanged("SinConfirmar")
+                    }
+            )
+        }
+    }
+}
+
+
+@Composable
+fun FiltroEstados(
+    onFiltroEstadosElegidoChanged: (String) -> Unit,
+    onEleccionEnTituloChanged: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Activas",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Black,
+                modifier = Modifier
+                    .clickable {
+                        onEleccionEnTituloChanged("En Curso")
+                        onFiltroEstadosElegidoChanged("C")
+                    }
+            )
+            Text(
+                text = "Finalizadas",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Black,
+                modifier = Modifier
+                    .clickable {
+                        onEleccionEnTituloChanged("Finalizadas")
+                        onFiltroEstadosElegidoChanged("F")
+                    }
+            )
+            Text(
+                text = "Anuladas",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Black,
+                modifier = Modifier
+                    .clickable {
+                        onEleccionEnTituloChanged("Anuladas")
+                        onFiltroEstadosElegidoChanged("A")
+                    }
+            )
+        }
+    }
+}
+
 
 @Composable
 fun HojasList(
     innerPadding: PaddingValues?,
     listaHojasAMostrar: List<HojaConParticipantes>?,
+    idRegistro: Long,
     onNavGastos: (Long) -> Unit,
     onOpcionSelectedChanged: (String) -> Unit,
-    onStatusChanged: (HojaCalculo, String) -> Unit
+    onStatusChanged: (HojaCalculo, String) -> Unit,
+    onHojaAModificarChanged: (HojaCalculo) -> Unit,
 ) {
     LazyColumn(contentPadding = innerPadding!!) {
         listaHojasAMostrar?.let { list ->
             itemsIndexed(list) { _, hojaConParticipantes ->
                 HojaDesing(
+                    idRegistro = idRegistro,
                     onNavGastos = { onNavGastos(it) },
                     hojaConParticipantes = hojaConParticipantes,
                     onOpcionSelectedChanged = { onOpcionSelectedChanged(it) },
-                    onStatusChanged = { onStatusChanged(hojaConParticipantes.hoja.toDomain(), it) }
+                    onStatusChanged = { onStatusChanged(hojaConParticipantes.hoja.toDomain(), it) },
+                    onHojaAModificarChanged = { onHojaAModificarChanged(hojaConParticipantes.hoja.toDomain()) }
                 )
             }
         }
@@ -331,17 +534,20 @@ fun HojasList(
 
 @Composable
 fun HojaDesing(
- /** API **/ //  hoja: Hoja
- onNavGastos: (Long) -> Unit,
- hojaConParticipantes: HojaConParticipantes,
- onOpcionSelectedChanged: (String) -> Unit,
- onStatusChanged: (String) -> Unit
+    idRegistro: Long,
+    onNavGastos: (Long) -> Unit,
+    hojaConParticipantes: HojaConParticipantes,
+    onOpcionSelectedChanged: (String) -> Unit,
+    onStatusChanged: (String) -> Unit,
+    onHojaAModificarChanged: () -> Unit
 ) {
 
     /** Eleccion y cambio de estado:  **/
-    var showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
-    var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
-    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    var showAviso by rememberSaveable { mutableStateOf(false) }
+    var showOpciones by rememberSaveable { mutableStateOf(false) }
+    var titulo by rememberSaveable { mutableStateOf("") }
+    var mensaje by rememberSaveable { mutableStateOf("") }
     var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
     var opcionAceptada by rememberSaveable { mutableStateOf(false) }
 
@@ -361,6 +567,29 @@ fun HojaDesing(
             showDialog = false
         }
     )
+
+    if (showOpciones) {
+        val opciones: List<String> = listOf("NoAcepto", "Unirme")
+
+        MiDialogoWithOptions2(
+            show = true,
+            opciones = opciones,
+            titulo = titulo,
+            mensaje = mensaje,
+            cancelar = { showOpciones = false },
+            onOptionSelected = {
+                opcionSeleccionada = it
+                opcionAceptada = true
+                showOpciones = false
+            }
+        )
+    }
+    if (showAviso) Desing.MiAviso(
+        show = true,
+        titulo = titulo,
+        mensaje = mensaje,
+        cerrar = { showAviso = false }
+    )
     /*****************************************/
 
     Surface(
@@ -368,8 +597,18 @@ fun HojaDesing(
         elevation = 12.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 5.dp)
-            .clickable { onNavGastos(hojaConParticipantes.hoja.idHoja) },
+            .padding(vertical = 5.dp, horizontal = 9.dp)
+            .clickable {
+                if (hojaConParticipantes.hoja.propietaria == "S" ||
+                    hojaConParticipantes.participantes.contains(hojaConParticipantes.participantes.find { it.participante.idUsuarioParti == idRegistro })
+                )
+                    onNavGastos(hojaConParticipantes.hoja.idHoja)
+            },
+        color = if(hojaConParticipantes.hoja.propietaria == "N") {
+            if(hojaConParticipantes.participantes.contains(hojaConParticipantes.participantes.find { it.participante.idUsuarioParti == idRegistro })) MaterialTheme.colorScheme.inverseSurface
+            else MaterialTheme.colorScheme.scrim
+        }
+        else MaterialTheme.colorScheme.tertiaryContainer
     ) {
         Column(
             modifier = Modifier
@@ -399,38 +638,73 @@ fun HojaDesing(
                             text = hojaConParticipantes.hoja.titulo,
                             style = MaterialTheme.typography.titleLarge
                         )
-                        /** LISTA DE OPCIONES **/
-
                     }
-                    /** LISTA DE OPCIONES **/
-                    item{
-                        OpcionesHoja(hojaConParticipantes) { opcion ->
-                            when(opcion) {
-                                "Finalizar" ->  {
-                                    onStatusChanged("F")
-                                    titulo = "FINALIZAR LA HOJA"
-                                    mensaje = "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
-                                }
-
-                                "Anular" ->  {
-                                    onStatusChanged("A")
-                                    titulo = "ANULAR LA HOJA"
-                                    mensaje = "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
-                                }
-                                "Eliminar" ->  {
-                                    onStatusChanged("E")
-                                    titulo = "ELIMINAR LA HOJA"
-                                    mensaje = "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
+                    if(hojaConParticipantes.hoja.propietaria == "N"){
+                        if(!hojaConParticipantes.participantes.contains(hojaConParticipantes.participantes.find { it.participante.idUsuarioParti == idRegistro })){
+                            /** INFO DE HOJA NO PROPIETARIA **/
+                            item {
+                                IconButton(onClick = {
+                                    titulo = "INVITACION A ESTA HOJA"
+                                    mensaje = "¿Quieres formar parte de esta hoja de gastos?"
+                                    onHojaAModificarChanged()
+                                    showOpciones = true
+                                }) {
+                                    Icon(
+                                        Icons.Default.Info,
+                                        contentDescription = "Menu de opciones",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             }
-                            opcionSeleccionada = opcion
-                            showDialog = true
+                        }
+                        else {
+                            item {
+                                IconButton(onClick = {
+                                    titulo = "INVITADO A ESTA HOJA"
+                                    mensaje = "Solo el propietario puede modificar el estado de la hoja."
+                                    showAviso = true
+                                }) {
+                                    Icon(
+                                        Icons.Default.Handshake,
+                                        contentDescription = "Aviso de invitacion",
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        /** LISTA DE OPCIONES **/
+                        item {
+                            OpcionesHoja(hojaConParticipantes) { opcion ->
+                                when (opcion) {
+                                    "Finalizar" -> {
+                                        onStatusChanged("F")
+                                        titulo = "FINALIZAR LA HOJA"
+                                        mensaje =
+                                            "Si acepta, no se podra introducir mas gastos y se debera hacer el balance correspondiente."
+                                    }
+
+                                    "Anular" -> {
+                                        onStatusChanged("A")
+                                        titulo = "ANULAR LA HOJA"
+                                        mensaje =
+                                            "Si acepta, no se tendra en cuenta ningun gasto y no se realizará ningun balance de los gastos."
+                                    }
+
+                                    "Eliminar" -> {
+                                        onStatusChanged("E")
+                                        titulo = "ELIMINAR LA HOJA"
+                                        mensaje =
+                                            "Si acepta, se borrará toda la informacion de la hoja y no se podra recuperar."
+                                    }
+                                }
+                                opcionSeleccionada = opcion
+                                showDialog = true
+                            }
                         }
                     }
                 }
-                /** API **/  //   Text(text = hoja.type)
-
-
             }
             /** DATOS **/
             Datoshojas(hojaConParticipantes)
@@ -471,8 +745,6 @@ fun Datoshojas(
                     text = hojaConParticipantes.participantes.size.toString(),
                     style = MaterialTheme.typography.bodyLarge
                 )
-                /** API **/
-                /** API **/  //   Text(text = hoja.price.toString())
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
             {

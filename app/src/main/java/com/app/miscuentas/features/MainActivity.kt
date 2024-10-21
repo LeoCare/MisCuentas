@@ -31,6 +31,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.app.miscuentas.features.inicio.INICIO_ROUTE
+import com.app.miscuentas.features.inicio.NavigateToInicio
 import com.app.miscuentas.features.navegacion.AppNavHost
 import com.app.miscuentas.features.navegacion.BottomNavigationBar
 import com.app.miscuentas.features.navegacion.MiTopBar
@@ -62,7 +64,7 @@ class MainActivity : FragmentActivity() {
                 val scaffoldState = rememberScaffoldState()
                 //pila de Screen y valor actual
                 val backStackEntry by navController.currentBackStackEntryAsState()
-                val currentScreen = backStackEntry?.destination?.route ?: SPLASH_ROUTE
+                val currentScreen = backStackEntry?.destination?.route ?: INICIO_ROUTE
                 val canNavigateBack = backStackEntry != null
 
                 val title by mainActivityViewModel.title.collectAsState()

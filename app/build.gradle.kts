@@ -133,4 +133,7 @@ dependencies {
 
     //Bcrypt
     implementation("at.favre.lib:bcrypt:0.9.0")
+
+    //Refresco de pantalla
+    implementation("androidx.compose.foundation:foundation:1.7.4")
 }

@@ -23,7 +23,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -167,11 +172,11 @@ class Desing {
         @Composable
         fun MiDialogoWithOptions(
             show:Boolean,
-            participantes: Map<String, Double>?,
+            opciones: Map<String, Double>?,
             titulo: String,
             mensaje: String,
             cancelar: () -> Unit,
-            onParticipantSelected: (Pair<String, Double>?) -> Unit
+            onOptionSelected: (Pair<String, Double>?) -> Unit
         ) {
             if (show) {
                 AlertDialog(
@@ -197,19 +202,19 @@ class Desing {
                                 style = MaterialTheme.typography.titleMedium
                             )
                             LazyColumn {
-                                participantes?.filter { it.value > 0 }?.let {
-                                    items(it.toList()) { (nombre, deuda) ->
+                                opciones?.filter { it.value > 0 }?.let {
+                                    items(it.toList()) { (clave, valor) ->
 
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .clickable { onParticipantSelected(Pair(nombre,deuda)) }
+                                                .clickable { onOptionSelected(Pair(clave,valor)) }
                                                 .padding(vertical = 8.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Text(text = nombre, fontSize = 16.sp)
+                                            Text(text = clave, fontSize = 16.sp)
                                             Text(
-                                                text = String.format("%.2f €", deuda),
+                                                text = String.format("%.2f €", valor),
                                                 fontSize = 16.sp,
                                                 color = MaterialTheme.colorScheme.primary
                                             )
@@ -224,7 +229,61 @@ class Desing {
         }
 
         @Composable
-        fun MiAviso(show:Boolean, texto: String, cerrar: () -> Unit) {
+        fun MiDialogoWithOptions2(
+            show:Boolean,
+            opciones: List<String>,
+            titulo: String,
+            mensaje: String,
+            cancelar: () -> Unit,
+            onOptionSelected: (String) -> Unit
+        ) {
+            if (show) {
+                AlertDialog(
+                    shape = MaterialTheme.shapes.small,
+                    onDismissRequest = { cancelar() },
+                    confirmButton = {
+                        TextButton(onClick = { cancelar() }) {
+                            Text(
+                                text = "Cancelar",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    },
+                    title = { Text(
+                        text = titulo,
+                        style = MaterialTheme.typography.titleLarge
+                    ) },
+                    text = {
+                        Column{
+                            Text(
+                                modifier = Modifier.padding(bottom = 10.dp),
+                                text = mensaje,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            LazyColumn {
+                                opciones.let {
+                                    items(it) { eleccion ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable { onOptionSelected(eleccion) }
+                                                .padding(vertical = 8.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(text = eleccion, fontSize = 16.sp)
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+        }
+
+        @Composable
+        fun MiAviso(show:Boolean, titulo: String, mensaje: String, cerrar: () -> Unit) {
             if (show) {
                 AlertDialog(
                     shape = MaterialTheme.shapes.small,
@@ -239,13 +298,13 @@ class Desing {
                     },
                     title = {
                         Text(
-                            text = "IMPORTANTE",
+                            text = titulo,
                             style = MaterialTheme.typography.titleLarge
                         )
                     },
                     text = {
                         Text(
-                            text = texto,
+                            text = mensaje,
                             style = MaterialTheme.typography.titleSmall
                         )
                     },
@@ -279,6 +338,50 @@ class Desing {
                             contentDescription = "Gasto Imagen",
                             contentScale = ContentScale.Fit
                         )
+                    }
+                )
+            }
+        }
+
+        @Composable
+        fun CorreoElectronicoDialog(
+            showDialog: Boolean,
+            onDismiss: () -> Unit,
+            titulo: String,
+            mensaje: String,
+            onCorreoIntroducido: (String) -> Unit
+        ) {
+            if (showDialog) {
+                var correo by rememberSaveable { mutableStateOf("") }
+
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = {
+                        Text(text = titulo)
+                    },
+                    text = {
+                        Column {
+                            Text(mensaje)
+                            TextField(
+                                value = correo,
+                                onValueChange = { correo = it },
+                                placeholder = { Text(text = "ejemplo@correo.com") },
+                                singleLine = true
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onCorreoIntroducido(correo)
+                            onDismiss()
+                        }) {
+                            Text("Aceptar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = onDismiss) {
+                            Text("Cancelar")
+                        }
                     }
                 )
             }

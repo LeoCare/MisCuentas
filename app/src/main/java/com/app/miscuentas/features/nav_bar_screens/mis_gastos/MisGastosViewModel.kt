@@ -29,6 +29,7 @@ class MisGastosViewModel @Inject constructor(
     init {
        getIdRegistroPreference()
     }
+
     fun onGastosDelParticipanteChanged(gastos: List<DbGastosEntity>){
         val listaGastos = _misGastosState.value.listaGastos + gastos
         _misGastosState.value = _misGastosState.value.copy(listaGastos = listaGastos)
@@ -76,11 +77,10 @@ class MisGastosViewModel @Inject constructor(
         }
     }
 
-
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             val idUsuario = misGastosState.value.idUsuario ?: return@withContext
-            val hojasDelRegistrado =  hojasService.getAllHojaConParticipantes(idUsuario)
+            val hojasDelRegistrado =  hojasService.getHojasConParticipantesFlow()
 
             hojasDelRegistrado.collect { listaHojasConParticipantes ->
                 onHojaDelRegistradoChanged(listaHojasConParticipantes)

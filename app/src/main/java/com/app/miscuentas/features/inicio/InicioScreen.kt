@@ -185,7 +185,7 @@ fun InicioContent(
     var showDialog by remember { mutableStateOf(false) } //valor mutable para el dialogo
     var mensaje by remember { mutableStateOf("")}
 
-    if (showDialog) MiAviso(true, mensaje, {showDialog = false})
+    if (showDialog) MiAviso(true, titulo = "IMPORTANTE", mensaje, {showDialog = false})
 
     val existeHoja = {
         when {
@@ -356,7 +356,7 @@ fun MyDrawer(
 
     //Aviso de la huella digital
     var showAviso by rememberSaveable { mutableStateOf(false) }
-    if (showAviso) MiAviso(showAviso, "Proximo a gestionar") { showAviso = false }
+    if (showAviso) MiAviso(showAviso, titulo = "IMPORTANTE", "Proximo a gestionar") { showAviso = false }
 
     ModalDrawerSheet(
         drawerShape = MaterialTheme.shapes.extraLarge,

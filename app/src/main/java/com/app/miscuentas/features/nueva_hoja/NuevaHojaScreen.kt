@@ -573,6 +573,7 @@ fun BotonCrear(
     if (showDialog) {
         MiAviso(
             true,
+            titulo = "IMPORTANTE",
             "Como minimo debe contener Titulo y un participante.",
             { showDialog = false }
         )

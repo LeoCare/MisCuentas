@@ -170,7 +170,7 @@ class NuevaHojaViewModel @Inject constructor(
         var result: ParticipanteDto? = null
         val participanteCrearDto = ParticipanteCrearDto(nombre, correo, tipo, idUsuario, idHoja)
         try {
-            val participanteApi = participantesService.createParticipante(participanteCrearDto)
+            val participanteApi = participantesService.createParticipanteAPI(participanteCrearDto)
             if (participanteApi != null){
                 result = participanteApi // insert OK
             }
@@ -214,7 +214,7 @@ class NuevaHojaViewModel @Inject constructor(
         hojasService.insertHojaConParticipantes(hoja, participantes)
     }
 
-    fun getIdRegistroPreference(){
+    suspend fun getIdRegistroPreference(){
         viewModelScope.launch {
             val idRegistrado = dataStoreConfig.getIdRegistroPreference()
             if (idRegistrado != null) {

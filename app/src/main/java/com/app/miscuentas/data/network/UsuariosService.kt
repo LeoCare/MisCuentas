@@ -30,6 +30,11 @@ class UsuariosService (
         return usuarioDao.cleanInsert(usuario)
     }
 
+    // Elimina un usuario y lo inserta nuevamente
+    suspend fun cleanUserAndInsert(usuario: DbUsuariosEntity): Long {
+        return usuarioDao.cleanUserAndInsert(usuario)
+    }
+
     suspend fun cleanAllUsuariosExcept(idUsuario: Long){
         return usuarioDao.clearAllUsuariosExcept(idUsuario)
     }
@@ -56,6 +61,10 @@ class UsuariosService (
     //  Obtener usuario por correo (Room)
     fun getUsuarioWhereCorreo(correo: String): Flow<Usuario?> =
         usuarioDao.getUsuarioWhereCorreo(correo).map { it?.toDomain() }
+
+    //  Obtener usuario por correo (Room)
+    fun getCorreoWhereId(id: Long): String =
+        usuarioDao.getCorreoWhereId(id)
 
     //  Limpia e insertar usuario con participantes (Room)
     suspend fun insertUsuarioConParticipantes(

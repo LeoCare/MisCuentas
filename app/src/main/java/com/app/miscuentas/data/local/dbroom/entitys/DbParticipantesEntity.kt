@@ -12,19 +12,13 @@ import com.app.miscuentas.data.model.Participante
 //De esta manera personalizo el nombre de la tabla, si no, seria el de la clase
 @Entity(
     tableName = "t_participantes",
-    indices = [Index(value = ["nombre","idHojaParti"], unique = true), Index(value = ["idUsuarioParti"])], //el nombre no puede repetirse en la BBDD
+    indices = [Index(value = ["nombre","idHojaParti"], unique = true)],
     foreignKeys = [
         ForeignKey(
             entity = DbHojaCalculoEntity::class,
             parentColumns = ["idHoja"],
             childColumns = ["idHojaParti"],
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = DbUsuariosEntity::class,
-            parentColumns = ["idUsuario"],
-            childColumns = ["idUsuarioParti"],
-            onDelete = ForeignKey.SET_NULL
         )
     ]
 )

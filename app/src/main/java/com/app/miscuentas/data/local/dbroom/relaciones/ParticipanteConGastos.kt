@@ -6,6 +6,8 @@ import androidx.room.Relation
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 //import com.app.miscuentas.data.local.dbroom.entitys.DbHojaParticipantesGastosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.data.model.Gasto
+import com.app.miscuentas.data.model.Participante
 
 data class ParticipanteConGastos(
     @Embedded
@@ -17,4 +19,5 @@ data class ParticipanteConGastos(
     )
     val gastos: List<DbGastosEntity> //relacion 'uno a muchos' que devuelve una lista de gastos
 )
+
 

@@ -80,10 +80,10 @@ class ParticipantesViewModel @Inject constructor(
         }
     }
 
+    /** Obtiene todas hojas con sus participantes desde Room **/
     fun getAllHojaConParticipantes() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
-            val idUsuario = _participantesState.value.idUsuario ?: return@withContext
-            val hojasDelRegistrado =  hojasService.getAllHojaConParticipantes(idUsuario)
+            val hojasDelRegistrado =  hojasService.getAllHojaConParticipantes()
 
             hojasDelRegistrado.collect { listaHojasConParticipantes ->
                 onHojaDelRegistradoChanged(listaHojasConParticipantes)
@@ -102,7 +102,7 @@ class ParticipantesViewModel @Inject constructor(
     fun onParticipanteWithCorreoChanged(participanteWithNewCorreo: DbParticipantesEntity) = viewModelScope.launch {
         withContext(Dispatchers.IO) {
             //Update desde API
-            val participanteApi = participantesService.updateParticipante(participanteWithNewCorreo.toDto())
+            val participanteApi = participantesService.updateParticipanteAPI(participanteWithNewCorreo.toDto())
             if(participanteApi != null) {
                 //Update en Room
                 participantesService.update(participanteWithNewCorreo)
@@ -135,8 +135,10 @@ class ParticipantesViewModel @Inject constructor(
     private fun ordenHoja() {
         val ordenado = participantesState.value.listaParticipantesAMostrar.let { lista ->
             val comparator = when (participantesState.value.ordenElegido) {
-                "Tipo" -> compareBy<ParticipanteConGastos> { it.participante.correo }
-                "Nombre" -> compareBy { it.participante.nombre}
+                "Tipo" -> compareBy<ParticipanteConGastos> { it.participante.tipo }
+                    .thenBy { it.participante.tipo }
+                "Nombre" -> compareBy<ParticipanteConGastos> { it.participante.nombre }
+                    .thenBy { it.participante.tipo }
                 else -> null
             }
             comparator?.let { if (participantesState.value.descending) lista.sortedWith(it.reversed()) else lista.sortedWith(it) }

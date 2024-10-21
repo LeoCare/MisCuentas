@@ -80,6 +80,10 @@ fun NuevoGasto(
     var showDialog by remember { mutableStateOf(false) }
     var mensaje by rememberSaveable { mutableStateOf("") }
 
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getIdRegistroPreference()
+    }
+
     //paso el id de la hoja para registrar el gasto sobre esta misma.
     LaunchedEffect(idHojaPrincipal) {
         viewModel.onIdHojaPrincipalChanged(idHojaPrincipal)
@@ -106,6 +110,7 @@ fun NuevoGasto(
     if (showDialog) {
         MiAviso(
             true,
+            titulo = "IMPORTANTE",
             mensaje,
             { showDialog = false }
         )
@@ -140,6 +145,7 @@ fun NuevoGasto(
             onBotonGuardarClick,
             nuevoGastoState.importe,
             nuevoGastoState.hojaActual,
+            nuevoGastoState.idRegistrado,
             nuevoGastoState.idPagador,
             nuevoGastoState.concepto,
             listaIconosGastos,
@@ -157,6 +163,7 @@ fun NuevoGastoContent(
     onBotonGuardarClick: () -> Unit,
     importe: String,
     hojaActual: HojaConParticipantes?,
+    idRegistrado: Long,
     idPagador: Long,
     concepto: String,
     listaIconosGastos: List<IconoGasto>,
@@ -225,6 +232,7 @@ fun NuevoGastoContent(
 
             /** ELECCION PAGADOR **/
             PagadorDesing(
+                idRegistrado,
                 hojaActual,
                 idPagador,
                 onPagadorChosen
@@ -353,6 +361,7 @@ fun ImporteDesing(
 /** ELECCION PAGADOR **/
 @Composable
 fun PagadorDesing(
+    idRegistrado: Long,
     hojaActual: HojaConParticipantes?,
     idPagador: Long,
     onPagadorChosen: (ParticipanteConGastos) -> Unit
@@ -379,7 +388,7 @@ fun PagadorDesing(
             LazyRow {
                 if (hojaActual?.participantes != null) {
                     itemsIndexed(hojaActual.participantes) { index, pagadorToList ->
-
+                        if(pagadorToList.participante.tipo == "LOCAL" || pagadorToList.participante.idUsuarioParti == idRegistrado)
                         CustomRadioButton(
                             pagadorIndex = index,
                             idPagadorState = idPagador,

@@ -179,7 +179,7 @@ fun MiTopBar(
         ),
         navigationIcon = {
             if ( canNavigateBack) { //muestra la flecha para volver atras
-                IconButton(onClick = navigateUp) {
+                IconButton(onClick = navigateUp ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back_button)

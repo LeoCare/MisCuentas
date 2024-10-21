@@ -1,5 +1,6 @@
 package com.app.miscuentas.data.network
 
+import androidx.room.Update
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.model.Participante
@@ -25,6 +26,7 @@ class ParticipantesService(
     suspend fun insertAll(idHojaCalculo: Long, participante: Participante) =
         participantesDao.insertAll( participante.toEntityWithHoja(idHojaCalculo))
 
+    @Update
     suspend fun update( participante: DbParticipantesEntity) =
         participantesDao.update(participante)
 
@@ -66,27 +68,27 @@ class ParticipantesService(
     }
 
     // Obtener un participante por ID
-    suspend fun getParticipanteById(id: Long): ParticipanteDto? {
+    suspend fun getParticipanteByIdAPI(id: Long): ParticipanteDto? {
         return participantesRepository.getParticipanteById(id)
     }
 
     // Obtener una hoja segun consulta
-    suspend fun getParticipantesBy(column: String, query: String):  List<ParticipanteDto>? {
+    suspend fun getParticipantesByAPI(column: String, query: String):  List<ParticipanteDto>? {
         return participantesRepository.getParticipantesBy(column, query)
     }
 
     // Crear un nuevo participante
-    suspend fun createParticipante(participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
+    suspend fun createParticipanteAPI(participanteCrearDto: ParticipanteCrearDto): ParticipanteDto? {
         return participantesRepository.createParticipante(participanteCrearDto)
     }
 
     // Actualizar un participante
-    suspend fun updateParticipante(participanteDto: ParticipanteDto): ParticipanteDto? {
+    suspend fun updateParticipanteAPI(participanteDto: ParticipanteDto): ParticipanteDto? {
         return participantesRepository.updateParticipante(participanteDto)
     }
 
     // Eliminar un participante por ID
-    suspend fun deleteParticipante(id: Long): String? {
+    suspend fun deleteParticipanteAPI(id: Long): String? {
         return participantesRepository.deleteParticipante(id)
     }
 }
