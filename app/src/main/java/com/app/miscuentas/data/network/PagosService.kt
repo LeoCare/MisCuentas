@@ -21,7 +21,12 @@ class PagosService(
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllPagos(pagos: List<DbPagoEntity>) {
-        pagoDao.insertAllPagos(pagos)
+        try{
+            pagoDao.insertAllPagos(pagos)
+        }catch (e: Exception) {
+            throw Exception("Error al insertar los pagos: - ${e.message}")
+        }
+
     }
 
     suspend fun getPagosByDeuda(idDeuda: Long): List<DbPagoEntity> {

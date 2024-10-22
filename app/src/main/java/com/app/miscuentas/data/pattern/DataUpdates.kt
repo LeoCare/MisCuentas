@@ -60,7 +60,7 @@ class DataUpdates(
         hojasService.getHojaByApi("id_usuario", idUsuario.toString())?.forEach { hoja ->
             volcarUsuariosDeParticipantes(hoja.idHoja, idUsuario, idUsuarioLogin)
             volcarParticipantes(hoja.toEntity(), propietario)
-            volcarBalances(hoja.toEntity())
+           // volcarBalances(hoja.toEntity())
         }
     }
 
@@ -81,15 +81,28 @@ class DataUpdates(
         participantes?.let {
             hoja.propietaria = propietario
             hojasService.insertHojaConParticipantes(hoja, it.toEntityList())
-            volcarGastosYPagos(it)
+            volcarGastos(it)
+        }
+
+        volcarBalances(hoja)
+
+        participantes?.let {
+            hoja.propietaria = propietario
+            hojasService.insertHojaConParticipantes(hoja, it.toEntityList())
+            volcarPagos(it)
         }
     }
 
-    private suspend fun volcarGastosYPagos(participantes: List<ParticipanteDto>) = withContext(Dispatchers.IO) {
+    private suspend fun volcarGastos(participantes: List<ParticipanteDto>) = withContext(Dispatchers.IO) {
         participantes.forEach { participante ->
             gastosService.getGastoByAPI("id_participante", participante.idParticipante.toString())?.let { gastos ->
                 gastosService.insertAllGastos(gastos.toEntityList())
             }
+        }
+    }
+
+    private suspend fun volcarPagos(participantes: List<ParticipanteDto>) = withContext(Dispatchers.IO) {
+        participantes.forEach { participante ->
             pagosService.getPagosByAPI("id_participante", participante.idParticipante.toString())?.let { pagos ->
                 pagosService.insertAllPagos(pagos.toEntityList())
             }
@@ -121,7 +134,7 @@ class DataUpdates(
             usuariosService.cleanUserAndInsert(usuario.toEntity())
             hojas.forEach { hoja ->
                 volcarParticipantes(hoja, "N")
-                volcarBalances(hoja)
+              //  volcarBalances(hoja)
             }
         }
     }

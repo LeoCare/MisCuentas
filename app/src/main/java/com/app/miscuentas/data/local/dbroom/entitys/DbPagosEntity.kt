@@ -3,11 +3,13 @@ package com.app.miscuentas.data.local.dbroom.entitys
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.app.miscuentas.data.model.Pago
 
 @Entity(
     tableName = "t_pagos",
+    indices = [Index(value =  ["idPago"])],
     foreignKeys = [
         ForeignKey(
             entity = DbBalancesEntity::class,
@@ -31,8 +33,9 @@ import com.app.miscuentas.data.model.Pago
     ]
 )
 data class DbPagoEntity(
-    @PrimaryKey(autoGenerate = true) val idPago: Long = 0,
-    @ColumnInfo(name = "idParticipantePago") val idParticipantePago: Long,
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "idPago") val idPago: Long = 0,
+    @ColumnInfo(name = "idParticipantePago", index = true) val idParticipantePago: Long,
     @ColumnInfo(name = "idBalance", index = true) val idBalance: Long,
     @ColumnInfo(name = "idBalancePagado", index = true) val idBalancePagado: Long,
     @ColumnInfo(name = "monto") val monto: Double,

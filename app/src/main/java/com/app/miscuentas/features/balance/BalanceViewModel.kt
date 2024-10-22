@@ -347,7 +347,7 @@ class BalanceViewModel @Inject constructor(
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
         }
-        onListaPagosConParticipantesChanged(listPagosConParticipantes)
+          onListaPagosConParticipantesChanged(listPagosConParticipantes)
     }
 
     /** INSERTAR IMAGEN EN LA BBDD **/

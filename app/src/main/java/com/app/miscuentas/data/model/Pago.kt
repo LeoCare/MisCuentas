@@ -29,7 +29,7 @@ fun Pago.toEntity() = DbPagoEntity(
 
 fun PagoDto.toEntity() = DbPagoEntity(
     idPago = idPago,
-    idParticipantePago = idParticipantePago,
+    idParticipantePago = idParticipante,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,
     monto = monto,
@@ -39,7 +39,7 @@ fun PagoDto.toEntity() = DbPagoEntity(
 )
 
 fun Pago.toCrearDto() = PagoCrearDto(
-    idParticipantePago = idParticipantePago,
+    idParticipante = idParticipantePago,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,
     monto = monto.toString(),
@@ -49,7 +49,7 @@ fun Pago.toCrearDto() = PagoCrearDto(
 )
 
 fun DbPagoEntity.toDto() = PagoDto(
-    idParticipantePago = idParticipantePago,
+    idParticipante = idParticipantePago,
     idPago = idPago,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,
