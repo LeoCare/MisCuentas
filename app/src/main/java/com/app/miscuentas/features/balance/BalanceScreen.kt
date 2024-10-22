@@ -71,6 +71,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.util.Desing.Companion.MiAviso
@@ -201,6 +202,7 @@ fun BalanceScreen(
 
     BalanceContent(
         innerPadding = innerPadding,
+        idRegistrado = balanceState.idRegistrado,
         hojaDeGastos = balanceState.hojaAMostrar,
         balanceDeuda = balanceState.balanceDeuda,
         pagoRealizado = balanceState.pagoRealizado,
@@ -219,11 +221,12 @@ fun BalanceScreen(
 @Composable
 fun BalanceContent(
     innerPadding: PaddingValues?,
+    idRegistrado: Long,
     hojaDeGastos: HojaConParticipantes?,
-    balanceDeuda: Map<String, Double>?,
+    balanceDeuda: Map<DbParticipantesEntity, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
+    pagarDeuda: (Pair<DbParticipantesEntity, Double>?, Pair<DbParticipantesEntity, Double>?) -> Unit,
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
@@ -272,8 +275,9 @@ fun BalanceContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             items(
-                                balanceDeuda.toList(), key = { it.first }) {
+                                balanceDeuda.toList(), key = { it.first.idParticipante }) {
                                 BalanceDesing(
+                                    idRegistrado = idRegistrado,
                                     participante = it.first,
                                     monto = it.second,
                                     balanceDeuda = balanceDeuda,
@@ -406,12 +410,13 @@ fun DatosHoja(hojaDeGastos: HojaConParticipantes?){
 
 @Composable
 fun BalanceDesing(
-    participante: String,
+    idRegistrado: Long,
+    participante: DbParticipantesEntity,
     monto: Double,
-    balanceDeuda: Map<String, Double>?,
+    balanceDeuda: Map<DbParticipantesEntity, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
+    pagarDeuda: (Pair<DbParticipantesEntity, Double>?, Pair<DbParticipantesEntity, Double>?) -> Unit,
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
@@ -425,7 +430,11 @@ fun BalanceDesing(
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 5.dp)
             .fillMaxWidth()
-            .clickable { showBalance = !showBalance }
+            .clickable {
+                if(participante.tipo == "LOCAL" || participante.idUsuarioParti == idRegistrado) {
+                    showBalance = !showBalance
+                }
+            }
     ) {
         Row (
             modifier = Modifier.fillMaxSize()
@@ -438,7 +447,7 @@ fun BalanceDesing(
             ) {
 
                 Text(
-                    text = participante,
+                    text = participante.nombre,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -476,14 +485,15 @@ fun BalanceDesing(
                         }
                     }
                     Spacer(Modifier.height(10.dp))
-                    if(participante.tipo == "LOCAL" || participante.idUsuarioParti == idRegistrado)
-                    Icon(
-                        modifier = Modifier
-                            .size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                        imageVector = if (showBalance) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "Pago o Balance",
-                    )
+                    if(participante.tipo == "LOCAL" || participante.idUsuarioParti == idRegistrado){
+                        Icon(
+                            modifier = Modifier
+                                .size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                            imageVector = if (showBalance) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = "Pago o Balance",
+                        )
+                    }
                 }
             }
         }
@@ -617,11 +627,11 @@ fun PagoDesing(
 
 @Composable
 fun ResolucionBox(
-    participante: String,
-    balanceDeuda: Map<String, Double>?,
+    participante: DbParticipantesEntity,
+    balanceDeuda: Map<DbParticipantesEntity, Double>?,
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
-    pagarDeuda: (Pair<String, Double>?, Pair<String, Double>?) -> Unit,
+    pagarDeuda: (Pair<DbParticipantesEntity, Double>?, Pair<DbParticipantesEntity, Double>?) -> Unit,
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit
@@ -630,7 +640,7 @@ fun ResolucionBox(
     val context = LocalContext.current
     var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
     var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
-    var opcionSeleccionada by rememberSaveable { mutableStateOf<Pair<String, Double>?>(null) }
+    var opcionSeleccionada by rememberSaveable { mutableStateOf<Pair<DbParticipantesEntity, Double>?>(null) }
 
     LaunchedEffect(pagoRealizado) {
         if (pagoRealizado) {
@@ -661,7 +671,7 @@ fun ResolucionBox(
 
     //AVISO CUANDO SE PAGA LA DEUDA:
     var showConfirm by rememberSaveable { mutableStateOf(false) }
-    var deudor by rememberSaveable { mutableStateOf<Pair<String, Double>?>(null) }
+    var deudor by rememberSaveable { mutableStateOf<Pair<DbParticipantesEntity, Double>?>(null) }
     deudor = balanceDeuda.entries
         .find { it.key == participante }
         ?.let { Pair(it.key, it.value) }
@@ -746,7 +756,7 @@ fun ResolucionBox(
 @Composable
 fun Paso1(
     montoRegistrado: Double?,
-    opcionSeleccionada: Pair<String, Double>?,
+    opcionSeleccionada: Pair<DbParticipantesEntity, Double>?,
     onTituloChanged: (String) -> Unit,
     onMensajeChanged: (String) -> Unit,
     mostrarDialogo: (Boolean) -> Unit
@@ -767,7 +777,7 @@ fun Paso1(
             if (montoRegistrado != 0.0) {
                 if (opcionSeleccionada != null) {
                     Text(
-                        text = opcionSeleccionada.first,
+                        text = opcionSeleccionada.first.nombre,
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier
                             .clickable {
@@ -884,7 +894,7 @@ fun Paso2(
 
 @Composable
 fun Paso3(
-    opcionSeleccionada: Pair<String, Double>?,
+    opcionSeleccionada: Pair<DbParticipantesEntity, Double>?,
     titulo: (String) -> Unit,
     mensaje: (String) -> Unit,
     montoRegistrado: Double,
@@ -910,7 +920,7 @@ fun Paso3(
                     if (opcionSeleccionada != null) {
                         titulo("CONFIRMAR")
                         mensaje(
-                            "Si acepta se enviará un mensaje a ${opcionSeleccionada.first} por el pago de ${
+                            "Si acepta se enviará un mensaje a ${opcionSeleccionada.first.nombre} por el pago de ${
                                 if (opcionSeleccionada.second > abs(
                                         montoRegistrado
                                     )

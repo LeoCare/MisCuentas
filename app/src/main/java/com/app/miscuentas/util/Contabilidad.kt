@@ -2,8 +2,10 @@ package com.app.miscuentas.util
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
+import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.model.Balance
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -36,7 +38,7 @@ class Contabilidad {
 
 
         /** METODO QUE CALCULA EL BALANCE PROVISIONAL SEGUN LA HOJACONPARTICIPANTES **/
-        fun calcularBalance(hojaConParticipantes: HojaConParticipantes): Map<String, Double> {
+        fun calcularBalance(hojaConParticipantes: HojaConParticipantes): Map<DbParticipantesEntity, Double> {
             val totalGastos = hojaConParticipantes.participantes
                 .flatMap { it.gastos }
                 .sumOf { it.importe.replace(",", ".").toDoubleOrNull() ?: 0.0 }
@@ -44,31 +46,30 @@ class Contabilidad {
             val numeroDeParticipantes = hojaConParticipantes.participantes.size
             val gastoPromedio = totalGastos / numeroDeParticipantes
 
-            val balances = mutableMapOf<String, Double>()
+            val balances = mutableMapOf<DbParticipantesEntity, Double>()
 
             hojaConParticipantes.participantes.forEach { participanteConGastos ->
-                val nombreParticipante = participanteConGastos.participante.nombre
+                val participante = participanteConGastos.participante
                 val gastoTotalParticipante = participanteConGastos.gastos.sumOf {
                     it.importe.replace(",", ".").toDoubleOrNull() ?: 0.0
                 }
                 val balance = gastoTotalParticipante - gastoPromedio
-                balances[nombreParticipante] = balance
+               balances[participante] = balance
             }
             return balances
         }
 
         /** METODO QUE PINTA UN MAPA CON EL PARTICIPANTE Y SU DEUDA **/
         /** Tiene en cuenta los pagos **/
-        fun calcularBalanceFinal(hojaParticipantes: HojaConParticipantes?, hojaBalance: HojaConBalances?): Map<String, Double>{
-            val balanceActual = hojaParticipantes?.let { calcularBalance(it) } as MutableMap<String, Double>
-            val balanceDeuda = mutableMapOf<String, Double>()
-
-            balanceActual.forEach { (nombre) -> //para el primer nombre del mapa de balance
+        fun calcularBalanceFinal(hojaParticipantes: HojaConParticipantes?, hojaBalance: HojaConBalances?): Map<DbParticipantesEntity, Double>{
+           val balanceActual = hojaParticipantes?.let { calcularBalance(it) } as MutableMap<DbParticipantesEntity, Double>
+            val balanceDeuda = mutableMapOf<DbParticipantesEntity, Double>()
+           balanceActual.forEach { (participanteEntity) -> //para el primer nombre del mapa de balance
                 hojaParticipantes.participantes.forEach { participantes -> //..busco en la lista de participantes de la hoja
-                    if(participantes.participante.nombre == nombre) { //..el que coincida con el nombre
+                    if(participantes.participante == participanteEntity) { //..el que coincida con el nombre
                         hojaBalance?.balances?.forEach{balance -> //..busco en t_balance
                             if(participantes.participante.idParticipante == balance.idParticipanteBalance){ //..el que coincida con el idParticipante
-                                balanceDeuda[nombre] = balance.monto
+                                balanceDeuda[participanteEntity] = balance.monto
                             }
                         }
                     }
@@ -78,14 +79,14 @@ class Contabilidad {
         }
 
         /** REALIZAR BALANCE E INCERTAR EN T_BALANCE AL CERRAR LA HOJA **/
-        fun instanciarBalance(balanceDeuda: Map<String, Double>?, hojaAMostrar: HojaConParticipantes? ): List<Balance>{
+        fun instanciarBalance(balanceDeuda: Map<DbParticipantesEntity, Double>?, hojaAMostrar: HojaConParticipantes? ): List<Balance>{
             var balances : List<Balance> = listOf()
 
-            balanceDeuda?.forEach { (nombre, monto) ->
+            balanceDeuda?.forEach { (participante, monto) ->
                 val montoRedondeado = BigDecimal(monto).setScale(2, RoundingMode.HALF_UP).toDouble()
                 val idParticipante =
                     hojaAMostrar?.participantes?.firstOrNull {
-                        it.participante.nombre == nombre
+                        it.participante == participante
                     }?.participante?.idParticipante
                 val deuda = Balance(
                     idBalance = 0,

@@ -21,10 +21,18 @@ import com.app.miscuentas.data.model.Pago
             childColumns = ["idBalancePagado"],
             onDelete = ForeignKey.CASCADE
         )
+        ,
+        ForeignKey(
+            entity = DbParticipantesEntity::class,
+            parentColumns = ["idParticipante"],
+            childColumns = ["idParticipantePago"],
+            onDelete = ForeignKey.CASCADE
+        )
     ]
 )
 data class DbPagoEntity(
     @PrimaryKey(autoGenerate = true) val idPago: Long = 0,
+    @ColumnInfo(name = "idParticipantePago") val idParticipantePago: Long,
     @ColumnInfo(name = "idBalance", index = true) val idBalance: Long,
     @ColumnInfo(name = "idBalancePagado", index = true) val idBalancePagado: Long,
     @ColumnInfo(name = "monto") val monto: Double,
@@ -35,6 +43,7 @@ data class DbPagoEntity(
 
 fun DbPagoEntity.toDomain() = Pago(
     idPago = idPago,
+    idParticipantePago = idParticipantePago,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,
     monto =monto,

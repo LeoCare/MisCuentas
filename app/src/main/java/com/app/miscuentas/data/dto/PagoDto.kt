@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class PagoDto(
     @SerializedName("idPago") val idPago: Long,
+    @SerializedName("idParticipantePago") val idParticipantePago: Long,
     @SerializedName("idBalance") val idBalance: Long,
     @SerializedName("idBalancePagado") val idBalancePagado: Long,
     @SerializedName("monto") val monto: Double,
@@ -13,6 +14,7 @@ data class PagoDto(
 )
 
 data class PagoCrearDto(
+    @SerializedName("idParticipantePago") val idParticipantePago: Long,
     @SerializedName("idBalance") val idBalance: Long,
     @SerializedName("idBalancePagado") val idBalancePagado: Long,
     @SerializedName("monto") val monto: String,

@@ -47,32 +47,32 @@ class PagosService(
     /** API **/
     /**********/
     // Obtener todos los pagos
-    suspend fun getAllPagos(): List<PagoDto>? {
+    suspend fun getAllPagosAPI(): List<PagoDto>? {
         return pagosRepository.getAllPagos()
     }
 
     // Obtener un pago por ID
-    suspend fun getPagoById(id: Long): PagoDto? {
+    suspend fun getPagoByIdAPI(id: Long): PagoDto? {
         return pagosRepository.getPagoById(id)
     }
 
     // Obtener todos los pagos segun condicion
-    suspend fun getPagosBy(column: String, query: String): List<PagoDto>? {
+    suspend fun getPagosByAPI(column: String, query: String): List<PagoDto>? {
         return pagosRepository.getPagosBy(column, query)
     }
 
     // Crear un nuevo pago
-    suspend fun createPago(pagoCrearDto: PagoCrearDto): PagoDto? {
+    suspend fun createPagoAPI(pagoCrearDto: PagoCrearDto): PagoDto? {
         return pagosRepository.createPago(pagoCrearDto)
     }
 
     // Actualizar un pago
-    suspend fun updatePago(pagoDto: PagoDto): PagoDto? {
+    suspend fun updatePagoAPI(pagoDto: PagoDto): PagoDto? {
         return pagosRepository.updatePago(pagoDto)
     }
 
     // Eliminar un pago por ID
-    suspend fun deletePago(id: Long): String? {
+    suspend fun deletePagoAPI(id: Long): String? {
         return pagosRepository.deletePago(id)
     }
 }

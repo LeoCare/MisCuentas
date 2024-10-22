@@ -6,6 +6,7 @@ import android.net.Uri
 
 data class PagoConParticipantes(
     val idPago: Long,
+    val idParticipante: Long,
     val nombrePagador: String,
     val nombreAcreedor: String,
     val monto: Double,

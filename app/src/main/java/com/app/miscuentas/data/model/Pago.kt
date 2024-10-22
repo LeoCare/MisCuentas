@@ -7,6 +7,7 @@ import com.app.miscuentas.data.dto.PagoDto
 
 data class Pago(
     val idPago: Long = 0,
+    val idParticipantePago: Long,
     val idBalance: Long,
     val idBalancePagado: Long,
     val monto: Double,
@@ -17,6 +18,7 @@ data class Pago(
 
 fun Pago.toEntity() = DbPagoEntity(
      idPago = idPago,
+     idParticipantePago = idParticipantePago,
      idBalance = idBalance,
      idBalancePagado = idBalancePagado,
      monto = monto,
@@ -27,6 +29,7 @@ fun Pago.toEntity() = DbPagoEntity(
 
 fun PagoDto.toEntity() = DbPagoEntity(
     idPago = idPago,
+    idParticipantePago = idParticipantePago,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,
     monto = monto,
@@ -36,6 +39,7 @@ fun PagoDto.toEntity() = DbPagoEntity(
 )
 
 fun Pago.toCrearDto() = PagoCrearDto(
+    idParticipantePago = idParticipantePago,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,
     monto = monto.toString(),
@@ -45,6 +49,7 @@ fun Pago.toCrearDto() = PagoCrearDto(
 )
 
 fun DbPagoEntity.toDto() = PagoDto(
+    idParticipantePago = idParticipantePago,
     idPago = idPago,
     idBalance = idBalance,
     idBalancePagado = idBalancePagado,

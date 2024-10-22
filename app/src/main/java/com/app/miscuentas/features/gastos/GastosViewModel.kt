@@ -8,6 +8,7 @@ import com.app.miscuentas.data.domain.SessionManager
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.model.Balance
@@ -55,7 +56,7 @@ class GastosViewModel @Inject constructor(
     fun onSumaParticipantesChanged(sumaParticipantes: Map<String,Double>){
         _gastosState.value = _gastosState.value.copy(sumaParticipantes = sumaParticipantes)
     }
-    fun onBalanceDeudaChanged(balanceDeuda: Map<String,Double>){
+    fun onBalanceDeudaChanged(balanceDeuda: Map<DbParticipantesEntity,Double>){
         _gastosState.value = _gastosState.value.copy(balanceDeuda = balanceDeuda)
     }
     fun onCierreAceptado(aceptado: Boolean) {
@@ -136,7 +137,7 @@ class GastosViewModel @Inject constructor(
             getHojaConBalanceFinal() //..obtengo una HojaConBalance y modifico el mapa(nombre, monto) desde t_balance
         }
         else {
-            val balanceDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<String, Double>
+            val balanceDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<DbParticipantesEntity, Double>
             onBalanceDeudaChanged(balanceDeuda)
         }
     }

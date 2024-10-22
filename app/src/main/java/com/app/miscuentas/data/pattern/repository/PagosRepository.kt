@@ -29,7 +29,7 @@ class PagosRepository(
     // Obtener un pago por ID
     suspend fun getPagoById(id: Long): PagoDto? {
         return try {
-            val response = webService.getPagoById( id)
+            val response = webService.getPagoById(id)
             if (response.isSuccessful) {
                 response.body()
             } else {

@@ -74,6 +74,7 @@ import com.app.miscuentas.data.local.dbroom.entitys.DbGastosEntity
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.local.dbroom.relaciones.ParticipanteConGastos
 import com.app.miscuentas.data.local.IconoGastoProvider
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.model.IconoGasto
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
@@ -238,7 +239,7 @@ fun GastosContent(
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
     sumaParticipantes: Map<String, Double>?,
-    balanceDeuda: Map<String, Double>?,
+    balanceDeuda: Map<DbParticipantesEntity, Double>?,
     obtenerFotoGasto: (Long) -> Unit,
     obtenerParticipantesYSumaGastos: () -> Unit,
     calcularBalance: () -> Unit,
@@ -845,7 +846,7 @@ fun ResumenBalanceDesing(
 
 @Composable
 fun Resumen(
-    balanceDeuda: Map<String, Double>?,
+    balanceDeuda: Map<DbParticipantesEntity, Double>?,
     sumaParticipantes: Map<String, Double>?
 ) {
     Column(
@@ -865,7 +866,7 @@ fun Resumen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 sumaParticipantes?.let{
-                    items(sumaParticipantes.toList(), key = { it.first }) { participante ->
+                    items(sumaParticipantes.toList()) { participante ->
                         SumaPorParticipanteDesing(
                             nombre = participante.first,
                             sumaGastos = participante.second
@@ -882,9 +883,9 @@ fun Resumen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 balanceDeuda?.let {
-                    items(balanceDeuda.toList(), key = { it.first }) { (nombre, monto) ->
+                    items(balanceDeuda.toList()) { (participante, monto) ->
                         ResumenBalanceDesing(
-                            participante = nombre,
+                            participante = participante.nombre,
                             monto = monto,
                             paddVert = 16
                         )

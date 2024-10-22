@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import java.util.Calendar
 
 
@@ -172,11 +173,11 @@ class Desing {
         @Composable
         fun MiDialogoWithOptions(
             show:Boolean,
-            opciones: Map<String, Double>?,
+            opciones: Map<DbParticipantesEntity, Double>?,
             titulo: String,
             mensaje: String,
             cancelar: () -> Unit,
-            onOptionSelected: (Pair<String, Double>?) -> Unit
+            onOptionSelected: (Pair<DbParticipantesEntity, Double>?) -> Unit
         ) {
             if (show) {
                 AlertDialog(
@@ -212,7 +213,7 @@ class Desing {
                                                 .padding(vertical = 8.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Text(text = clave, fontSize = 16.sp)
+                                            Text(text = clave.nombre, fontSize = 16.sp)
                                             Text(
                                                 text = String.format("%.2f €", valor),
                                                 fontSize = 16.sp,

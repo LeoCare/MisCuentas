@@ -90,7 +90,7 @@ class DataUpdates(
             gastosService.getGastoByAPI("id_participante", participante.idParticipante.toString())?.let { gastos ->
                 gastosService.insertAllGastos(gastos.toEntityList())
             }
-            pagosService.getPagosBy("id_participante", participante.idParticipante.toString())?.let { pagos ->
+            pagosService.getPagosByAPI("id_participante", participante.idParticipante.toString())?.let { pagos ->
                 pagosService.insertAllPagos(pagos.toEntityList())
             }
         }

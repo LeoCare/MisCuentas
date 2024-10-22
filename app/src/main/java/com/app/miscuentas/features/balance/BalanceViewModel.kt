@@ -7,6 +7,7 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbPagoEntity
+import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.toDomain
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConBalances
 import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
@@ -47,7 +48,7 @@ class BalanceViewModel @Inject constructor(
     fun onIdRegistradoChanged(id: Long){
         _balanceState.value = _balanceState.value.copy(idRegistrado = id)
     }
-    fun onBalanceDeudaChanged(mapaDeuda: Map<String,Double>){
+    fun onBalanceDeudaChanged(mapaDeuda: Map<DbParticipantesEntity,Double>){
         _balanceState.value = _balanceState.value.copy(balanceDeuda = mapaDeuda)
     }
     fun onPagoRealizadoChanged(realizado: Boolean){
@@ -93,14 +94,12 @@ class BalanceViewModel @Inject constructor(
         }
     }
 
-
-
     /** METODO QUE CALCULA EL BALANCE:
      * Si la hoja esta finalizada el balance se obtiene de la BBDD
      * **/
     fun calcularBalance() {
         val hoja = balanceState.value.hojaAMostrar
-        val mapaDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<String, Double>
+       val mapaDeuda = Contabilidad.calcularBalance(hoja!!) as MutableMap<DbParticipantesEntity, Double>
         onBalanceDeudaChanged(mapaDeuda)
         //si esta finalizada...
         if (balanceState.value.hojaAMostrar?.hoja?.status != "C") {
@@ -129,13 +128,13 @@ class BalanceViewModel @Inject constructor(
     }
 
     /** INSERTAR PAGO DE LA DEUDA **/
-    fun pagarDeuda(deudor: Pair<String, Double>?, acreedor: Pair<String, Double>?){
+    fun pagarDeuda(deudor: Pair<DbParticipantesEntity, Double>?, acreedor: Pair<DbParticipantesEntity, Double>?){
         if (acreedor != null) {
             viewModelScope.launch{
                 calculoUpdatePago(deudor, acreedor)?.let {
                     try{
                         //Insert Pago desde Api
-                        val pagoApi = pagosService.createPago(it.toDomain().toCrearDto())
+                        val pagoApi = pagosService.createPagoAPI(it.toDomain().toCrearDto())
 
                         pagoApi?.let { pago ->
                             //Insert Pago Room
@@ -153,13 +152,13 @@ class BalanceViewModel @Inject constructor(
     }
 
     /** INSTANCIA UNA ENTIDAD DE T_PAGOS **/
-    suspend fun calculoUpdatePago(deudor: Pair<String, Double>?, acreedor: Pair<String, Double>): DbPagoEntity? {
+    suspend fun calculoUpdatePago(deudor: Pair<DbParticipantesEntity, Double>?, acreedor: Pair<DbParticipantesEntity, Double>): DbPagoEntity? {
         val participantes = balanceState.value.hojaAMostrar?.participantes ?: return null
         val hojaConBalances = balanceState.value.hojaConBalances ?: return null
         val imagenPago = balanceState.value.imagenBitmap
 
         val idPagador = participantes.firstOrNull {
-            it.participante.nombre == deudor?.first
+            it.participante == deudor?.first
         }?.participante?.idParticipante ?: return null
 
         val montoAcreedorRedondeado = acreedor.second.redondearADosDecimales()
@@ -175,7 +174,7 @@ class BalanceViewModel @Inject constructor(
         val actualizado = updateBalance(balanceDeudor, balanceAcreedor, nuevoMontoDeudor, montoAcreedorActualizado)
 
         return if (actualizado) {
-            instanciarPago(balanceDeudor, balanceAcreedor, montoPagado, idFotoPago)
+            instanciarPago(idPagador ,balanceDeudor, balanceAcreedor, montoPagado, idFotoPago)
         } else {
             null
         }
@@ -274,6 +273,7 @@ class BalanceViewModel @Inject constructor(
 
     /** METODO QUE INSTANCIA UNA ENTIDAD DE T_PAGO **/
     fun instanciarPago(
+        idParticipantePago: Long,
         balanceDeudor: DbBalancesEntity?,
         balanceAcreedor: DbBalancesEntity?,
         montoPagado: Double,
@@ -281,6 +281,7 @@ class BalanceViewModel @Inject constructor(
     ): DbPagoEntity {
         return DbPagoEntity(
             idPago = 0,
+            idParticipantePago = idParticipantePago,
             idBalance = balanceDeudor!!.idBalance,
             idBalancePagado = balanceAcreedor!!.idBalance,
             monto = montoPagado,
@@ -309,6 +310,7 @@ class BalanceViewModel @Inject constructor(
     fun pagosConParticipantes(listaPagos: List<DbPagoEntity>) {
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
+        var idDeudor: Long = 0
         var nombreAcreedor = ""
         var imagenBitmap: Bitmap? = null
         val hoja = balanceState.value.hojaAMostrar
@@ -320,6 +322,7 @@ class BalanceViewModel @Inject constructor(
                     hoja?.participantes?.forEach { participantes ->
                         if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
                             nombreDeudor = participantes.participante.nombre
+                            idDeudor = participantes.participante.idParticipante
                         }
                     }
                 }
@@ -334,6 +337,7 @@ class BalanceViewModel @Inject constructor(
             }
             val pagoConParticipantes = PagoConParticipantes(
                 pago.idPago,
+                idDeudor,
                 nombreDeudor,
                 nombreAcreedor,
                 pago.monto,
@@ -342,7 +346,6 @@ class BalanceViewModel @Inject constructor(
                 pago.fechaConfirmacion
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
-
         }
         onListaPagosConParticipantesChanged(listPagosConParticipantes)
     }
