@@ -44,7 +44,6 @@ class InicioViewModel @Inject constructor(
     fun onHuellaDigitalChanged(withHuella: Boolean){
         _inicioState.value = _inicioState.value.copy(huellaDigital = withHuella)
     }
-
     fun onInicioHuellaChanged(permitido: Boolean){
          _inicioState.value = _inicioState.value.copy(huellaDigital = permitido)
 
@@ -72,7 +71,9 @@ class InicioViewModel @Inject constructor(
     fun getIdHojaPrincipalPreference(){
         viewModelScope.launch {
             try{
-                val idHoja = withContext(Dispatchers.IO){ dataStoreConfig.getIdHojaPrincipalPreference()}
+                val idHoja = withContext(Dispatchers.IO){
+                    dataStoreConfig.getIdHojaPrincipalPreference()
+                }
                 if (idHoja != null){
                     if(idHoja.toInt() == 0){ //si es 0 no hay preferida
                         onHojaPrincipalChanged(null)

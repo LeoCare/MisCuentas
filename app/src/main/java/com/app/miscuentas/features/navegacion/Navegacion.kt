@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -145,7 +146,7 @@ fun BottomNavigationBar(
                 selected = isSelected,
                 onClick = {
                     navControllerMisHojas.navigate(route) {
-                        popUpTo(navControllerMisHojas.graph.startDestinationId){
+                        popUpTo(navControllerMisHojas.graph.findStartDestination().id) {
                             saveState = true
                         }
                         launchSingleTop = true

@@ -8,13 +8,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.miscuentas.features.MainActivityViewModel
 import com.app.miscuentas.features.gastos.GASTOS_ID_HOJA_A_MOSTRAR
+import com.app.miscuentas.features.login.LOGIN_ROUTE
+import com.app.miscuentas.features.nav_bar_screens.mis_gastos.MIS_GASTOS_ROUTE
 import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
 const val PARTICIPANTES_ROUTE = "PARTICIPANTES"
 const val PARTICIPANTES_ID_HOJA_A_MOSTRAR = "idHojaAMostrar"
 
 fun NavHostController.NavigateToParticipantes(idHojaAMostrar: Long){
-    this.navigate("$PARTICIPANTES_ROUTE/$idHojaAMostrar")
+    this.navigate("$PARTICIPANTES_ROUTE/$idHojaAMostrar"){
+        popUpTo(MIS_GASTOS_ROUTE) { inclusive = true } // Elimina Splash de la pila
+    }
 }
 
 fun NavGraphBuilder.participantesScreen(

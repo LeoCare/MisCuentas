@@ -13,7 +13,9 @@ const val BALANCE_ROUTE = "BALANCE"
 const val BALANCE_ID_HOJA_A_MOSTRAR = "idHojaAMostrar"
 
 fun NavHostController.NavigateToBalance(idHojaAMostrar: Long){
-    this.navigate("$BALANCE_ROUTE/$idHojaAMostrar")
+    this.navigate("$BALANCE_ROUTE/$idHojaAMostrar"){
+        popUpTo("$BALANCE_ROUTE/$idHojaAMostrar") { inclusive = true } // Elimina Splash de la pila
+    }
 }
 
 fun NavGraphBuilder.balanceScreen(

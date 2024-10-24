@@ -128,13 +128,8 @@ fun MisHojasScreen(
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.End
         ) {
-            Icon(
-                Icons.Default.Circle,
-                contentDescription = "Menu de opciones",
-                tint = MaterialTheme.colorScheme.tertiaryContainer
-            )
             Text(
                 text = "Propietaria",
                 style = MaterialTheme.typography.bodyMedium
@@ -142,7 +137,7 @@ fun MisHojasScreen(
             Icon(
                 Icons.Default.Circle,
                 contentDescription = "Menu de opciones",
-                tint = MaterialTheme.colorScheme.inverseSurface
+                tint = MaterialTheme.colorScheme.tertiaryContainer
             )
             Text(
                 text = "Invitado",
@@ -151,11 +146,16 @@ fun MisHojasScreen(
             Icon(
                 Icons.Default.Circle,
                 contentDescription = "Menu de opciones",
-                tint = MaterialTheme.colorScheme.scrim
+                tint = MaterialTheme.colorScheme.inverseSurface
             )
             Text(
                 text = "Sin confirmar",
                 style = MaterialTheme.typography.bodyMedium
+            )
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.scrim
             )
         }
         if(hojaState.isRefreshing){

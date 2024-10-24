@@ -12,7 +12,7 @@ const val LOGIN_ROUTE = "LOGIN"
 
 fun NavHostController.NavigateToLogin() {
     this.navigate(LOGIN_ROUTE) {
-        popUpTo(SPLASH_ROUTE) { inclusive = true } // Elimina Splash de la pila
+        popUpTo(LOGIN_ROUTE) { inclusive = true } // Elimina Splash de la pila
     }
 }
 
@@ -27,3 +27,4 @@ fun NavGraphBuilder.loginScreen(
         )
     }
 }
+

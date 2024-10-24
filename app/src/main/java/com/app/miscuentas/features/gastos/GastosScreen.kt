@@ -199,7 +199,7 @@ fun GastosScreen(
         }
         if (gastosState.cierreAceptado){
             viewModel.calcularBalance()
-            viewModel.updateHoja("F")
+            viewModel.FinalizarHoja("F")
         }
         if (gastosState.mostrarFoto){
             showFoto = true

@@ -85,6 +85,7 @@ class GastosViewModel @Inject constructor(
                 withContext(Dispatchers.IO){
                     hojasService.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
                         withContext(Dispatchers.Main) {
+                            dataStoreConfig.putIdHojaPrincipalPreference(hojaCalculo?.hoja?.idHoja)
                             onHojaAMostrarChanged(hojaCalculo)
                             totalGastosHojaActual()
                         }
@@ -200,7 +201,7 @@ class GastosViewModel @Inject constructor(
 
     /** METODO QUE ACTUALIZA LA LINEA DE T_HOJA_CAB **/
     //Actualizar
-    suspend fun updateHoja(status: String) = viewModelScope.launch{
+    suspend fun FinalizarHoja(status: String) = viewModelScope.launch{
         onCierreAceptado(false)
         val hojaConParticipantes =  _gastosState.value.hojaAMostrar
         hojaConParticipantes?.let {
