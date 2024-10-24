@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.People
@@ -77,6 +78,7 @@ import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.util.Desing.Companion.MiAviso
 import com.app.miscuentas.util.Desing.Companion.MiDialogo
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions
+import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions2
 import com.app.miscuentas.util.Desing.Companion.MiImagenDialog
 import com.app.miscuentas.util.Imagen.Companion.permisosAlmacenamiento
 import com.app.miscuentas.util.Imagen.Companion.uriToBitmap
@@ -98,6 +100,11 @@ fun BalanceScreen(
         viewModel.onHojaAMostrar(idHojaAMostrar)
     }
 
+    LaunchedEffect(balanceState.opcionSelected){
+        when(balanceState.opcionSelected) {
+            "PagoRecibido" -> { viewModel.ConfirmarPago() }
+        }
+    }
 
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var mensaje by rememberSaveable { mutableStateOf("") }
@@ -203,6 +210,7 @@ fun BalanceScreen(
     BalanceContent(
         innerPadding = innerPadding,
         idRegistrado = balanceState.idRegistrado,
+        idPartiRegistrado = balanceState.idPartiRegistrado,
         hojaDeGastos = balanceState.hojaAMostrar,
         balanceDeuda = balanceState.balanceDeuda,
         pagoRealizado = balanceState.pagoRealizado,
@@ -213,7 +221,9 @@ fun BalanceScreen(
         elegirImagen = { elegirImagen() },
         onNewFotoPagoChanged = viewModel::onNewFotoPagoChanged,
         listPagos = balanceState.listaPagosConParticipantes,
-        recargarDatos = viewModel::updateIfHojaBalanceada
+        recargarDatos = viewModel::updateIfHojaBalanceada,
+        onOpcionSelectedChanged = viewModel::onOpcionSelectedChanged,
+        onPagoAModificarChanged = viewModel::onPagoAModificarChanged
     )
 }
 
@@ -222,6 +232,7 @@ fun BalanceScreen(
 fun BalanceContent(
     innerPadding: PaddingValues?,
     idRegistrado: Long,
+    idPartiRegistrado: Long,
     hojaDeGastos: HojaConParticipantes?,
     balanceDeuda: Map<DbParticipantesEntity, Double>?,
     pagoRealizado: Boolean,
@@ -232,7 +243,9 @@ fun BalanceContent(
     elegirImagen: () -> Unit,
     onNewFotoPagoChanged: (PagoConParticipantes) -> Unit,
     listPagos: List<PagoConParticipantes>?,
-    recargarDatos: () -> Unit
+    recargarDatos: () -> Unit,
+    onOpcionSelectedChanged: (String) -> Unit,
+    onPagoAModificarChanged: (PagoConParticipantes) -> Unit
 ){
     Box(
         modifier = Modifier
@@ -301,10 +314,13 @@ fun BalanceContent(
 
                         items(listPagos, key = { it.idPago }) { pago ->
                             PagoDesing(
+                                idPartiRegistrado,
                                 pago ,
                                 tomarFoto,
                                 elegirImagen,
-                                { onNewFotoPagoChanged(it) }
+                                { onNewFotoPagoChanged(it) },
+                                onOpcionSelectedChanged = { onOpcionSelectedChanged(it) },
+                                onPagoAModificarChanged =  { onPagoAModificarChanged(pago) }
                             )
                         }
                     }
@@ -503,15 +519,23 @@ fun BalanceDesing(
 
 @Composable
 fun PagoDesing(
+    idPartiRegistrado: Long,
     pago: PagoConParticipantes,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
-    onNewFotoPagoChanged: (PagoConParticipantes) -> Unit
+    onNewFotoPagoChanged: (PagoConParticipantes) -> Unit,
+    onOpcionSelectedChanged: (String) -> Unit,
+    onPagoAModificarChanged: () -> Unit
 ){
     val context = LocalContext.current
     //Aviso de la opcion elegida:
-    val showDialog by rememberSaveable { mutableStateOf(false) } //valor mutable para el dialogo
+    val showDialog by rememberSaveable { mutableStateOf(false) }
     var showFoto by rememberSaveable { mutableStateOf(false)}
+    var showOpciones by rememberSaveable { mutableStateOf(false) }
+    var titulo by rememberSaveable { mutableStateOf("") }
+    var mensaje by rememberSaveable { mutableStateOf("") }
+    var opcionSeleccionada by rememberSaveable { mutableStateOf("") }
+    var opcionAceptada by rememberSaveable { mutableStateOf(false) }
     val currencyFormatter = NumberFormat.getCurrencyInstance()
 
 
@@ -524,6 +548,28 @@ fun PagoDesing(
             show = true,
             imagen = pago.fotoPago!!,
             cerrar = { showFoto = false }
+        )
+    }
+
+    if(opcionAceptada) {
+        onOpcionSelectedChanged(opcionSeleccionada)
+        opcionAceptada = false
+    }
+
+    if (showOpciones) {
+        val opciones: List<String> = listOf("PagoRecibido", "PagoNoRecibido")
+
+        MiDialogoWithOptions2(
+            show = true,
+            opciones = opciones,
+            titulo = titulo,
+            mensaje = mensaje,
+            cancelar = { showOpciones = false },
+            onOptionSelected = {
+                opcionSeleccionada = it
+                opcionAceptada = true
+                showOpciones = false
+            }
         )
     }
 
@@ -552,26 +598,47 @@ fun PagoDesing(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 /** CONFIRMACION **/
-                Card(
-                    shape = MaterialTheme.shapes.small,
-                    colors = CardDefaults.cardColors(Color.Transparent),
-                    modifier = Modifier
-                        .clickable {
-                            Toast
-                                .makeText(
-                                    context,
-                                    "${pago.nombreAcreedor} no ha confirmado aun.",
-                                    Toast.LENGTH_SHORT
-                                )
-                                .show()
-                        },
-                ) {
-                    Icon(
-                        Icons.Filled.Handshake,
-                        contentDescription = "Iconos de confirmacion del pago",
-                        tint = if (pago.fechaConfirmacion != null) Color.Green else Color.DarkGray,
-                        modifier = Modifier.size(25.dp)
-                    )
+                if (idPartiRegistrado == pago.idPartiAcreedor &&  pago.fechaConfirmacion.isNullOrEmpty()) {
+                    Card(
+                        shape = MaterialTheme.shapes.small,
+                        colors = CardDefaults.cardColors(Color.Transparent),
+                        modifier = Modifier
+                            .clickable {
+                                titulo = "CONFIRMACION DE PAGO RECIBIDO"
+                                mensaje = "¿Has recibido el pago indicado?"
+                                onPagoAModificarChanged()
+                                showOpciones = true
+                            }) {
+                        Icon(
+                            Icons.Filled.Info,
+                            contentDescription = "Debes confirmar",
+                            tint = MaterialTheme.colorScheme.scrim,
+                            modifier = Modifier.size(25.dp)
+                        )
+                    }
+
+                } else {
+                    Card(
+                        shape = MaterialTheme.shapes.small,
+                        colors = CardDefaults.cardColors(Color.Transparent),
+                        modifier = Modifier
+                            .clickable {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "${pago.nombreAcreedor} ha confirmado el pago.",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
+                            }) {
+                        Icon(
+                            Icons.Filled.Handshake,
+                            contentDescription = "Iconos de confirmacion del pago",
+                            tint = if (pago.fechaConfirmacion != null)  MaterialTheme.colorScheme.onSecondaryContainer else Color.DarkGray,
+                            modifier = Modifier.size(25.dp)
+                        )
+                    }
+
                 }
             }
             Row(

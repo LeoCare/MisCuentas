@@ -92,7 +92,7 @@ class MainActivity : FragmentActivity() {
                     }
                    ,
                     bottomBar = {
-                        if (currentScreen in items.map { it.route }) {
+                        if (items.any { currentScreen.startsWith(it.route) }) {
                             BottomNavigationBar(navController)
                         }
                     },

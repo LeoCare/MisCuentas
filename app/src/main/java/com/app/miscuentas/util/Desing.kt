@@ -271,8 +271,11 @@ class Desing {
                                                 .padding(vertical = 8.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Text(text = eleccion, fontSize = 16.sp)
-
+                                            Text(
+                                                text = eleccion,
+                                                fontSize = 16.sp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
                                         }
                                     }
                                 }

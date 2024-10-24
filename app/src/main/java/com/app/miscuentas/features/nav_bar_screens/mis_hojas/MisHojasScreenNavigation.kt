@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.app.miscuentas.features.MainActivityViewModel
 import com.app.miscuentas.features.gastos.NavigateToGastos
+import com.app.miscuentas.features.nav_bar_screens.participantes.NavigateToParticipantes
 import com.app.miscuentas.features.nueva_hoja.NUEVA_HOJA_ROUTE
 import com.app.miscuentas.features.splash.SPLASH_ROUTE
 
@@ -28,6 +29,9 @@ fun NavGraphBuilder.misHojasScreen(
             innerPadding,
             onNavGastos = { idHoja -> //lambda que nos permite pasarle un parametro a la navegacion
                 navHostController.NavigateToGastos(idHoja)
+            },
+            onNavParticipantes = { idHoja ->
+                navHostController.NavigateToParticipantes(idHoja)
             }
         )
     }

@@ -85,6 +85,7 @@ class LoginViewModel @Inject constructor(
                     // Actualizar el estado de la UI y cargar Room
                     onRegistroDataStoreChanged(response.usuario.idUsuario, response.usuario.nombre, response.usuario.correo)
                     dataUpdates.limpiarYVolcarLogin(response.usuario.idUsuario)
+                    onLoginOkChanged(true)
 
                 } else {
                     onMensajeChanged("Correo o Contraseña incorrectos!")
@@ -97,11 +98,12 @@ class LoginViewModel @Inject constructor(
                     if (contrasennaValida) {
                         // Inicio de sesión exitoso con datos locales
                         onRegistroDataStoreChanged(localUsuario.idUsuario, localUsuario.nombre, localUsuario.correo)
+                        onLoginOkChanged(true)
                     } else {
                         onMensajeChanged("Error en Correo o Contraseña!")
                     }
                 } else {
-                    onMensajeChanged("Error en la red y no hay datos locales!")
+                    onMensajeChanged("Correo y/o contraseña incorrectos!")
                 }
             } finally {
                 onIsLoadingOkChanged(false)
@@ -114,7 +116,6 @@ class LoginViewModel @Inject constructor(
         dataStoreConfig.putRegistroPreference(usuario)
         dataStoreConfig.putIdRegistroPreference(idRegistro)
         dataStoreConfig.putCorreoRegistroPreference(correo)
-        onLoginOkChanged(true)
     }
 
     /********* REGISTRO **********/
@@ -176,8 +177,9 @@ class LoginViewModel @Inject constructor(
             if (insertRoomOk) {
                 onIdRegistroChanged(idRegistro)
                 onRegistroDataStoreChanged(idRegistro, _loginState.value.usuario, correo)
+                onLoginOkChanged(true)
             } else  onMensajeChanged("Ese correo ya esta registrado!")
-        }
+        }else  onMensajeChanged("Problemas en el servidor. No es posible resitrarse en este momento, intentelo mas tarde!")
     }
 
     /** INSERTAR REGISTRO (API) **/

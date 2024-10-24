@@ -32,10 +32,6 @@ class ParticipantesViewModel @Inject constructor(
     private val _participantesState = MutableStateFlow(ParticipantesState())
     val participantesState: StateFlow<ParticipantesState> = _participantesState
 
-    //Obtengo el id del registrado al inicio
-    init {
-        getIdRegistroPreference()
-    }
 
     fun onParticipantesChanged(participantes: List<ParticipanteConGastos>){
         val listaParticipantes = _participantesState.value.listaParticipantes + participantes
@@ -58,6 +54,9 @@ class ParticipantesViewModel @Inject constructor(
     fun onDescendingChanged(desc: Boolean){
         _participantesState.value = _participantesState.value.copy(descending = desc)
         ordenHoja()
+    }
+    fun onNavHojaElegidoChanged(hojaElegida: Long){
+        _participantesState.value = _participantesState.value.copy(filtroHojaElegido = hojaElegida)
     }
     fun onFiltroHojaElegidoChanged(hojaElegida: Long){
         _participantesState.value = _participantesState.value.copy(filtroHojaElegido = hojaElegida)
@@ -93,7 +92,7 @@ class ParticipantesViewModel @Inject constructor(
                         hojaConParticipantes.participantes
                     }
                 onParticipantesChanged(todosParticipantes)
-                onListaParticipantesAMostrarChanged(todosParticipantes)
+                mostrarParticipantes()
             }
         }
     }
@@ -120,13 +119,22 @@ class ParticipantesViewModel @Inject constructor(
     }
 
     private fun mostrarParticipantes() {
-        val listaFiltrada = _participantesState.value.hojasDelRegistrado
-            .filter {
-                it.hoja.idHoja == _participantesState.value.filtroHojaElegido
-            }
-            .flatMap { it.participantes }
+        val hojaElegida: HojaConParticipantes
+        val listaFiltrada: List<ParticipanteConGastos>
+
+        if(participantesState.value.filtroHojaElegido > 0){
+            onFiltroElegidoChanged("Hoja")
+            hojaElegida = _participantesState.value.hojasDelRegistrado
+                .first {
+                    it.hoja.idHoja == _participantesState.value.filtroHojaElegido
+                }
+            onEleccionEnTituloChanged(hojaElegida.hoja.titulo)
+            listaFiltrada =  hojaElegida.participantes
+        }
+         else listaFiltrada = _participantesState.value.hojasDelRegistrado.flatMap { it.participantes }
 
         onListaParticipantesAMostrarChanged(listaFiltrada)
+
     }
     /************************/
 

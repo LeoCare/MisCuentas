@@ -36,7 +36,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -55,6 +58,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.Top
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -79,6 +84,7 @@ import kotlinx.coroutines.launch
 fun MisHojasScreen(
     innerPadding: PaddingValues?,
     onNavGastos: (Long) -> Unit,
+    onNavParticipantes: (Long) -> Unit,
     viewModel: MisHojasViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -171,6 +177,7 @@ fun MisHojasScreen(
                 hojaState.listaHojasAMostrar,
                 hojaState.idRegistro,
                 onNavGastos,
+                onNavParticipantes,
                 viewModel::onOpcionSelectedChanged,
                 viewModel::onStatusChanged,
                 viewModel::onHojaAModificarChanged
@@ -373,7 +380,7 @@ fun SeleccionFiltros(
         modifier = Modifier
             .fillMaxWidth()
             .height(20.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .background(MaterialTheme.colorScheme.outline),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){
@@ -511,6 +518,7 @@ fun HojasList(
     listaHojasAMostrar: List<HojaConParticipantes>?,
     idRegistro: Long,
     onNavGastos: (Long) -> Unit,
+    onNavParticipantes: (Long) -> Unit,
     onOpcionSelectedChanged: (String) -> Unit,
     onStatusChanged: (HojaCalculo, String) -> Unit,
     onHojaAModificarChanged: (HojaCalculo) -> Unit,
@@ -521,6 +529,7 @@ fun HojasList(
                 HojaDesing(
                     idRegistro = idRegistro,
                     onNavGastos = { onNavGastos(it) },
+                    onNavParticipantes = { onNavParticipantes(it) },
                     hojaConParticipantes = hojaConParticipantes,
                     onOpcionSelectedChanged = { onOpcionSelectedChanged(it) },
                     onStatusChanged = { onStatusChanged(hojaConParticipantes.hoja.toDomain(), it) },
@@ -536,6 +545,7 @@ fun HojasList(
 fun HojaDesing(
     idRegistro: Long,
     onNavGastos: (Long) -> Unit,
+    onNavParticipantes: (Long) -> Unit,
     hojaConParticipantes: HojaConParticipantes,
     onOpcionSelectedChanged: (String) -> Unit,
     onStatusChanged: (String) -> Unit,
@@ -569,7 +579,7 @@ fun HojaDesing(
     )
 
     if (showOpciones) {
-        val opciones: List<String> = listOf("NoAcepto", "Unirme")
+        val opciones: List<String> = listOf("Unirme", "NoAcepto")
 
         MiDialogoWithOptions2(
             show = true,
@@ -603,17 +613,21 @@ fun HojaDesing(
                     hojaConParticipantes.participantes.contains(hojaConParticipantes.participantes.find { it.participante.idUsuarioParti == idRegistro })
                 )
                     onNavGastos(hojaConParticipantes.hoja.idHoja)
-            },
-        color = if(hojaConParticipantes.hoja.propietaria == "N") {
-            if(hojaConParticipantes.participantes.contains(hojaConParticipantes.participantes.find { it.participante.idUsuarioParti == idRegistro })) MaterialTheme.colorScheme.inverseSurface
-            else MaterialTheme.colorScheme.scrim
-        }
-        else MaterialTheme.colorScheme.tertiaryContainer
+            }
     ) {
         Column(
             modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .padding(horizontal = 20.dp, vertical = 5.dp)
         ) {
+            Icon(
+                Icons.Default.Circle,
+                contentDescription = "Menu de opciones",
+                tint = if(hojaConParticipantes.hoja.propietaria == "N") {
+                    if(hojaConParticipantes.participantes.contains(hojaConParticipantes.participantes.find { it.participante.idUsuarioParti == idRegistro })) MaterialTheme.colorScheme.inverseSurface
+                    else MaterialTheme.colorScheme.scrim
+                }
+                else MaterialTheme.colorScheme.tertiaryContainer
+            )
             /** IMAGEN Y TITULO **/
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -707,7 +721,7 @@ fun HojaDesing(
                 }
             }
             /** DATOS **/
-            Datoshojas(hojaConParticipantes)
+            Datoshojas(hojaConParticipantes, { onNavParticipantes(it) })
         }
     }
 }
@@ -716,6 +730,7 @@ fun HojaDesing(
 @Composable
 fun Datoshojas(
     hojaConParticipantes: HojaConParticipantes,
+    onNavParticipantes: (Long) -> Unit
 ){
     Row(
         modifier = Modifier
@@ -735,8 +750,10 @@ fun Datoshojas(
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleSmall
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp))
-            {
+            Row(
+                verticalAlignment = CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ){
                 Text(
                     text = "Participantes:",
                     style = MaterialTheme.typography.bodyMedium
@@ -744,6 +761,15 @@ fun Datoshojas(
                 Text(
                     text = hojaConParticipantes.participantes.size.toString(),
                     style = MaterialTheme.typography.bodyLarge
+                )
+                Icon(
+                    imageVector = Icons.Filled.People,
+                    tint = MaterialTheme.colorScheme.primary,
+                    contentDescription = "Icono correo a adjuntar",
+                    modifier = Modifier
+                        .clickable {
+                            onNavParticipantes(hojaConParticipantes.hoja.idHoja)
+                        }
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp))

@@ -441,7 +441,7 @@ fun CustomRadioButton(
     onPagadorChosen: (ParticipanteConGastos) -> Unit
 ){
     var isSelected = pagador?.participante?.idParticipante == idPagadorState
-    if (idPagadorState.toInt() == 0 && pagadorIndex == 0) {
+    if (idPagadorState.toInt() == 0 && pagadorIndex == 0 || pagadorIndex == 1) {
         isSelected = true
         onPagadorChosen(pagador!!)
     }
@@ -513,14 +513,3 @@ fun CustomFloatButton(
         Spacer(modifier = Modifier.fillMaxHeight(0.10F))
     }
 }
-//@Preview
-//@Composable
-//fun Preview(){
-//    val navController = rememberNavController()
-//    val backStackEntry by navController.currentBackStackEntryAsState()
-//    val currentScreen = backStackEntry?.destination?.route ?: SPLASH_ROUTE
-//
-//    val navBackStackEntry by navController.currentBackStackEntryAsState() //observar pila de navegacion
-//    val canNavigateBack = navBackStackEntry != null // Determinar si se puede navegar hacia atrás
-//    NuevoGasto(null,  {navController.navigateUp()})
-//}

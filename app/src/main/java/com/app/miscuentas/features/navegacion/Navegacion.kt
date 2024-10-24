@@ -122,11 +122,16 @@ fun BottomNavigationBar(
             navControllerMisHojas.currentBackStackEntryAsState().value?.destination?.route
 
         items.forEach { screen ->
+            val isSelected = currentRoute?.startsWith(screen.route) ?: false
 
-            val isSelected =
-                currentRoute?.contains(screen.route) ?: false //ruta seleccionada para resaltar
             val colorSeleccionado =
                 if (isSelected) MaterialTheme.colorScheme.onBackground else Color.White //resaltar
+
+            val idHojaAMostrar = 0
+            val route = when (screen) {
+                is MisHojasScreen.Participantes -> "$PARTICIPANTES_ROUTE/$idHojaAMostrar"
+                else -> screen.route
+            }
 
             BottomNavigationItem(
                 icon = {
@@ -139,12 +144,12 @@ fun BottomNavigationBar(
                 label = { Text(screen.title, color = colorSeleccionado) },
                 selected = isSelected,
                 onClick = {
-                        navControllerMisHojas.navigate(screen.route) {
-                            popUpTo(navControllerMisHojas.graph.startDestinationId){
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
+                    navControllerMisHojas.navigate(route) {
+                        popUpTo(navControllerMisHojas.graph.startDestinationId){
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 },
                 selectedContentColor = MaterialTheme.colorScheme.onSecondary

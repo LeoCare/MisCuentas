@@ -15,6 +15,7 @@ import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.model.toCrearDto
 import com.app.miscuentas.data.model.toDto
 import com.app.miscuentas.data.model.toEntity
+import com.app.miscuentas.data.model.toEntityList
 import com.app.miscuentas.data.network.BalancesService
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.ImagenesService
@@ -48,6 +49,9 @@ class BalanceViewModel @Inject constructor(
     fun onIdRegistradoChanged(id: Long){
         _balanceState.value = _balanceState.value.copy(idRegistrado = id)
     }
+    fun onIdPartiRegistradoChanged(id: Long){
+        _balanceState.value = _balanceState.value.copy(idPartiRegistrado = id)
+    }
     fun onBalanceDeudaChanged(mapaDeuda: Map<DbParticipantesEntity,Double>){
         _balanceState.value = _balanceState.value.copy(balanceDeuda = mapaDeuda)
     }
@@ -69,6 +73,13 @@ class BalanceViewModel @Inject constructor(
     fun onNewFotoPagoChanged(pago: PagoConParticipantes?){
         _balanceState.value = _balanceState.value.copy(pagoNewFoto = pago)
     }
+    fun onOpcionSelectedChanged(opcionElegida: String){
+        _balanceState.value = _balanceState.value.copy(opcionSelected = opcionElegida)
+    }
+    fun onPagoAModificarChanged(pago: PagoConParticipantes){
+        _balanceState.value = _balanceState.value.copy(pagoAConfirmar = pago)
+    }
+
 
     //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
     suspend fun getIdRegistroPreference() {
@@ -86,6 +97,12 @@ class BalanceViewModel @Inject constructor(
             withContext(Dispatchers.IO){
                 if (idHoja != null) {
                     hojasService.getHojaConParticipantes(idHoja).collect { hojaCalculo ->
+                        //Obtengo el idParticipante del registrado
+                        val idPartiRegistrado = hojaCalculo?.participantes?.first { parti ->
+                            parti.participante.idUsuarioParti == balanceState.value.idRegistrado
+                        }?.participante?.idParticipante
+                        if(idPartiRegistrado != null)  onIdPartiRegistradoChanged(idPartiRegistrado)
+
                         onHojaAMostrarChanged(hojaCalculo)
                         calcularBalance()
                     }
@@ -311,6 +328,7 @@ class BalanceViewModel @Inject constructor(
         var listPagosConParticipantes: List<PagoConParticipantes> = listOf()
         var nombreDeudor = ""
         var idDeudor: Long = 0
+        var idAcreedor: Long = 0
         var nombreAcreedor = ""
         var imagenBitmap: Bitmap? = null
         val hoja = balanceState.value.hojaAMostrar
@@ -330,6 +348,7 @@ class BalanceViewModel @Inject constructor(
                     hoja?.participantes?.forEach { participantes ->
                         if (participantes.participante.idParticipante == balance.idParticipanteBalance) {
                             nombreAcreedor = participantes.participante.nombre
+                            idAcreedor = participantes.participante.idParticipante
                         }
                     }
                 }
@@ -338,6 +357,7 @@ class BalanceViewModel @Inject constructor(
             val pagoConParticipantes = PagoConParticipantes(
                 pago.idPago,
                 idDeudor,
+                idAcreedor,
                 nombreDeudor,
                 nombreAcreedor,
                 pago.monto,
@@ -347,7 +367,7 @@ class BalanceViewModel @Inject constructor(
             )
             listPagosConParticipantes = listPagosConParticipantes + pagoConParticipantes
         }
-          onListaPagosConParticipantesChanged(listPagosConParticipantes)
+        onListaPagosConParticipantesChanged(listPagosConParticipantes)
     }
 
     /** INSERTAR IMAGEN EN LA BBDD **/
@@ -381,6 +401,24 @@ class BalanceViewModel @Inject constructor(
     /** Pendiente subir cambios a la red **/
     fun onPendienteSubirCambiosChanged(pendiente: Boolean){
         _balanceState.value = _balanceState.value.copy(pendienteSubirCambios = pendiente)
+    }
+
+    /** CONFIRMACION DEL PAGO RECIBIDO **/
+    suspend fun ConfirmarPago() {
+        val idPago = balanceState.value.pagoAConfirmar?.idPago
+
+        idPago?.let {
+            withContext(Dispatchers.IO) {
+                try {
+                    val pago = pagosService.getPagosById(it)
+                    pago.fechaConfirmacion = Validaciones.fechaToStringFormat(LocalDate.now()) ?: LocalDate.now().toString()
+                    pagosService.updatePago(pago)
+                    pagosService.updatePagoAPI(pago.toDto())
+                } catch (e: Exception) {
+                    onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                }
+            }
+        }
     }
 
 }

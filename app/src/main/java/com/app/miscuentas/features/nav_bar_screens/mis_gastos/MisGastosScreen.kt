@@ -358,7 +358,7 @@ fun SeleccionFiltros(
         modifier = Modifier
             .fillMaxWidth()
             .height(20.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .background(MaterialTheme.colorScheme.outline),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){

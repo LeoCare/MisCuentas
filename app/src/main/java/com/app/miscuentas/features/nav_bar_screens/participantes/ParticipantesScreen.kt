@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,9 +62,17 @@ import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
 @Composable
 fun ParticipantesScreen(
     innerPadding: PaddingValues?,
+    idHojaAMostrar: Long,
     viewModel: ParticipantesViewModel = hiltViewModel()
 ) {
     val participantesState by viewModel.participantesState.collectAsState()
+
+    //Hoja a mostrar pasada por el Screen Hojas
+    LaunchedEffect(Unit) {
+        viewModel.onNavHojaElegidoChanged(idHojaAMostrar)
+        viewModel.getIdRegistroPreference()
+
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -119,7 +128,7 @@ fun ParticipanteDesing(
 
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = if (participanteConGastos.participante.idUsuarioParti != null) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onPrimary,
+        color = MaterialTheme.colorScheme.onPrimary,//if (participanteConGastos.participante.idUsuarioParti != null) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onPrimary,
         elevation = 9.dp,
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 10.dp)
@@ -131,47 +140,69 @@ fun ParticipanteDesing(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(
-                text = "Nombre: ${participanteConGastos.participante.nombre}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
-            )
             Row {
                 Text(
-                    text = "Correo: ${participanteConGastos.participante.correo ?: ""}",
+                    text = "Nombre: ",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = participanteConGastos.participante.nombre,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
-                if (participanteConGastos.participante.correo == null){
-                    Icon(
-                        imageVector = Icons.Filled.Mail,
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "Icono correo a adjuntar",
-                        modifier = Modifier
-                            .align(CenterVertically)
-                            .clickable {
-                                titulo = "Asignar correo al participante."
-                                mensaje = "Por favor, introduce un correo:"
-                                showDialog = true
-                            }
-                    )
-                    CorreoElectronicoDialog(
-                        showDialog = showDialog,
-                        onDismiss = { showDialog = false },
-                        titulo = titulo,
-                        mensaje = mensaje,
-                        onCorreoIntroducido = { correo ->
-                            if(!emailCorrecto(correo)) {
-                                titulo = "ERROR"
-                                mensaje = "La sintaxis del correo no es correcta!"
-                                showMessage = true
-                            }
-                            else {
-                                participanteConGastos.participante.correo = correo
-                                onParticipanteWithCorreoChanged(participanteConGastos.participante)
-                            }
+            }
 
-                        }
-                    )
+            Row {
+                Text(
+                    text = "Correo: "
+                )
+                Text(
+                    text = participanteConGastos.participante.correo ?: "",
+                    fontWeight = FontWeight.Bold
+                )
+
+
+
+                if (participanteConGastos.participante.correo == null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = "Invitar",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.Mail,
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "Icono correo a adjuntar",
+                            modifier = Modifier
+                                .align(CenterVertically)
+                                .clickable {
+                                    titulo = "Asignar correo al participante."
+                                    mensaje = "Por favor, introduce un correo:"
+                                    showDialog = true
+                                }
+                        )
+                        CorreoElectronicoDialog(
+                            showDialog = showDialog,
+                            onDismiss = { showDialog = false },
+                            titulo = titulo,
+                            mensaje = mensaje,
+                            onCorreoIntroducido = { correo ->
+                                if (!emailCorrecto(correo)) {
+                                    titulo = "ERROR"
+                                    mensaje = "La sintaxis del correo no es correcta!"
+                                    showMessage = true
+                                } else {
+                                    participanteConGastos.participante.correo = correo
+                                    onParticipanteWithCorreoChanged(participanteConGastos.participante)
+                                }
+
+                            }
+                        )
+                    }
                 }
                 else {
                     Row (
@@ -421,7 +452,7 @@ fun SeleccionFiltros(
         modifier = Modifier
             .fillMaxWidth()
             .height(20.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .background(MaterialTheme.colorScheme.outline),
         verticalAlignment = CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){

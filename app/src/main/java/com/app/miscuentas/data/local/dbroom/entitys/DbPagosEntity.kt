@@ -41,7 +41,7 @@ data class DbPagoEntity(
     @ColumnInfo(name = "monto") val monto: Double,
     @ColumnInfo(name = "idFotoPago") var idFotoPago: Long? = null,
     @ColumnInfo(name = "fechaPago") val fechaPago: String,
-    @ColumnInfo(name = "fechaConfirmacion") val fechaConfirmacion: String? = null,
+    @ColumnInfo(name = "fechaConfirmacion") var fechaConfirmacion: String? = null,
 )
 
 fun DbPagoEntity.toDomain() = Pago(

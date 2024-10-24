@@ -59,8 +59,7 @@ class DataUpdates(
     private suspend fun volcarHojas(idUsuarioLogin: Long, idUsuario: Long, propietario: String) = withContext(Dispatchers.IO) {
         hojasService.getHojaByApi("id_usuario", idUsuario.toString())?.forEach { hoja ->
             volcarUsuariosDeParticipantes(hoja.idHoja, idUsuario, idUsuarioLogin)
-            volcarParticipantes(hoja.toEntity(), propietario)
-           // volcarBalances(hoja.toEntity())
+            volcarDatosParticipantes(hoja.toEntity(), propietario)
         }
     }
 
@@ -76,7 +75,7 @@ class DataUpdates(
         }
     }
 
-    private suspend fun volcarParticipantes(hoja: DbHojaCalculoEntity, propietario: String) {
+    private suspend fun volcarDatosParticipantes(hoja: DbHojaCalculoEntity, propietario: String) {
         val participantes = participantesService.getParticipantesByAPI("id_hoja", hoja.idHoja.toString())
         participantes?.let {
             hoja.propietaria = propietario
@@ -133,8 +132,7 @@ class DataUpdates(
         usuariosYHojas.forEach { (usuario, hojas) ->
             usuariosService.cleanUserAndInsert(usuario.toEntity())
             hojas.forEach { hoja ->
-                volcarParticipantes(hoja, "N")
-              //  volcarBalances(hoja)
+                volcarDatosParticipantes(hoja, "N")
             }
         }
     }
