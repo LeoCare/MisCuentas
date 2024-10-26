@@ -390,7 +390,6 @@ fun PagadorDesing(
                     itemsIndexed(hojaActual.participantes) { index, pagadorToList ->
                         if(pagadorToList.participante.tipo == "LOCAL" || pagadorToList.participante.idUsuarioParti == idRegistrado)
                         CustomRadioButton(
-                            pagadorIndex = index,
                             idPagadorState = idPagador,
                             pagador = pagadorToList,
                             onPagadorChosen =  { onPagadorChosen(it) }
@@ -435,15 +434,14 @@ fun CustomTextfiel(
 /** Composable para la eleccion del participante pagador **/
 @Composable
 fun CustomRadioButton(
-    pagadorIndex: Int,
     idPagadorState: Long,
     pagador: ParticipanteConGastos?,
     onPagadorChosen: (ParticipanteConGastos) -> Unit
 ){
     var isSelected = pagador?.participante?.idParticipante == idPagadorState
-    if (idPagadorState.toInt() == 0 && pagadorIndex == 0 || pagadorIndex == 1) {
+    if (idPagadorState == pagador?.participante?.idUsuarioParti){
         isSelected = true
-        onPagadorChosen(pagador!!)
+        onPagadorChosen(pagador)
     }
 
     val interactionSource =

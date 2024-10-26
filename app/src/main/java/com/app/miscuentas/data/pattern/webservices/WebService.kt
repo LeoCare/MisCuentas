@@ -3,8 +3,9 @@ package com.app.miscuentas.data.pattern.webservices
 import com.app.miscuentas.data.dto.TipoBalanceDto
 import com.app.miscuentas.data.dto.TipoPerfilDto
 import com.app.miscuentas.data.dto.TipoStatusDto
-import com.app.miscuentas.domain.dto.BalanceCrearDto
-import com.app.miscuentas.domain.dto.BalanceDto
+import com.app.miscuentas.data.dto.BalanceCrearDto
+import com.app.miscuentas.data.dto.BalanceDto
+import com.app.miscuentas.data.dto.EmailDto
 import com.app.miscuentas.data.dto.GastoCrearDto
 import com.app.miscuentas.data.dto.GastoDto
 import com.app.miscuentas.data.dto.HojaCrearDto
@@ -22,6 +23,7 @@ import com.app.miscuentas.domain.dto.UsuarioDeleteDto
 import com.app.miscuentas.domain.dto.UsuarioDto
 import com.app.miscuentas.domain.dto.UsuarioLoginDto
 import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -84,7 +86,7 @@ interface WebService {
     @DELETE("usuarios")
     suspend fun deleteUsuario(
         @Body usuario: UsuarioDeleteDto
-    ): Response<String>
+    ): Response<ResponseBody>
     /************************/
 
 
@@ -122,7 +124,7 @@ interface WebService {
     @DELETE("balances/{id}")
     suspend fun deleteBalance(
         @Path("id") id: Long
-    ): Response<String>
+    ): Response<ResponseBody>
     /************************/
 
 
@@ -160,7 +162,7 @@ interface WebService {
     @DELETE("pagos/{id}")
     suspend fun deletePago(
         @Path("id") id: Long
-    ): Response<String>
+    ): Response<ResponseBody>
     /************************/
 
 
@@ -198,7 +200,7 @@ interface WebService {
     @DELETE("gastos/{id}")
     suspend fun deleteGasto(
         @Path("id") id: Long
-    ): Response<String>
+    ): Response<ResponseBody>
     /************************/
 
     /** SERVICIOS DE PARTICIPANTES **/
@@ -235,7 +237,7 @@ interface WebService {
     @DELETE("participantes/{id}")
     suspend fun deleteParticipante(
         @Path("id") id: Long
-    ): Response<String>
+    ): Response<ResponseBody>
     /************************/
 
     /** SERVICIOS DE HOJAS **/
@@ -272,7 +274,7 @@ interface WebService {
     @DELETE("hojas/{id}")
     suspend fun deleteHoja(
         @Path("id") id: Long
-    ): Response<String>
+    ): Response<ResponseBody>
     /************************/
 
     /** SERVICIOS DE IMAGENES **/
@@ -302,7 +304,14 @@ interface WebService {
     @DELETE("imagenes/{id}")
     suspend fun deleteImagen(
         @Path("id") id: Long
-    ): Response<String>
+    ): Response<ResponseBody>
+    /************************/
+
+    /** SERVICIOS DE IMAGENES **/
+    @POST("emails")
+    suspend fun createEmail(
+        @Body emailCrearDto: EmailDto
+    ): Response<ResponseBody>
     /************************/
 
     /** SERVICIOS DE LOS TIPOS **/

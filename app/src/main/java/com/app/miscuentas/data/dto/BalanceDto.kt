@@ -1,4 +1,4 @@
-package com.app.miscuentas.domain.dto
+package com.app.miscuentas.data.dto
 
 import com.google.gson.annotations.SerializedName
 

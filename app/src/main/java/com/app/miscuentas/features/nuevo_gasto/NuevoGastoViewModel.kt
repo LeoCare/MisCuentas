@@ -31,11 +31,15 @@ class NuevoGastoViewModel @Inject constructor (
     private val dataStoreConfig: DataStoreConfig
 ): ViewModel() {
 
+
     private val _nuevoGastoState = MutableStateFlow(NuevoGastoState())
     val nuevoGastoState: StateFlow<NuevoGastoState> = _nuevoGastoState
 
     fun onIdRegistradoChanged(id: Long){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(idRegistrado = id)
+    }
+    fun onIdPagadorChanged(idPagador: Long){
+        _nuevoGastoState.value = _nuevoGastoState.value.copy(idPagador = idPagador)
     }
     fun onImporteTextFieldChanged(importe: String){
         _nuevoGastoState.value = _nuevoGastoState.value.copy(importe = importe)
@@ -47,7 +51,7 @@ class NuevoGastoViewModel @Inject constructor (
         _nuevoGastoState.value = _nuevoGastoState.value.copy(concepto = concepto)
     }
     fun onPagadorChosen(pagador: ParticipanteConGastos){
-        _nuevoGastoState.value = _nuevoGastoState.value.copy(idPagador = pagador.participante.idParticipante)
+        onIdPagadorChanged(pagador.participante.idParticipante)
         _nuevoGastoState.value = _nuevoGastoState.value.copy(participanteConGasto = pagador)
     }
     fun onSuperaLimiteChanged(supera: Boolean){
@@ -77,6 +81,7 @@ class NuevoGastoViewModel @Inject constructor (
         val idRegistro = dataStoreConfig.getIdRegistroPreference()
         if (idRegistro != null) {
             onIdRegistradoChanged(idRegistro)
+            onIdPagadorChanged(idRegistro) //el primer checkbox marcado es el registrado
         }
     }
 

@@ -65,7 +65,7 @@ class MainActivity : FragmentActivity() {
                 //pila de Screen y valor actual
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentScreen = backStackEntry?.destination?.route ?: INICIO_ROUTE
-                val canNavigateBack = backStackEntry != null
+                val canNavigateBack = navController.previousBackStackEntry != null
 
                 val title by mainActivityViewModel.title.collectAsState()
 

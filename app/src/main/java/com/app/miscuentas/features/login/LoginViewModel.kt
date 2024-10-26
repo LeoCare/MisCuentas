@@ -263,4 +263,13 @@ class LoginViewModel @Inject constructor(
         )
     }
 
+    /** Recuperar contraseña **/
+    fun onEnviarCodigo(correo: String){
+
+    }
+
+    fun onCodigoIntroducido(codigo: String){
+
+    }
+
 }

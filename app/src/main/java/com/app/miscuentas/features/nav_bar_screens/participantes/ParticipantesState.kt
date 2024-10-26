@@ -14,5 +14,6 @@ data class ParticipantesState(
     val filtroTipoElegido: String = "",
     val eleccionEnTitulo: String = "",
     val ordenElegido: String = "Nombre",
-    val descending: Boolean = false
+    val descending: Boolean = false,
+    val correoExiste: Boolean = false
 )

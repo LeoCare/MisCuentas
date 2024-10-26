@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -120,7 +120,8 @@ fun BottomNavigationBar(
         modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues())
     ) {
         val currentRoute =
-            navControllerMisHojas.currentBackStackEntryAsState().value?.destination?.route
+            navControllerMisHojas.currentDestination?.route
+            //navControllerMisHojas.currentBackStackEntryAsState().value?.destination?.route
 
         items.forEach { screen ->
             val isSelected = currentRoute?.startsWith(screen.route) ?: false
@@ -146,7 +147,7 @@ fun BottomNavigationBar(
                 selected = isSelected,
                 onClick = {
                     navControllerMisHojas.navigate(route) {
-                        popUpTo(navControllerMisHojas.graph.findStartDestination().id) {
+                        popUpTo(navControllerMisHojas.graph.startDestinationId){
                             saveState = true
                         }
                         launchSingleTop = true

@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.miscuentas.features.MainActivityViewModel
+import com.app.miscuentas.features.balance.BALANCE_ROUTE
 import com.app.miscuentas.features.balance.NavigateToBalance
 import com.app.miscuentas.features.login.LOGIN_ROUTE
 import com.app.miscuentas.features.nuevo_gasto.NavigateToNuevoGasto
@@ -17,7 +18,7 @@ const val GASTOS_ID_HOJA_A_MOSTRAR = "idHojaAMostrar"
 
 fun NavHostController.NavigateToGastos(idHojaAMostrar: Long){
     this.navigate("$GASTOS_ROUTE/$idHojaAMostrar"){
-        popUpTo("$GASTOS_ROUTE/$idHojaAMostrar") { inclusive = true } // Elimina Splash de la pila
+        popUpTo("$BALANCE_ROUTE/$idHojaAMostrar") { inclusive = true } // Elimina Splash de la pila
     }
 }
 

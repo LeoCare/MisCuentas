@@ -9,6 +9,7 @@ import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.DbMisCuentas
 import com.app.miscuentas.data.pattern.repository.BalancesRepository
 import com.app.miscuentas.data.network.BalancesService
+import com.app.miscuentas.data.network.EmailsService
 import com.app.miscuentas.data.pattern.repository.GastosRepository
 import com.app.miscuentas.data.network.GastosService
 import com.app.miscuentas.data.pattern.repository.HojasRepository
@@ -29,6 +30,7 @@ import com.app.miscuentas.data.pattern.dao.DbHojaCalculoDao
 import com.app.miscuentas.data.pattern.dao.DbPagoDao
 import com.app.miscuentas.data.pattern.dao.DbParticipantesDao
 import com.app.miscuentas.data.pattern.dao.DbUsuarioDao
+import com.app.miscuentas.data.pattern.repository.EmailsRepository
 import com.app.miscuentas.data.pattern.webservices.WebService
 import dagger.Module
 import dagger.Provides
@@ -96,6 +98,7 @@ object MisHojasModule {
     @Singleton
     @Provides
     fun provideFotoDao(dbMisCuentas: DbMisCuentas) = dbMisCuentas.getFotoDao()
+
     /*****************/
 
     /** PREFERENCE DATASTORE DI **/
@@ -281,6 +284,19 @@ object MisHojasModule {
     @Singleton
     fun provideImagenesService(fotoDao: DbImagenDao, imagenesRepository: ImagenesRepository): ImagenesService {
         return ImagenesService(fotoDao, imagenesRepository)
+    }
+
+    /** EMAIL DI */
+    @Provides
+    @Singleton
+    fun provideEmailRepository(@WithInterceptor webService: WebService, tokenAuthenticator: TokenAuthenticator): EmailsRepository {
+        return EmailsRepository(webService, tokenAuthenticator)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEmailService(emailRepository: EmailsRepository): EmailsService {
+        return EmailsService(emailRepository)
     }
 
     /** DATAUPDATES DI **/

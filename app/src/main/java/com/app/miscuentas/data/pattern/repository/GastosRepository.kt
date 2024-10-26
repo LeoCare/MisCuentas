@@ -87,7 +87,7 @@ class GastosRepository(
         return try {
             val response = webService.deleteGasto( id)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al eliminar gasto: ${response.code()} - ${response.message()}")
             }

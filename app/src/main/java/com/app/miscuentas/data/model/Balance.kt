@@ -1,8 +1,8 @@
 package com.app.miscuentas.data.model
 
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
-import com.app.miscuentas.domain.dto.BalanceCrearDto
-import com.app.miscuentas.domain.dto.BalanceDto
+import com.app.miscuentas.data.dto.BalanceCrearDto
+import com.app.miscuentas.data.dto.BalanceDto
 
 data class Balance(
     var idBalance: Long = 0,

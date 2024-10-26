@@ -11,6 +11,7 @@ import com.app.miscuentas.data.local.dbroom.relaciones.PagoConParticipantes
 import com.app.miscuentas.data.model.HojaCalculo
 
 data class GastosState (
+    val idRegistrado: Long = 0,
     val hojaConBalances: HojaConBalances? = null,
     val hojaAMostrar: HojaConParticipantes? = null,
     val totalGastosActual: Double = 0.0,

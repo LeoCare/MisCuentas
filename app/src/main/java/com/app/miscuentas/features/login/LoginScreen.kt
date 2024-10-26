@@ -7,6 +7,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -54,6 +55,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -65,6 +68,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.app.miscuentas.R
 import com.app.miscuentas.util.BiometricAuthenticator
+import com.app.miscuentas.util.Desing.Companion.RecuperarContrasenaDialog
 import com.app.miscuentas.util.Validaciones.Companion.contrasennaOk
 import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
 
@@ -95,15 +99,17 @@ fun Login(
             Modifier.align(Alignment.Center),
             loginState,
             onNavigate,
-            { viewModel.onBiometricAuthenticationSuccess() },
-            { viewModel.onBiometricAuthenticationFailed() },
-            { viewModel.onMensajeChanged(it) },
-            { viewModel.onUsuarioFieldChanged(it) },
-            { viewModel.onContrasennaFieldChanged(it) },
-            { viewModel.onEmailFieldChanged(it) },
-            { viewModel.onRegistroCheckChanged(it)},
-            { viewModel.iniciarSesion() },
-            { viewModel.inicioInsertRegistro() }
+            viewModel::onBiometricAuthenticationSuccess,
+            viewModel::onBiometricAuthenticationFailed,
+            viewModel::onMensajeChanged,
+            viewModel::onUsuarioFieldChanged,
+            viewModel::onContrasennaFieldChanged,
+            viewModel::onEmailFieldChanged,
+            viewModel::onRegistroCheckChanged,
+            viewModel::iniciarSesion,
+            viewModel::inicioInsertRegistro,
+            viewModel::onEnviarCodigo,
+            viewModel::onCodigoIntroducido
         )
     }
 }
@@ -122,7 +128,9 @@ private fun LoginContent(
     onEmailFieldChanged: (String) -> Unit,
     onRegistroCheckChanged: (Boolean) -> Unit,
     iniciarSesion: () -> Unit,
-    inicioInsertRegistro: () -> Unit
+    inicioInsertRegistro: () -> Unit,
+    onEnviarCodigo: (String) -> Unit,
+    onCodigoIntroducido: (String) -> Unit
 ) {
 
     //Inicio por huella digital
@@ -133,6 +141,10 @@ private fun LoginContent(
     // Estado para manejar mensajes de error al presionar Boton de inicio
     val uiErrorMessage = remember { mutableStateOf("") }
 
+    var showMessage by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
+    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
 
     //Uso de la huella digita
     LaunchedEffect(loginState.biometricAuthenticationState) {
@@ -240,6 +252,12 @@ private fun LoginContent(
                 mensajeChanged("")
                 onRegistroCheckChanged(it)
             }
+
+            //Recurar la contraseña
+            RecuperarContrasenna(
+                onEnviarCodigo,
+                onCodigoIntroducido
+            )
 
             //Boton comprobacion
             BotonInicio(
@@ -368,22 +386,53 @@ fun CustomTextField(
 @Composable
 fun CustomCkeckbox(
     registroState: Boolean,
-    onRegistroCheckChange: (Boolean) -> Unit){
+    onRegistroCheckChange: (Boolean) -> Unit
+){
 
     Row {
         Checkbox(
             checked = registroState,
             onCheckedChange = { onRegistroCheckChange(it) },
             modifier = Modifier
-                .padding(bottom = 7.dp)
+                .padding(bottom = 3.dp)
         )
         Text(
             text = "Registrarme",
+            fontWeight = FontWeight.Black,
             modifier = Modifier
                 .align(CenterVertically)
-                .padding(bottom = 7.dp)
+                .padding(bottom = 3.dp)
         )
     }
+}
+
+
+/** Recuperar contraseña **/
+@Composable
+fun RecuperarContrasenna(
+    onEnviarCodigo: (String) -> Unit,
+    onCodigoIntroducido: (String) -> Unit
+){
+    var showDialog by remember { mutableStateOf(false) }
+
+    Text(
+        text = "Recuperar contraseña",
+        color = Color.Blue.copy(alpha = 1.2f),
+        fontWeight = FontWeight.Black,
+        style = MaterialTheme.typography.bodyMedium,
+        fontStyle = FontStyle.Italic,
+        modifier = Modifier
+            .padding(bottom = 35.dp)
+            .clickable {
+                showDialog = true
+            }
+    )
+    RecuperarContrasenaDialog(
+        showDialog = showDialog,
+        onDismiss = { showDialog = false },
+        onEnviarCodigo = { correo -> onEnviarCodigo( correo) },
+        onCodigoIntroducido = { codigo -> onCodigoIntroducido(codigo) }
+    )
 }
 
 /** Boton de inicio **/

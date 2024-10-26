@@ -13,17 +13,26 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material.Divider
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,12 +41,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
+import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
 import java.util.Calendar
 
 
@@ -209,7 +221,7 @@ class Desing {
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .clickable { onOptionSelected(Pair(clave,valor)) }
+                                                .clickable { onOptionSelected(Pair(clave, valor)) }
                                                 .padding(vertical = 8.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
@@ -387,6 +399,140 @@ class Desing {
                             Text("Cancelar")
                         }
                     }
+                )
+            }
+        }
+
+        @Composable
+        fun RecuperarContrasenaDialog(
+            showDialog: Boolean,
+            onDismiss: () -> Unit,
+            onEnviarCodigo: (String) -> Unit,
+            onCodigoIntroducido: (String) -> Unit
+        ) {
+            if (showDialog) {
+                var correo by rememberSaveable { mutableStateOf("") }
+                var codigo by rememberSaveable { mutableStateOf("") }
+                var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = {
+                        Text(
+                            text = "Recuperar Contraseña",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Column {
+                                Text(
+                                    text = "Enviar código a...",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = correo,
+                                    onValueChange = {
+                                        correo = it
+                                        mensaje = ""
+                                                    },
+                                    placeholder = { Text(
+                                        text = "ejemplo@correo.com",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    ) },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                )
+                            }
+                            Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                            Column {
+                                Text(
+                                    text = "Ya tengo un código...",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = codigo,
+                                    onValueChange = {
+                                        codigo = it
+                                        mensaje = ""
+                                                    },
+                                    placeholder = { Text(
+                                        text = "Código de 4 dígitos",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    ) },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            TextButton(
+                                onClick = {
+                                    if (!emailCorrecto(correo)) {
+                                        mensaje = "La sintaxis del correo no es correcta!"
+                                    }
+                                    else {
+                                        mensaje = "Codigo enviado!"
+                                        onEnviarCodigo(correo)
+
+                                    }
+
+                                },
+                                enabled = correo.isNotBlank(),
+                            ) {
+                                Text("Enviar Código", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            TextButton(
+                                onClick = {
+                                    onCodigoIntroducido(codigo)
+                                    onDismiss()
+                                },
+                                enabled = codigo.length == 4 && codigo.isDigitsOnly(),
+                            ) {
+                                Text("Confirmar Código", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    },
+                    dismissButton = {
+
+
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(top = 1.dp)
+                        ){
+                            TextButton(onClick = onDismiss) {
+                                Text("Cancelar", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        if(mensaje.isNotEmpty()){
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(top = 1.dp)
+                            ) {
+                                Text(mensaje, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             }
         }

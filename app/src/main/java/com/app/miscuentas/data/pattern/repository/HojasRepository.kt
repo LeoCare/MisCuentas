@@ -22,11 +22,7 @@ class HojasRepository(
             else {
                 throw Exception("Error al obtener hojas: ${response.code()} - ${response.message()}")
             }
-//        } catch (e: TokenExpiredException) {
-//            // Redirige al usuario a la pantalla de inicio de sesión
-//            // O muestra un mensaje de error, etc.
-//
-//            null
+
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -94,7 +90,7 @@ class HojasRepository(
         return try {
             val response = webService.deleteHoja(id)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al eliminar hoja: ${response.code()} - ${response.message()}")
             }

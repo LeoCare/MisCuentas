@@ -3,8 +3,8 @@ package com.app.miscuentas.data.pattern.repository
 import com.app.miscuentas.data.auth.TokenAuthenticator
 import com.app.miscuentas.data.pattern.webservices.WebService
 import com.app.miscuentas.di.WithInterceptor
-import com.app.miscuentas.domain.dto.BalanceCrearDto
-import com.app.miscuentas.domain.dto.BalanceDto
+import com.app.miscuentas.data.dto.BalanceCrearDto
+import com.app.miscuentas.data.dto.BalanceDto
 
 class BalancesRepository(
     @WithInterceptor
@@ -87,7 +87,7 @@ class BalancesRepository(
         return try {
             val response = webService.deleteBalance(id)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al eliminar balance: ${response.code()} - ${response.message()}")
             }

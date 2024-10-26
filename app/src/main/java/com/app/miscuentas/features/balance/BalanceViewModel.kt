@@ -3,6 +3,9 @@ package com.app.miscuentas.features.balance
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.miscuentas.data.dto.EmailDto
+import com.app.miscuentas.data.dto.GastoCrearDto
+import com.app.miscuentas.data.dto.GastoDto
 import com.app.miscuentas.data.local.datastore.DataStoreConfig
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbFotosEntity
@@ -17,6 +20,7 @@ import com.app.miscuentas.data.model.toDto
 import com.app.miscuentas.data.model.toEntity
 import com.app.miscuentas.data.model.toEntityList
 import com.app.miscuentas.data.network.BalancesService
+import com.app.miscuentas.data.network.EmailsService
 import com.app.miscuentas.data.network.HojasService
 import com.app.miscuentas.data.network.ImagenesService
 import com.app.miscuentas.data.network.PagosService
@@ -40,6 +44,7 @@ class BalanceViewModel @Inject constructor(
     private val balancesService: BalancesService,
     private val pagosService: PagosService,
     private val imagenesService: ImagenesService,
+    private val emailsService: EmailsService,
     private val dataStoreConfig: DataStoreConfig
 ): ViewModel() {
 
@@ -157,7 +162,9 @@ class BalanceViewModel @Inject constructor(
                             //Insert Pago Room
                             val pagoInsertado = pagosService.insertPago(pago.toEntity())
                             if (pagoInsertado > 0) { //si el pago se ha insertado
+                                insertEmail(pago.idBalance, pago.monto) //inserta linea para el envio automatico del email.
                                 updateIfHojaBalanceada() //compruebo si esta balanceado en su totalidad
+
                             }
                         }
                     }catch (e: Exception) {
@@ -234,7 +241,7 @@ class BalanceViewModel @Inject constructor(
     }
 
 
-    /** METODO QUE  COMPRUEBA Y ACTUALIZA SI LA HOJA ESTA BALANCEADA **/
+    /** METODO QUE  COMPRUEBA Y ACTUALIZA EL ESTADO, EN CASO DE QUE LA HOJA ESTE BALANCEADA **/
     fun updateIfHojaBalanceada(){
         val hojaActualizada = balanceState.value.hojaConBalances?.hoja
 
@@ -265,6 +272,18 @@ class BalanceViewModel @Inject constructor(
         onPagoRealizadoChanged(true)
         getPagos()
     }
+
+    /** METODO QUE INSERTA LOS DATOS PARA EL SERVICIO DE ENVIO DE EMAIL **/
+    suspend fun insertEmail(idBalance: Long, monto: Double){
+        val tipoEmail = if(monto > 0.0) "E" else "S"
+        val emailDto = EmailDto(idBalance, tipoEmail, null, "P")
+        try{
+            val emailApi = emailsService.createEmailApi(emailDto)
+        }catch (e: Exception) {
+            null // inserción NOK
+        }
+    }
+
 
     /** METODO QUE ACTUALIZA LA FOTO DEL  PAGO **/
     suspend fun updatePagoWithFoto(idFoto: Long){

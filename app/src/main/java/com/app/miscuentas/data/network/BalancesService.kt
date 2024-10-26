@@ -5,11 +5,10 @@ import androidx.room.Insert
 import androidx.room.Transaction
 import com.app.miscuentas.data.local.dbroom.entitys.DbBalancesEntity
 import com.app.miscuentas.data.local.dbroom.entitys.DbHojaCalculoEntity
-import com.app.miscuentas.data.model.Balance
 import com.app.miscuentas.data.pattern.dao.DbBalanceDao
 import com.app.miscuentas.data.pattern.repository.BalancesRepository
-import com.app.miscuentas.domain.dto.BalanceCrearDto
-import com.app.miscuentas.domain.dto.BalanceDto
+import com.app.miscuentas.data.dto.BalanceCrearDto
+import com.app.miscuentas.data.dto.BalanceDto
 
 class BalancesService(
     private val balanceDao: DbBalanceDao,
@@ -27,6 +26,11 @@ class BalancesService(
     @Transaction
     suspend fun getBalanceByHoja(idHoja: Long): List<DbBalancesEntity> {
         return balanceDao.getBalanceByHoja(idHoja)
+    }
+
+    @Transaction
+    suspend fun getBalanceById(idBalance: Long): List<DbBalancesEntity> {
+        return balanceDao.getBalanceById(idBalance)
     }
 
     @Transaction

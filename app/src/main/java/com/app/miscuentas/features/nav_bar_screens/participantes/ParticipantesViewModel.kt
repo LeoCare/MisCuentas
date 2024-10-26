@@ -37,7 +37,7 @@ class ParticipantesViewModel @Inject constructor(
         val listaParticipantes = _participantesState.value.listaParticipantes + participantes
         _participantesState.value = _participantesState.value.copy(listaParticipantes = listaParticipantes)
     }
-    fun onHojaDelRegistradoChanged(hojas: List<HojaConParticipantes>){
+    fun onHojasDelRegistradoChanged(hojas: List<HojaConParticipantes>){
         _participantesState.value = _participantesState.value.copy(hojasDelRegistrado = hojas)
     }
     fun onFiltroElegidoChanged(filtro: String){
@@ -69,6 +69,9 @@ class ParticipantesViewModel @Inject constructor(
     fun onEleccionEnTituloChanged(eleccionEnTitulo: String){
         _participantesState.value = _participantesState.value.copy(eleccionEnTitulo = eleccionEnTitulo)
     }
+    fun onCorreoExisteChanged(existe: Boolean){
+        _participantesState.value = _participantesState.value.copy(correoExiste = existe)
+    }
 
     //Obtengo el id del registado
     fun getIdRegistroPreference() = viewModelScope.launch {
@@ -85,7 +88,7 @@ class ParticipantesViewModel @Inject constructor(
             val hojasDelRegistrado =  hojasService.getAllHojaConParticipantes()
 
             hojasDelRegistrado.collect { listaHojasConParticipantes ->
-                onHojaDelRegistradoChanged(listaHojasConParticipantes)
+                onHojasDelRegistradoChanged(listaHojasConParticipantes)
                 val todosParticipantes = listaHojasConParticipantes
                     .flatMap {
                             hojaConParticipantes ->
@@ -98,15 +101,30 @@ class ParticipantesViewModel @Inject constructor(
     }
 
     /** Metodo que actualiza el correo del participante **/
-    fun onParticipanteWithCorreoChanged(participanteWithNewCorreo: DbParticipantesEntity) = viewModelScope.launch {
+    fun onParticipanteWithCorreoChanged(participanteWithNewCorreo: DbParticipantesEntity, correo: String) = viewModelScope.launch {
+         participantesState.value.listaParticipantesAMostrar.firstOrNull  { it.participante.idParticipante == participanteWithNewCorreo.idParticipante }
         withContext(Dispatchers.IO) {
-            //Update desde API
-            val participanteApi = participantesService.updateParticipanteAPI(participanteWithNewCorreo.toDto())
-            if(participanteApi != null) {
-                //Update en Room
-                participantesService.update(participanteWithNewCorreo)
+            //Comprobar si ya un usuario con ese correo
+            if (CorreoExisteEnHoja(participanteWithNewCorreo.idParticipante, correo)) {
+                onCorreoExisteChanged(true)
+            }
+            else {
+                participantesState.value.listaParticipantesAMostrar.firstOrNull  { it.participante.idParticipante == participanteWithNewCorreo.idParticipante }?.participante?.correo = correo
+                //Update desde API
+                val participanteApi =
+                    participantesService.updateParticipanteAPI(participanteWithNewCorreo.toDto())
+                if (participanteApi != null) {
+                    //Update en Room
+                    participantesService.update(participanteWithNewCorreo)
+                }
             }
         }
+    }
+
+    fun CorreoExisteEnHoja(idParticipante: Long, correo: String): Boolean{
+        return participantesState.value.hojasDelRegistrado.firstOrNull { hoja ->
+            hoja.participantes.any { it.participante.idParticipante == idParticipante }
+        }?.participantes?.any { it.participante.correo == correo} ?: false
     }
 
     /** FILTRAR POR: **/

@@ -102,7 +102,7 @@ fun BalanceScreen(
 
     LaunchedEffect(balanceState.opcionSelected){
         when(balanceState.opcionSelected) {
-            "PagoRecibido" -> { viewModel.ConfirmarPago() }
+            "S" -> { viewModel.ConfirmarPago() }
         }
     }
 
@@ -557,7 +557,7 @@ fun PagoDesing(
     }
 
     if (showOpciones) {
-        val opciones: List<String> = listOf("PagoRecibido", "PagoNoRecibido")
+        val opciones: List<String> = listOf("Si, ya lo tengo", "No, aun no lo he recibido")
 
         MiDialogoWithOptions2(
             show = true,
@@ -566,7 +566,7 @@ fun PagoDesing(
             mensaje = mensaje,
             cancelar = { showOpciones = false },
             onOptionSelected = {
-                opcionSeleccionada = it
+                opcionSeleccionada = if(it == "Si, ya lo tengo") "S" else "N"
                 opcionAceptada = true
                 showOpciones = false
             }
@@ -753,7 +753,7 @@ fun ResolucionBox(
                 showConfirm = false
                 Toast.makeText(
                     context,
-                    "Enviado mensaje de pago a ${opcionSeleccionada?.first}",
+                    "Enviado mensaje de pago a ${opcionSeleccionada?.first?.nombre}",
                     Toast.LENGTH_SHORT
                 ).show()
             })

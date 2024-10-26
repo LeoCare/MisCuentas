@@ -87,7 +87,7 @@ class ParticipantesRepository(
         return try {
             val response = webService.deleteParticipante( id)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al eliminar participante: ${response.code()} - ${response.message()}")
             }

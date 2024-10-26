@@ -1,5 +1,6 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -87,6 +88,7 @@ fun MisHojasScreen(
     onNavParticipantes: (Long) -> Unit,
     viewModel: MisHojasViewModel = hiltViewModel()
 ) {
+
     val coroutineScope = rememberCoroutineScope()
     val hojaState by viewModel.misHojasState.collectAsState()
 
@@ -105,8 +107,8 @@ fun MisHojasScreen(
         when(hojaState.opcionSelected) {
             "Finalizar","Anular" -> { viewModel.updateStatusHoja() }
             "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
-            "Unirme" -> { viewModel.updateUnirmeHoja(true) }
-            "NoAcepto" -> { viewModel.updateUnirmeHoja(false) }
+            "S" -> { viewModel.updateUnirmeHoja(true) }
+            "N" -> { viewModel.updateUnirmeHoja(false) }
         }
     }
     Column(
@@ -579,7 +581,7 @@ fun HojaDesing(
     )
 
     if (showOpciones) {
-        val opciones: List<String> = listOf("Unirme", "NoAcepto")
+        val opciones: List<String> = listOf("Unirme", "No Acepto")
 
         MiDialogoWithOptions2(
             show = true,
@@ -588,7 +590,7 @@ fun HojaDesing(
             mensaje = mensaje,
             cancelar = { showOpciones = false },
             onOptionSelected = {
-                opcionSeleccionada = it
+                opcionSeleccionada = if(it == "Unirme") "S" else  "N"
                 opcionAceptada = true
                 showOpciones = false
             }

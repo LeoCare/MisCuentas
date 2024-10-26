@@ -47,6 +47,9 @@ class GastosViewModel @Inject constructor(
     private val _gastosState = MutableStateFlow(GastosState())
     val gastosState: StateFlow<GastosState> = _gastosState
 
+    fun onIdRegistradoChanged(id: Long){
+        _gastosState.value = _gastosState.value.copy(idRegistrado = id)
+    }
     fun onBorrarGastoChanged(gasto: DbGastosEntity?){
         _gastosState.value = _gastosState.value.copy(gastoABorrar = gasto)
     }
@@ -75,6 +78,13 @@ class GastosViewModel @Inject constructor(
         _gastosState.value = _gastosState.value.copy(hojaAMostrar = hoja)
     }
 
+    //Metodo que obtiene el idRegistro de la DataStore y actualiza dicho State
+    suspend fun getIdRegistroPreference() {
+        val idRegistro = dataStoreConfig.getIdRegistroPreference()
+        if (idRegistro != null) {
+            onIdRegistradoChanged(idRegistro)
+        }
+    }
 
     /** METODO QUE OBTIENE UNA HOJACONPARTICIPANTES DE LA BBDD:
      * Posteriormetne comprueba si existe un usuario que sea el registrado.

@@ -189,6 +189,7 @@ fun GastosScreen(
 
     //Hoja a mostrar pasada por el Screen Hojas
     LaunchedEffect(Unit) {
+        viewModel.getIdRegistroPreference()
         viewModel.onHojaAMostrar(idHojaAMostrar)
     }
 
@@ -219,6 +220,7 @@ fun GastosScreen(
         { elegirImagen() },
         gastosState.sumaParticipantes,
         gastosState.balanceDeuda,
+        gastosState.idRegistrado,
         viewModel::obtenerFotoGasto,
         viewModel::obtenerParticipantesYSumaGastos,
         viewModel::calcularBalance,
@@ -240,6 +242,7 @@ fun GastosContent(
     elegirImagen: () -> Unit,
     sumaParticipantes: Map<String, Double>?,
     balanceDeuda: Map<DbParticipantesEntity, Double>?,
+    idRegistrado: Long,
     obtenerFotoGasto: (Long) -> Unit,
     obtenerParticipantesYSumaGastos: () -> Unit,
     calcularBalance: () -> Unit,
@@ -340,6 +343,7 @@ fun GastosContent(
                             for (gasto in participante.gastos) {
                                 key(index){
                                     GastoDesing(
+                                        idRegistrado = idRegistrado,
                                         gasto = gasto,
                                         participante = participante,
                                         listaIconosGastos = listaIconosGastos,
@@ -558,6 +562,7 @@ fun ImagenBalance(
 
 @Composable
 fun GastoDesing(
+    idRegistrado: Long,
     gasto: DbGastosEntity?,
     participante: ParticipanteConGastos,
     listaIconosGastos: List<IconoGasto>,
@@ -649,26 +654,27 @@ fun GastoDesing(
                         text = "Pagado el ${gasto.fechaGasto}",
                         style = MaterialTheme.typography.labelLarge
                     )
-
-                    /** BORRAR GASTOS **/
                     Row(
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(onClick = {
-                            mensaje = if(statusHoja != "C") "La hoja esta cerrada, no se puede eliminar"
-                            else "Si acepta, se eliminara y no se podrá recuperar."
-                            titulo = "ELIMINAR GASTO"
-                            showDialog = true
+                        /** BORRAR GASTOS **/
+                        if(participante.participante.idUsuarioParti == idRegistrado || participante.participante.tipo == "LOCAL") {
+                            IconButton(onClick = {
+                                mensaje =
+                                    if (statusHoja != "C") "La hoja esta cerrada, no se puede eliminar"
+                                    else "Si acepta, se eliminara y no se podrá recuperar."
+                                titulo = "ELIMINAR GASTO"
+                                showDialog = true
+                            }
+                            ) {
+                                Icon(
+                                    Icons.Default.DeleteForever,
+                                    contentDescription = "Borrar gasto",
+                                    tint = Color.Red
+                                )
+                            }
                         }
-                        ) {
-                            Icon(
-                                Icons.Default.DeleteForever,
-                                contentDescription = "Borrar gasto",
-                                tint = Color.Red
-                            )
-                        }
-
                         /** LISTA DE OPCIONES **/
                         OpcionesGasto(statusHoja, gasto) { opcion ->
                             when(opcion) {

@@ -62,15 +62,38 @@ import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
 @Composable
 fun ParticipantesScreen(
     innerPadding: PaddingValues?,
-    idHojaAMostrar: Long,
+    idHojaAMostrar: Long?,
     viewModel: ParticipantesViewModel = hiltViewModel()
 ) {
     val participantesState by viewModel.participantesState.collectAsState()
 
+
     //Hoja a mostrar pasada por el Screen Hojas
     LaunchedEffect(Unit) {
-        viewModel.onNavHojaElegidoChanged(idHojaAMostrar)
+        if (idHojaAMostrar != null) {
+            viewModel.onNavHojaElegidoChanged(idHojaAMostrar)
+        }
         viewModel.getIdRegistroPreference()
+
+    }
+
+    var showMessage by remember { mutableStateOf(false) }
+    var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
+    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
+    if (showMessage) {
+        MiAviso(show = true,
+            titulo = titulo,
+            mensaje = mensaje,
+            cerrar = { showMessage = false }
+        )
+    }
+
+    LaunchedEffect(key1 = participantesState.correoExiste) {
+        if (participantesState.correoExiste){
+            titulo = "ERROR"
+            mensaje = "Ya existe un participante asociado a ese correo!"
+            showMessage = true
+        }
 
     }
 
@@ -100,7 +123,10 @@ fun ParticipantesScreen(
         ) {
             participantesState.listaParticipantesAMostrar.let { listaParticipantesConGastos ->
                 items(listaParticipantesConGastos/*, key = { it.participante.idParticipante }*/) { participanteConGastos ->
-                    ParticipanteDesing(participanteConGastos, { viewModel.onParticipanteWithCorreoChanged(it) })
+                    ParticipanteDesing(
+                        participanteConGastos,
+                        viewModel::onParticipanteWithCorreoChanged
+                    )
                 }
             }
         }
@@ -110,7 +136,7 @@ fun ParticipantesScreen(
 @Composable
 fun ParticipanteDesing(
     participanteConGastos: ParticipanteConGastos,
-    onParticipanteWithCorreoChanged: (DbParticipantesEntity) -> Unit
+    onParticipanteWithCorreoChanged: (DbParticipantesEntity, String) -> Unit
 ){
 
     var showDialog by remember { mutableStateOf(false) }
@@ -128,7 +154,7 @@ fun ParticipanteDesing(
 
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.onPrimary,//if (participanteConGastos.participante.idUsuarioParti != null) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onPrimary,
+        color = MaterialTheme.colorScheme.onPrimary,
         elevation = 9.dp,
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 10.dp)
@@ -160,8 +186,6 @@ fun ParticipanteDesing(
                     text = participanteConGastos.participante.correo ?: "",
                     fontWeight = FontWeight.Bold
                 )
-
-
 
                 if (participanteConGastos.participante.correo == null) {
                     Row(
@@ -195,9 +219,10 @@ fun ParticipanteDesing(
                                     titulo = "ERROR"
                                     mensaje = "La sintaxis del correo no es correcta!"
                                     showMessage = true
-                                } else {
-                                    participanteConGastos.participante.correo = correo
-                                    onParticipanteWithCorreoChanged(participanteConGastos.participante)
+                                }
+                                else {
+                                   // participanteConGastos.participante.correo = correo
+                                    onParticipanteWithCorreoChanged(participanteConGastos.participante, correo)
                                 }
 
                             }

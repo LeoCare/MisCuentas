@@ -74,7 +74,7 @@ class ImagenesRepository(
         return try {
             val response = webService.deleteImagen( id)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al eliminar imagen: ${response.code()} - ${response.message()}")
             }

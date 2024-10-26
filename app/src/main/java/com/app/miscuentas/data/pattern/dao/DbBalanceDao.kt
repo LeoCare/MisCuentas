@@ -31,6 +31,10 @@ interface DbBalanceDao {
     suspend fun getBalanceByHoja(idHoja: Long): List<DbBalancesEntity>
 
     @Transaction
+    @Query("SELECT * FROM t_balance WHERE idBalance = :idBalance")
+    suspend fun getBalanceById(idBalance: Long): List<DbBalancesEntity>
+
+    @Transaction
     @Query("SELECT * FROM t_balance WHERE idParticipanteBalance = :idParticipante")
     suspend fun getBalanceByParticipante(idParticipante: Long): List<DbBalancesEntity>
 

@@ -124,7 +124,7 @@ class UsuariosRepository @Inject constructor(
         return try {
             val response = webService.deleteUsuario(usuario)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al eliminar usuario: ${response.code()} - ${response.message()}")
             }
