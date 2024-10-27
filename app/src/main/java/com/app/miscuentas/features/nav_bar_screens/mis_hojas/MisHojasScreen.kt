@@ -1,6 +1,5 @@
 package com.app.miscuentas.features.nav_bar_screens.mis_hojas
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -29,7 +28,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
@@ -37,10 +35,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -60,7 +56,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.Alignment.Companion.Top
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -75,7 +70,6 @@ import com.app.miscuentas.data.local.dbroom.relaciones.HojaConParticipantes
 import com.app.miscuentas.data.model.HojaCalculo
 import com.app.miscuentas.util.Desing
 import com.app.miscuentas.util.Desing.Companion.MiDialogoWithOptions2
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -109,6 +103,7 @@ fun MisHojasScreen(
             "Eliminar" -> { viewModel.deleteHojaConParticipantes() }
             "S" -> { viewModel.updateUnirmeHoja(true) }
             "N" -> { viewModel.updateUnirmeHoja(false) }
+            "Quitar" -> {viewModel.quitarHojaNPropi() }
         }
     }
     Column(
@@ -675,16 +670,17 @@ fun HojaDesing(
                         }
                         else {
                             item {
-                                IconButton(onClick = {
-                                    titulo = "INVITADO A ESTA HOJA"
-                                    mensaje = "Solo el propietario puede modificar el estado de la hoja."
-                                    showAviso = true
-                                }) {
-                                    Icon(
-                                        Icons.Default.Handshake,
-                                        contentDescription = "Aviso de invitacion",
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
+                                OpcionesHojaNPropi(hojaConParticipantes) { opcion ->
+                                    when (opcion) {
+                                        "Quitar" -> {
+                                            onStatusChanged("Q")
+                                            titulo = "QUITAR DE LA LISTA"
+                                            mensaje =
+                                                "Si acepta, dejará de participar en esta hoja."
+                                        }
+                                    }
+                                    opcionSeleccionada = opcion
+                                    showDialog = true
                                 }
                             }
                         }
@@ -815,7 +811,7 @@ fun Datoshojas(
     }
 }
 
-/** LISTA DE OPCIONES DE LAS HOJAS **/
+/** LISTA DE OPCIONES DE LAS HOJAS PROPIETARIAS*/
 @Composable
 fun OpcionesHoja(
     hoja: HojaConParticipantes,
@@ -861,6 +857,39 @@ fun OpcionesHoja(
                 }
             ) {
                 Text("Eliminar")
+            }
+        }
+    }
+}
+
+/** LISTA DE OPCIONES DE LAS HOJAS NO PROPIETARIAS*/
+@Composable
+fun OpcionesHojaNPropi(
+    hoja: HojaConParticipantes,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val statusHoja = hoja.hoja.status
+
+    Column {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Default.MoreHoriz,
+                contentDescription = "Menu de opciones",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onOptionSelected("Quitar")
+                }
+            ) {
+                Text("Quitar")
             }
         }
     }

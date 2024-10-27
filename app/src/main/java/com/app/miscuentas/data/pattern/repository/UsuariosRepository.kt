@@ -30,6 +30,20 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
+    // Verificar si el correo existe
+    suspend fun verifyCodigo(correo: String, codigo: String): String? {
+        return try {
+            val response = webService.verifyCodigo(correo, codigo)
+            if (response.isSuccessful) {
+                response.body()?.toString()
+            } else {
+                throw Exception("Error al verificar el codigo: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            throw Exception("Error de red al verificar el codigo: ${e.message}", e)
+        }
+    }
+
     suspend fun putRegistro(usuario: UsuarioCrearDto): UsuarioWithTokenDto? {
         return try {
             val response = webService.putRegistro(usuario)
@@ -107,13 +121,26 @@ class UsuariosRepository @Inject constructor(
         }
     }
 
-    suspend fun putUsuario(usuario: UsuarioDto): UsuarioDto? {
+    suspend fun putUsuario(usuario: UsuarioDto): String? {
         return try {
             val response = webService.putUsuario(usuario)
             if (response.isSuccessful) {
-                response.body()
+                response.body()?.toString()
             } else {
                 throw Exception("Error al actualizar usuario: ${response.code()} - ${response.message()}")
+            }
+        }catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun putUsuarioNewPass(usuario: UsuarioDto): UsuarioDto? {
+        return try {
+            val response = webService.putUsuarioNewPass(usuario)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                throw Exception("Error al actualizar la pass del usuario: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
             null

@@ -4,9 +4,12 @@ data class LoginState(
     val usuario: String = "",
     val idRegistro: Long = 0,
     val contrasenna: String = "",
+    val repitaContrasenna: String = "",
     val email: String = "",
     val mensaje: String = "",
+    val verifyCodigoRecup: String = "",
     val registro: Boolean = false,
+    val repetirPass: Boolean = false,
     val loginOk: Boolean = false,
     val isLoading: Boolean = false,
     val biometricAuthenticationState: BiometricAuthenticationState = BiometricAuthenticationState.Initial

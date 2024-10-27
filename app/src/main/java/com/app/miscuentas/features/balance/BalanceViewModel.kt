@@ -162,9 +162,10 @@ class BalanceViewModel @Inject constructor(
                             //Insert Pago Room
                             val pagoInsertado = pagosService.insertPago(pago.toEntity())
                             if (pagoInsertado > 0) { //si el pago se ha insertado
-                                insertEmail(pago.idBalance, pago.monto) //inserta linea para el envio automatico del email.
+                                if(acreedor.first.correo != null) { //Si tiene correo donde enviar el email
+                                    insertEmailPago(pago.idBalancePagado, pago.monto) //inserta linea para el envio automatico del email.
+                                }
                                 updateIfHojaBalanceada() //compruebo si esta balanceado en su totalidad
-
                             }
                         }
                     }catch (e: Exception) {
@@ -273,16 +274,33 @@ class BalanceViewModel @Inject constructor(
         getPagos()
     }
 
-    /** METODO QUE INSERTA LOS DATOS PARA EL SERVICIO DE ENVIO DE EMAIL **/
-    suspend fun insertEmail(idBalance: Long, monto: Double){
-        val tipoEmail = if(monto > 0.0) "E" else "S"
-        val emailDto = EmailDto(idBalance, tipoEmail, null, "P")
+    /** METODOS QUE INSERTAN LOS DATOS PARA EL SERVICIO DE ENVIO DE EMAIL **/
+    suspend fun insertEmailPago(idBalance: Long, monto: Double){
+        val emailDto = EmailDto(idBalance, "E", null, "P")
         try{
             val emailApi = emailsService.createEmailApi(emailDto)
         }catch (e: Exception) {
             null // inserción NOK
         }
     }
+
+    fun solicitudPago(participante: DbParticipantesEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try{
+                    balancesService.getBalanceByHoja(participante.idHojaParti).forEach {
+                        if(it.tipo == "D"){
+                            val emailDto = EmailDto(it.idBalance, "S", null, "P")
+                            val emailApi = emailsService.createEmailApi(emailDto)
+                        }
+                    }
+                }catch (e: Exception) {
+                    null // inserción NOK
+                }
+            }
+        }
+    }
+    /*********************************************************************/
 
 
     /** METODO QUE ACTUALIZA LA FOTO DEL  PAGO **/

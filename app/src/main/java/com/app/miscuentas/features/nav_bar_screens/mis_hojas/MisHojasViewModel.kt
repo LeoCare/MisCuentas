@@ -218,6 +218,35 @@ class MisHojasViewModel @Inject constructor(
     }
 
 
+    /** QUITAR HOJA NO PROPIETARIA **/
+    fun quitarHojaNPropi() = viewModelScope.launch{
+        val hojaCalculo = misHojasState.value.hojaAModificar
+        val hojaConParticipantes = misHojasState.value.listaHojasAMostrar.find { it.hoja.idHoja == hojaCalculo?.idHoja }
+        val miCorreo = dataStoreConfig.getCorreoRegistroPreference()
+
+        hojaConParticipantes?.let {
+            val participanteAModificar = it.participantes.find { hoja -> hoja.participante.correo == miCorreo }
+            participanteAModificar?.participante?.let { participante ->
+                try {
+                    participante.correo = null
+                    participante.tipo = "LOCAL"
+
+                    onIsRefreshingChanged(true)
+                    //Update Room
+                    hojasService.deleteHojaConParticipantes(hojaConParticipantes.hoja)
+                    //Update Api
+                    participantesService.updateParticipanteAPI(participante.toDto())
+                    getAllHojaConParticipantes()
+                    onIsRefreshingChanged(false)
+
+                } catch (e: Exception) {
+                    onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
+                }
+            }
+        }
+    }
+
+
     //Eliminar
     fun deleteHojaConParticipantes() = viewModelScope.launch{
         val hojaCalculo = _misHojasState.value.hojaAModificar

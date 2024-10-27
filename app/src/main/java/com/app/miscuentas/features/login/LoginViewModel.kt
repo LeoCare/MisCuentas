@@ -23,11 +23,14 @@ import com.app.miscuentas.domain.dto.UsuarioDto
 import com.app.miscuentas.domain.dto.UsuarioLoginDto
 import com.app.miscuentas.domain.dto.UsuarioWithTokenDto
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.math.log
 
 
 @HiltViewModel
@@ -48,11 +51,20 @@ class LoginViewModel @Inject constructor(
     fun onContrasennaFieldChanged(contrasenna: String) {
         _loginState.value = _loginState.value.copy(contrasenna = contrasenna)
     }
+    fun onRepitaContrasennaFieldChanged(contrasenna: String) {
+        _loginState.value = _loginState.value.copy(repitaContrasenna = contrasenna)
+    }
     fun onEmailFieldChanged(email: String) {
         _loginState.value = _loginState.value.copy(email = email)
     }
+    fun onVerifyCodigoRecupChanged(verificado: String){
+        _loginState.value = _loginState.value.copy(verifyCodigoRecup = verificado)
+    }
     fun onRegistroCheckChanged(registrarme: Boolean) {
         _loginState.value = _loginState.value.copy(registro = registrarme)
+    }
+    fun onRepetirPassChanged(repetir: Boolean) {
+        _loginState.value = _loginState.value.copy(repetirPass = repetir)
     }
     fun onMensajeChanged(mensaje: String) {
         _loginState.value = _loginState.value.copy(mensaje = mensaje)
@@ -132,7 +144,7 @@ class LoginViewModel @Inject constructor(
             onIsLoadingOkChanged(true)
             try {
                 // Primero, intentamos verificar el correo con la API
-                val usuarioDto = usuariosService.verifyCorreo(correo)
+                val usuarioDto = usuariosService.verifyCorreoApi(correo)
                 if (usuarioDto != null) {
                     // El correo ya está registrado en la API
                     onMensajeChanged("El correo ya está registrado")
@@ -151,6 +163,81 @@ class LoginViewModel @Inject constructor(
                     insertRegistroCall()
                 }
             } finally {
+                onIsLoadingOkChanged(false)
+            }
+        }
+    }
+
+    /** COMPRUEBO CODIGO DE RECUPERACION DESDE LA API **/
+    fun comprobarCodigoRecup(correo: String, codigo: String) {
+        viewModelScope.launch {
+            onIsLoadingOkChanged(true)
+            try {
+                val esValido = usuariosService.verifyCodigoApi(correo, codigo)
+                if (!esValido.isNullOrEmpty()) {
+                    onEmailFieldChanged(correo)
+                    onVerifyCodigoRecupChanged("OK")
+                    onRepetirPassChanged(true)
+                } else {
+                    onRepetirPassChanged(false)
+                    onVerifyCodigoRecupChanged("NOK")
+                }
+            } catch (e: Exception) {
+                // Si hay un error en la red..
+                onRepetirPassChanged(false)
+                onVerifyCodigoRecupChanged("NOK")
+            } finally {
+                onIsLoadingOkChanged(false)
+            }
+        }
+    }
+
+    /** Envio de correo para recuperar la contraseña **/
+    fun onEnviarCorreo(correo: String){
+        viewModelScope.launch {
+            try {
+                // Primero, intentamos verificar el correo con la API
+                val usuarioDto = usuariosService.verifyCorreoApi(correo)
+                if (usuarioDto == null) {
+                    onMensajeChanged("El correo no existe")
+                } else {
+                    //Update desde API
+                    usuariosService.putUsuarioApi(usuarioDto)?.let {
+                        onMensajeChanged("Codigo enviado por email!")
+                    }
+                }
+            } catch (e: Exception) {
+                // Si hay un error en la red
+                onMensajeChanged("Problemas en la red")
+            }
+        }
+    }
+
+    /** ACTUALIZA LA CONTRASEÑA CON EL CODIGO RECIBIDO **/
+    fun updatePass(){
+        val correo = _loginState.value.email
+
+        viewModelScope.launch {
+            onIsLoadingOkChanged(true)
+            try {
+                // Primero, intentamos verificar el correo con la API
+                val usuarioDto = usuariosService.verifyCorreoApi(correo)
+                if (usuarioDto == null) {
+                    onMensajeChanged("El correo no existe")
+                    onIsLoadingOkChanged(false)
+                } else {
+                    usuarioDto.contrasenna = loginState.value.contrasenna
+                    //Update desde API
+                    usuariosService.putUsuarioNewPassApi(usuarioDto)?.let {
+                        //Update desde ROOM
+                        val actualizado = usuariosService.update(it.toEntity())
+                        if(actualizado > 0)  iniciarSesion()
+                        else onIsLoadingOkChanged(false)
+                    }
+                }
+            } catch (e: Exception) {
+                // Si hay un error en la red
+                onMensajeChanged("Problemas en la red")
                 onIsLoadingOkChanged(false)
             }
         }
@@ -261,15 +348,6 @@ class LoginViewModel @Inject constructor(
         _loginState.value = _loginState.value.copy(
             biometricAuthenticationState = LoginState.BiometricAuthenticationState.AuthenticationFailed
         )
-    }
-
-    /** Recuperar contraseña **/
-    fun onEnviarCodigo(correo: String){
-
-    }
-
-    fun onCodigoIntroducido(codigo: String){
-
     }
 
 }

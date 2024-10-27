@@ -47,7 +47,7 @@ interface DbUsuarioDao {
     suspend fun insertParticipante(participante: DbParticipantesEntity): Long
 
     @Update
-    suspend fun update(usuario: DbUsuariosEntity)
+    suspend fun update(usuario: DbUsuariosEntity): Int
 
     @Delete
     suspend fun delete(usuario: DbUsuariosEntity)

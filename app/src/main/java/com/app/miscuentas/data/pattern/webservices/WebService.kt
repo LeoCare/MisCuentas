@@ -47,6 +47,13 @@ interface WebService {
         @Query("correo") correo: String
     ): Response<UsuarioDto>
 
+    //Verificar codigo recuperacion pass:
+    @GET("usuarios/verifyCode")
+    suspend fun verifyCodigo(
+        @Query("correo") correo: String,
+        @Query("codigo") codigo: String
+    ): Response<ResponseBody>
+
     //Registrar usuario:
     @POST("usuarios/registro")
     suspend fun putRegistro(
@@ -79,6 +86,12 @@ interface WebService {
     //Actualizar usuario:
     @PUT("usuarios")
     suspend fun putUsuario(
+        @Body usuario: UsuarioDto
+    ): Response<ResponseBody>
+
+    //Actualizar usuario:
+    @PUT("usuarios/cambioPass")
+    suspend fun putUsuarioNewPass(
         @Body usuario: UsuarioDto
     ): Response<UsuarioDto>
 

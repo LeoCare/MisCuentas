@@ -50,6 +50,8 @@ import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.app.miscuentas.data.local.dbroom.entitys.DbParticipantesEntity
 import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.InternalCoroutinesApi
 import java.util.Calendar
 
 
@@ -403,12 +405,13 @@ class Desing {
             }
         }
 
+
         @Composable
         fun RecuperarContrasenaDialog(
             showDialog: Boolean,
             onDismiss: () -> Unit,
-            onEnviarCodigo: (String) -> Unit,
-            onCodigoIntroducido: (String) -> Unit
+            onEnviarCorreo: (String) -> Unit,
+            onCodigoIntroducido: (String, String) -> Unit
         ) {
             if (showDialog) {
                 var correo by rememberSaveable { mutableStateOf("") }
@@ -489,8 +492,7 @@ class Desing {
                                     }
                                     else {
                                         mensaje = "Codigo enviado!"
-                                        onEnviarCodigo(correo)
-
+                                        onEnviarCorreo(correo)
                                     }
 
                                 },
@@ -500,7 +502,7 @@ class Desing {
                             }
                             TextButton(
                                 onClick = {
-                                    onCodigoIntroducido(codigo)
+                                    onCodigoIntroducido(correo, codigo)
                                     onDismiss()
                                 },
                                 enabled = codigo.length == 4 && codigo.isDigitsOnly(),

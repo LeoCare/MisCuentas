@@ -216,6 +216,7 @@ fun BalanceScreen(
         pagoRealizado = balanceState.pagoRealizado,
         onPagoRealizadoChanged = viewModel::onPagoRealizadoChanged,
         pagarDeuda = viewModel::pagarDeuda,
+        solicitudPago = viewModel::solicitudPago,
         imagenBitmapState = balanceState.imagenBitmap,
         tomarFoto = { tomarFoto() },
         elegirImagen = { elegirImagen() },
@@ -238,6 +239,7 @@ fun BalanceContent(
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<DbParticipantesEntity, Double>?, Pair<DbParticipantesEntity, Double>?) -> Unit,
+    solicitudPago: (DbParticipantesEntity) -> Unit,
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
@@ -297,6 +299,7 @@ fun BalanceContent(
                                     pagoRealizado = pagoRealizado,
                                     onPagoRealizadoChanged = onPagoRealizadoChanged,
                                     pagarDeuda = pagarDeuda,
+                                    solicitudPago = solicitudPago,
                                     imagenBitmapState = imagenBitmapState,
                                     tomarFoto = tomarFoto,
                                     elegirImagen = elegirImagen
@@ -433,6 +436,7 @@ fun BalanceDesing(
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<DbParticipantesEntity, Double>?, Pair<DbParticipantesEntity, Double>?) -> Unit,
+    solicitudPago: (DbParticipantesEntity) -> Unit,
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit,
@@ -447,7 +451,7 @@ fun BalanceDesing(
             .padding(vertical = 10.dp, horizontal = 5.dp)
             .fillMaxWidth()
             .clickable {
-                if(participante.tipo == "LOCAL" || participante.idUsuarioParti == idRegistrado) {
+                if (participante.tipo == "LOCAL" || participante.idUsuarioParti == idRegistrado) {
                     showBalance = !showBalance
                 }
             }
@@ -494,6 +498,7 @@ fun BalanceDesing(
                                 pagoRealizado = pagoRealizado,
                                 onPagoRealizadoChanged = onPagoRealizadoChanged,
                                 pagarDeuda = pagarDeuda,
+                                solicitudPago = solicitudPago,
                                 imagenBitmapState = imagenBitmapState,
                                 tomarFoto = tomarFoto,
                                 elegirImagen = elegirImagen
@@ -699,6 +704,7 @@ fun ResolucionBox(
     pagoRealizado: Boolean,
     onPagoRealizadoChanged: (Boolean) -> Unit,
     pagarDeuda: (Pair<DbParticipantesEntity, Double>?, Pair<DbParticipantesEntity, Double>?) -> Unit,
+    solicitudPago: (DbParticipantesEntity) -> Unit,
     imagenBitmapState: Bitmap?,
     tomarFoto: () -> Unit,
     elegirImagen: () -> Unit
@@ -714,6 +720,12 @@ fun ResolucionBox(
             opcionSeleccionada = null
             onPagoRealizadoChanged(false)
         }
+    }
+    //ENVIAR EMAIL A LOS DEUDORES
+    var enviarSolicitud by rememberSaveable { mutableStateOf(false) }
+    if (enviarSolicitud){
+        solicitudPago(participante)
+        enviarSolicitud = false
     }
 
     //AVISO PARA MOSTRAR LOS ACREEDORES A PAGAR:
@@ -793,7 +805,8 @@ fun ResolucionBox(
                 opcionSeleccionada,
                 { nuevoTitulo -> titulo = nuevoTitulo },
                 { nuevoMensaje -> mensaje = nuevoMensaje },
-                { mostrarDialogo -> showDialogWhitOptions = mostrarDialogo}
+                { mostrarDialogo -> showDialogWhitOptions = mostrarDialogo},
+                { solicitar -> enviarSolicitud = solicitar}
             )
 
             if (montoRegistrado != null) {
@@ -826,7 +839,8 @@ fun Paso1(
     opcionSeleccionada: Pair<DbParticipantesEntity, Double>?,
     onTituloChanged: (String) -> Unit,
     onMensajeChanged: (String) -> Unit,
-    mostrarDialogo: (Boolean) -> Unit
+    mostrarDialogo: (Boolean) -> Unit,
+    solicitar: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -849,11 +863,14 @@ fun Paso1(
                         modifier = Modifier
                             .clickable {
 
-                                if (montoRegistrado > 0) Toast.makeText(
-                                    context,
-                                    "Se ha solicitado el pago a los deudores",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                if (montoRegistrado > 0) {
+                                    solicitar(true)
+                                    Toast.makeText(
+                                        context,
+                                        "Se ha solicitado el pago a los deudores",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                                 else {
                                     onTituloChanged("PAGAR A..")
                                     onMensajeChanged("(Solo se descontará tu parte de la deuda)")
@@ -872,13 +889,16 @@ fun Paso1(
                             .size(30.dp)
                             .clickable {
 
-                                if (montoRegistrado > 0) Toast
-                                    .makeText(
-                                        context,
-                                        "Se ha solicitado el pago a los deudores",
-                                        Toast.LENGTH_SHORT
-                                    )
-                                    .show()
+                                if (montoRegistrado > 0){
+                                    solicitar(true)
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Se ha solicitado el pago a los deudores",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                }
                                 else {
                                     onTituloChanged("PAGAR A..")
                                     onMensajeChanged("(Solo se descontará tu parte de la deuda)")

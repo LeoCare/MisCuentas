@@ -40,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -71,6 +72,8 @@ import com.app.miscuentas.util.BiometricAuthenticator
 import com.app.miscuentas.util.Desing.Companion.RecuperarContrasenaDialog
 import com.app.miscuentas.util.Validaciones.Companion.contrasennaOk
 import com.app.miscuentas.util.Validaciones.Companion.emailCorrecto
+import kotlinx.coroutines.launch
+import kotlin.math.log
 
 /** Composable principal de la Screen **/
 @Composable
@@ -99,17 +102,22 @@ fun Login(
             Modifier.align(Alignment.Center),
             loginState,
             onNavigate,
+            viewModel::onIsLoadingOkChanged,
             viewModel::onBiometricAuthenticationSuccess,
             viewModel::onBiometricAuthenticationFailed,
             viewModel::onMensajeChanged,
             viewModel::onUsuarioFieldChanged,
             viewModel::onContrasennaFieldChanged,
+            viewModel::onRepitaContrasennaFieldChanged,
             viewModel::onEmailFieldChanged,
             viewModel::onRegistroCheckChanged,
             viewModel::iniciarSesion,
             viewModel::inicioInsertRegistro,
-            viewModel::onEnviarCodigo,
-            viewModel::onCodigoIntroducido
+            viewModel::onEnviarCorreo,
+            viewModel::onVerifyCodigoRecupChanged,
+            viewModel::comprobarCodigoRecup,
+            viewModel::onRepetirPassChanged,
+            viewModel::updatePass
         )
     }
 }
@@ -120,17 +128,22 @@ private fun LoginContent(
     modifier: Modifier,
     loginState: LoginState,
     onNavigate: () -> Unit,
+    onIsLoadingOkChanged: (Boolean) -> Unit,
     bioAuthSuccess: () -> Unit,
     bioAuthFailed: () -> Unit,
     mensajeChanged: (String) -> Unit,
     onUsuarioFieldChanged: (String) -> Unit,
     onContrasennaFieldChanged: (String) -> Unit,
+    onRepitaContrasennaFieldChanged: (String) -> Unit,
     onEmailFieldChanged: (String) -> Unit,
     onRegistroCheckChanged: (Boolean) -> Unit,
     iniciarSesion: () -> Unit,
     inicioInsertRegistro: () -> Unit,
-    onEnviarCodigo: (String) -> Unit,
-    onCodigoIntroducido: (String) -> Unit
+    onEnviarCorreo: (String) -> Unit,
+    onVerifyCodigoRecupChanged: (String) -> Unit,
+    comprobarCodigoRecup: (String, String) -> Unit,
+    onRepetirPassChanged: (Boolean) -> Unit,
+    updatePass: () -> Unit
 ) {
 
     //Inicio por huella digital
@@ -141,10 +154,6 @@ private fun LoginContent(
     // Estado para manejar mensajes de error al presionar Boton de inicio
     val uiErrorMessage = remember { mutableStateOf("") }
 
-    var showMessage by remember { mutableStateOf(false) }
-    var showDialog by remember { mutableStateOf(false) }
-    var titulo by rememberSaveable { mutableStateOf("") } //Titulo a mostrar
-    var mensaje by rememberSaveable { mutableStateOf("") } //Mensaje a mostrar
 
     //Uso de la huella digita
     LaunchedEffect(loginState.biometricAuthenticationState) {
@@ -167,8 +176,9 @@ private fun LoginContent(
 
     //Si el login es correcto, navega a la siguiente pagina
     LaunchedEffect(loginState.loginOk) {
-        if (loginState.loginOk) onNavigate()
+        if (loginState.loginOk){ onNavigate() }
     }
+
 
     // Actualiza el mensaje de error, al presionar el boton, si corresponde actualiza el estado de 'loginOk'.
     val onBotonInicioClick = {
@@ -181,9 +191,20 @@ private fun LoginContent(
             else -> {
                 //MODO REGISTRO
                 if (loginState.registro) {
+                    onIsLoadingOkChanged(true)
                     uiErrorMessage.value = ""
                     inicioInsertRegistro() //inserta el registro
-
+                    onIsLoadingOkChanged(false)
+                }
+                //MODO RECUPERAR PASS
+                else if(loginState.repetirPass){
+                    if(loginState.contrasenna != loginState.repitaContrasenna){
+                        uiErrorMessage.value = "Las contraseñas no coinciden."
+                    }
+                    else {
+                        uiErrorMessage.value = ""
+                        updatePass() //inserta la nueva pass
+                    }
                 }
                 //MODO LOGIN
                 else {
@@ -222,7 +243,7 @@ private fun LoginContent(
 
             //TextFiedl Contraseña
             CustomTextField(
-                "Contraseña",
+                placeholder = if(loginState.repetirPass) "Nueva Contraseña" else "Contraseña",
                 value = loginState.contrasenna
             ) { onContrasennaFieldChanged(it) }
             CustomSpacer(24.dp)
@@ -245,6 +266,24 @@ private fun LoginContent(
                 ) { onUsuarioFieldChanged(it) }
             }
 
+            //TextFiedl Repetir contraseña
+            AnimatedVisibility(
+                visible = loginState.repetirPass,
+                enter = expandIn(
+                    animationSpec = tween(600, easing = EaseInOutBack),
+                    expandFrom = Alignment.TopStart
+                ),
+                exit = shrinkOut(
+                    tween(600, easing = EaseInBack),
+                    shrinkTowards = Alignment.TopStart
+                )
+            ) {
+                CustomTextField(
+                    placeholder = "Repita Contraseña",
+                    value = loginState.repitaContrasenna
+                ) { onRepitaContrasennaFieldChanged(it) }
+            }
+
             //CheckBox Registro
             CustomCkeckbox(
                 registroState = loginState.registro
@@ -255,13 +294,18 @@ private fun LoginContent(
 
             //Recurar la contraseña
             RecuperarContrasenna(
-                onEnviarCodigo,
-                onCodigoIntroducido
+                onEnviarCorreo,
+                onVerifyCodigoRecupChanged,
+                comprobarCodigoRecup,
+                onRepetirPassChanged,
+                loginState.verifyCodigoRecup,
+                loginState.repetirPass
             )
 
             //Boton comprobacion
             BotonInicio(
                 loginState.registro,
+                loginState.repetirPass,
                 loginState.mensaje,
                 onBotonInicioClick =  onBotonInicioClick)
         }
@@ -355,10 +399,12 @@ fun CustomTextField(
         },
         visualTransformation = when {
             placeholder == "Contraseña" && !passwordVisible -> PasswordVisualTransformation()
+            placeholder == "Repita Contraseña" && !passwordVisible -> PasswordVisualTransformation()
+            placeholder == "Nueva Contraseña" && !passwordVisible -> PasswordVisualTransformation()
             else -> VisualTransformation.None
         },
         trailingIcon = {
-            if (placeholder == "Contraseña") {
+            if (placeholder == "Contraseña" || placeholder == "Repita Contraseña" || placeholder == "Nueva Contraseña") {
                 val image = if (passwordVisible)
                     Icons.Filled.Visibility
                 else Icons.Filled.VisibilityOff
@@ -410,35 +456,68 @@ fun CustomCkeckbox(
 /** Recuperar contraseña **/
 @Composable
 fun RecuperarContrasenna(
-    onEnviarCodigo: (String) -> Unit,
-    onCodigoIntroducido: (String) -> Unit
+    onEnviarCorreo: (String) -> Unit,
+    onVerifyCodigoRecupChanged: (String) -> Unit,
+    comprobarCodigoRecup: (String, String) -> Unit,
+    onRepetirPassChanged: (Boolean) -> Unit,
+    verifyCodigoRecup: String,
+    repetirPass: Boolean,
 ){
     var showDialog by remember { mutableStateOf(false) }
+    var codigoStatus by rememberSaveable { mutableStateOf("") }
+    if(verifyCodigoRecup.isNotEmpty()) codigoStatus = verifyCodigoRecup
 
-    Text(
-        text = "Recuperar contraseña",
-        color = Color.Blue.copy(alpha = 1.2f),
-        fontWeight = FontWeight.Black,
-        style = MaterialTheme.typography.bodyMedium,
-        fontStyle = FontStyle.Italic,
-        modifier = Modifier
-            .padding(bottom = 35.dp)
-            .clickable {
-                showDialog = true
-            }
-    )
+    if(repetirPass){
+        Text(
+            text = "Cancelar",
+            color = Color.Blue.copy(alpha = 1.2f),
+            fontWeight = FontWeight.Black,
+            style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier
+                .padding(bottom = 35.dp)
+                .clickable {
+                    onRepetirPassChanged(false)
+                }
+        )
+    }
+    else {
+        Text(
+            text = "Recuperar contraseña",
+            color = Color.Blue.copy(alpha = 1.2f),
+            fontWeight = FontWeight.Black,
+            style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier
+                .padding(bottom = 35.dp)
+                .clickable {
+                    showDialog = true
+                }
+        )
+    }
     RecuperarContrasenaDialog(
         showDialog = showDialog,
         onDismiss = { showDialog = false },
-        onEnviarCodigo = { correo -> onEnviarCodigo( correo) },
-        onCodigoIntroducido = { codigo -> onCodigoIntroducido(codigo) }
+        onEnviarCorreo = { correo -> onEnviarCorreo( correo) },
+        onCodigoIntroducido = { correo, codigo -> comprobarCodigoRecup(correo, codigo) }
     )
+
+    if(codigoStatus == "NOK"){
+        onVerifyCodigoRecupChanged("")
+        Text(
+            text = "El codigo no es correcto",
+            color = MaterialTheme.colorScheme.error,
+            fontStyle = FontStyle.Italic
+        )
+    }
+
 }
 
 /** Boton de inicio **/
 @Composable
 fun BotonInicio(
     registroState: Boolean,
+    repetirPass: Boolean,
     mensaje: String,
     onBotonInicioClick: () -> Unit
 ) {
@@ -448,10 +527,11 @@ fun BotonInicio(
         onClick = { onBotonInicioClick() },
         modifier = Modifier
             .height(60.dp)
-            .width(190.dp)
+            .width(210.dp)
     ) {
 
         if(registroState) texto = "REGISTRAR"
+        else if(repetirPass) texto = "CAMBIAR PASS"
         Text(
             texto,
             fontSize = 20.sp,

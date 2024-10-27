@@ -45,7 +45,7 @@ class UsuariosService (
     }
 
     //  Actualizar usuario (Room)
-    suspend fun update(usuario: Usuario) = usuarioDao.update(usuario.toEntity())
+    suspend fun update(usuario: DbUsuariosEntity) = usuarioDao.update(usuario)
 
     //  Eliminar usuario (Room)
     suspend fun delete(usuario: Usuario) = usuarioDao.delete(usuario.toEntity())
@@ -93,8 +93,13 @@ class UsuariosService (
     }
 
     // Verificar existencia del correo (API)
-    suspend fun verifyCorreo(correo: String): UsuarioDto? {
+    suspend fun verifyCorreoApi(correo: String): UsuarioDto? {
         return usuariosRepository.verifyCorreo(correo)
+    }
+
+    // Verificar existencia del correo (API)
+    suspend fun verifyCodigoApi(correo: String, codigo: String): String? {
+        return usuariosRepository.verifyCodigo(correo, codigo)
     }
 
     // Obtener la lista de todos los usuarios (API)
@@ -113,8 +118,13 @@ class UsuariosService (
     }
 
     // Actualizar un usuario (API)
-    suspend fun putUsuarioApi(usuarioDto: UsuarioDto): UsuarioDto? {
+    suspend fun putUsuarioApi(usuarioDto: UsuarioDto): String? {
         return usuariosRepository.putUsuario(usuarioDto)
+    }
+
+    // Actualizar pass de un usuario (API)
+    suspend fun putUsuarioNewPassApi(usuarioDto: UsuarioDto): UsuarioDto? {
+        return usuariosRepository.putUsuarioNewPass(usuarioDto)
     }
 
     // Eliminar un usuario (API)
