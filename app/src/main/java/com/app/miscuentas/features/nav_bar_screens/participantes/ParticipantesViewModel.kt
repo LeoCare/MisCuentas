@@ -137,17 +137,20 @@ class ParticipantesViewModel @Inject constructor(
     }
 
     private fun mostrarParticipantes() {
-        val hojaElegida: HojaConParticipantes
-        val listaFiltrada: List<ParticipanteConGastos>
+        val hojaElegida: HojaConParticipantes?
+        var listaFiltrada: List<ParticipanteConGastos> = listOf()
 
         if(participantesState.value.filtroHojaElegido > 0){
             onFiltroElegidoChanged("Hoja")
             hojaElegida = _participantesState.value.hojasDelRegistrado
-                .first {
+                .firstOrNull {
                     it.hoja.idHoja == _participantesState.value.filtroHojaElegido
                 }
-            onEleccionEnTituloChanged(hojaElegida.hoja.titulo)
-            listaFiltrada =  hojaElegida.participantes
+            if (hojaElegida != null) {
+                onEleccionEnTituloChanged(hojaElegida.hoja.titulo)
+                listaFiltrada =  hojaElegida.participantes
+            }
+
         }
          else listaFiltrada = _participantesState.value.hojasDelRegistrado.flatMap { it.participantes }
 

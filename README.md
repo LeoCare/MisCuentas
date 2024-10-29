@@ -1,13 +1,51 @@
-# PROYECTO MISCUENTAS -version App movil-
+# PROYECTO MISCUENTAS version App movil
 
-## Descripción
+Aplicacion Android para proyecto MisCuentas del ciclo DAM en MonteCastelo.
+
+[![Kotlin](https://img.shields.io/badge/Code-Kotlin-blueviolet)](https://kotlinlang.org/)
+[![LICENSE](https://img.shields.io/badge/Lisence-CC-%23e64545)](https://leocare.dev/docs/license/)
+![GitHub](https://img.shields.io/github/last-commit/LeoCare/ktor-Api-MisCuentas)
+
+![imagen](https://i.ytimg.com/vi/Iz08OTTjR04/maxresdefault.jpg)
+
+![imagen](https://blog.jetbrains.com/wp-content/uploads/2020/07/Ktor_blog_1280x800.png)
+
+- [App android con Kotlin para proyecto MisCuentas](#PROYECTO-MISCUENTAS-version-App-movil)
+   - [Acerca de..](#acerca-de)
+      - [Notas Sobre el Desarrollo](#Notas-Sobre-el-Desarrollo)
+      - [Tecnologías Utilizadas](#Tecnologías-Utilizadas)
+      - [Características](#Características)
+      - [Librerias](#librerias)
+      - [Aplicaciones que forman parte de este proyecto](#aplicaciones-que-forman-parte-de-este-proyecto)
+   - [Arquitectura de la Aplicación](#Arquitectura-de-la-Aplicación)
+   - [Ejemplos de Modelos](#Ejemplos-de-Modelos)
+   - [Requisitos de Permisos](#Requisitos-de-Permisos)
+   - [Tecnologías Utilizadas](#Tecnologías-Utilizadas)
+   - [Instalación](#Instalación)
+   - [Uso](#uso)
+   - [Documentaciones](#documentaciones)
+      - [Documentacion del codigo](#documentacion-del-codigo)
+      - [Documentacion del API REST](#documentacion-del-api-rest)
+   - [Autor](#autor)
+     - [Contacto](#contacto)
+   - [Contribucion](#contribucion)
+   - [Licencia](#licencia)
+
+
+## Acerca de..
 
 Bienvenido a la aplicación MISCUENTAS, una app móvil desarrollada en Kotlin que permite a los usuarios gestionar sus gastos compartidos de manera fácil y eficiente. 
 La aplicación incluye funcionalidades como el registro de usuarios, la creación de hojas de cálculo para gastos, el manejo de participantes y la captura de imágenes como recibos.
 Los gastos y pagos registrados pueden tener una imagen adjunta como comprobante. 
 Los usuarios pueden ser locales (gestionados manualmente por cada usuario) o en línea (compartiendo una hoja de gastos con otros usuarios en la nube).
 
-## Tecnologías Utilizadas
+## Notas Sobre el Desarrollo
+
+- La aplicación se apoya en ViewModel para gestionar los estados de la interfaz de usuario y facilitar el acceso a la base de datos.
+- Las imágenes capturadas se guardan en el directorio de DCIM/Camera y se referencian mediante su URI en la base de datos local.
+- Para mejorar la experiencia del usuario, se implementa un menú lateral solo disponible en la pantalla de Inicio, donde los usuarios pueden acceder fácilmente a las distintas funcionalidades.
+
+### Tecnologías Utilizadas
 
 - **Kotlin:** Lenguaje principal de desarrollo para la app móvil.
 - **Jetpack Compose:** Para diseño de interfaces de usuario modernas y reactivas.
@@ -16,7 +54,7 @@ Los usuarios pueden ser locales (gestionados manualmente por cada usuario) o en 
 - **Ktor:** API REST backend para gestionar la comunicción del servidor.
 - **Android Jetpack:** Múltiples componentes de Android Jetpack, como Navigation, ViewModel, LiveData y DataStore.
 
-## Características
+### Características
 
 1. Registro de Usuarios
 Permite a los usuarios registrarse en la aplicación proporcionando su nombre, correo electrónico y contraseña. Los registros se guardan en la base de datos local utilizando Room.
@@ -48,6 +86,24 @@ La navegación está gestionada a través de Jetpack Navigation, proporcionando 
 - **Contacto con el Desarrollador**: Fácil acceso para contactar con el desarrollador y enviar sugerencias.
 - **Calificar la App**: Permite calificar la aplicación para mejorar la experiencia de usuario.
 
+### Librerias
+En este proyecto se utilizan los siguientes plugins, librerias y servicios:
+- JetpackCompose (Kit de herramientas)
+- Accompanist-permissions (solicitud de permisos)
+- Retrofit2 (servicio Rest)
+- Biometric (uso huella digital)
+- HILT (dependencias)
+- Room (persistencia SqlLite)
+- DataStore (persistencia Preferences)
+- Bcrypt (encriptado)
+
+
+### Aplicaciones que forman parte de este proyecto:
+- #### [API REST con Ktor](https://github.com/LeoCare/ktor-Api-MisCuentas)
+- #### [APP Escritorio TodoCuentas](https://github.com/LeoCare/MisCuentas_desk)
+- #### [Servicio Windows](https://github.com/LeoCare/MailMyService)
+
+
 ## Arquitectura de la Aplicación
 
 La arquitectura sigue el patrón MVVM (Model-View-ViewModel) utilizando las siguientes capas:
@@ -56,7 +112,7 @@ La arquitectura sigue el patrón MVVM (Model-View-ViewModel) utilizando las sigu
 - **ViewModel:** Gestiona la lógica de negocio y proporciona los datos requeridos por las vistas.
 - **View:** Implementada con Jetpack Compose. Incluye varios elementos visuales como botones personalizados, LazyColumn para listas de gastos y diálogos para confirmar acciones.
 
-## Ejemplo de Modelos
+## Ejemplos de Modelos
 
 A continuación se muestra un ejemplo de los modelos utilizados en la aplicación:
    ```bash
@@ -90,23 +146,11 @@ Para utilizar la cámara y guardar imágenes, la aplicación solicita los siguie
 
 La solición de permisos se gestiona utilizando rememberMultiplePermissionsState y depende de la versión de Android, diferenciando entre Android Tiramisu y versiones anteriores.
 
-## Tecnologías Utilizadas
-
-- **Lenguaje de Programación**: Kotlin
-- **Plataforma**: Android
-- **Backend API**: Ktor (API REST)
-- **Base de Datos**: MySQL
-
-
-## Notas Sobre el Desarrollo
-
-- La aplicación se apoya en ViewModel para gestionar los estados de la interfaz de usuario y facilitar el acceso a la base de datos.
-- Las imágenes capturadas se guardan en el directorio de DCIM/Camera y se referencian mediante su URI en la base de datos local.
-- Para mejorar la experiencia del usuario, se implementa un menú lateral solo disponible en la pantalla de Inicio, donde los usuarios pueden acceder fácilmente a las distintas funcionalidades.
 
 ## Instalación
+Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
 
-1. Clona este repositorio:
+1. Clona este repositorio (si aun no lo tienes):
    ```bash
    git clone git@github.com:LeoCare/MisCuentas.git
    ```
@@ -122,23 +166,36 @@ La solición de permisos se gestiona utilizando rememberMultiplePermissionsState
 4. Finaliza la hoja de gastos para ver el balance y las cantidades a pagar.
 5. Envía avisos de pago a los participantes para saldar las deudas.
 
-## Capturas de Pantalla
 
-(Agregar aquí capturas de pantalla de la aplicación para ilustrar las diferentes funciones)
+## Autor
+Mi nombre es <b>Leonardo David Care Prado</b>, soy tecnico en sistemas y desarrollador de aplicaciones multiplataforma, o eso espero con este proyecto...jjjjj.<br>
+A fecha de este año (2024) llevo 4 años realizando trabajos de desarrollo para la misma empresa, ademas de soporte y sistemas.<br>
+Estos desarrollos incluyen lenguajes como Html, C#, Xamarin, Oracle, Java y Kotlin.
 
-## Contribuciones
+[![Html](https://img.shields.io/badge/Code-Htmnl-blue)](https://www.w3schools.com/html/)
+[![C#](https://img.shields.io/badge/Code-C_SHARP-green)](https://dotnet.microsoft.com/es-es/languages/csharp)
+[![Xamarin](https://img.shields.io/badge/Code-Xamarin-red)](https://dotnet.microsoft.com/es-es/apps/xamarin)
+[![Oracle](https://img.shields.io/badge/Code-Oracle-white)](https://www.oracle.com/es/)
+[![Java](https://img.shields.io/badge/Code-Java-orange)](https://www.java.com/es/)
+[![Kotlin](https://img.shields.io/badge/Code-Kotlin-blueviolet)](https://kotlinlang.org/)
 
-Las contribuciones son bienvenidas. Si deseas contribuir:
-- Realiza un fork del repositorio.
-- Crea una nueva rama con tus cambios.
-- Envía un Pull Request.
+### Contacto
+Para cualquier consulta o aporte puedes comunicarte conmigo por correo<br>
+[leon1982care@gmail.com](https://mail.google.com/mail/u/0/?pli=1#inbox)
+<p><a href="https://mail.google.com/mail/u/0/?pli=1#inbox" target="_blank">
+        <img src="https://ams3.digitaloceanspaces.com/graffica/2021/06/logogmailgrafica-1-1024x576.png" 
+    height="30" alt="correo_electronico">
+</a></p> 
 
-## Contacto
-
-Para preguntas, sugerencias o problemas, no dudes en contactarme:
-
-- Email: desarrollador@example.com
+## Contribucion
+Gracias a todos los que aporten nuevas ideas de como mejorar mi proyecto. Sientance libres de participar, cambiar u opinar sobre el mismo.</br>
+Solo pido que al crear la rama, esta comience por 'contribucion/lo_que_aporteis'. Y, el commit sea claro y descriptivo.</br>
+En caso de necesitar documentar los nuevos cambios, seguir con el uso de las libreria mensionada en el apartado [Documentaciones](#documentaciones).</br>
+Muchisimas gracias a todos!
 
 ## Licencia
+Este repositorio y todo su contenido estan bajo la licencia de **Creative Commons**. Solo pido que si haces uso de ella, me cites como el autor.</br>
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a>
 
-Este proyecto está bajo la licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
