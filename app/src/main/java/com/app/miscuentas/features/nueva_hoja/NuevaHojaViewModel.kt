@@ -116,6 +116,7 @@ class NuevaHojaViewModel @Inject constructor(
                 //Insert desde API
                 val hojaAPI = insertHojaApi(titulo, fechaCreacion, fechaCierre, limite?.replace(',','.')?.toDouble(), status, idUsuarioHoja)
                 var participantesAPI: ParticipanteDto? =  null
+                var listaParticipantes: List<DbParticipantesEntity> = listOf()
 
                 if(hojaAPI != null){
                     //Instancia participantes
@@ -123,7 +124,7 @@ class NuevaHojaViewModel @Inject constructor(
                     nuevaHojaState.value.listaParticipantesEntitys.forEach { participante ->
                         //Insert participantes desde API
                         participantesAPI = insertParticipantesApi(participante.nombre, participante.correo,  participante.tipo, participante.idHojaParti, participante.idUsuarioParti)
-
+                        participantesAPI?.let { participante.idParticipante = it.idParticipante } //Actualizao id del participante
                     }
                     if(participantesAPI != null){
                         //Insert en Room

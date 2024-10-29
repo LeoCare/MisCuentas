@@ -24,7 +24,7 @@ import com.app.miscuentas.data.model.Participante
 )
 data class DbParticipantesEntity (
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "idParticipante") val idParticipante: Long = 0,
+    @ColumnInfo(name = "idParticipante") var idParticipante: Long = 0,
     @ColumnInfo(name = "nombre") val nombre: String,
     @ColumnInfo(name = "correo") var correo: String? = null,
     @ColumnInfo(name = "idUsuarioParti") var idUsuarioParti: Long? = null,
