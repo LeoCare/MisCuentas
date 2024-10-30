@@ -174,8 +174,8 @@ Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
 2. Abre el proyecto en Android Studio.
 3. Configura las dependencias y la base de datos MySQL.
   - Una vez tengas la API funcionando, modifica los proveedores de Webservices en el fichero MisCuentasModule.kt, indicando la IP o direccion correspondiente...
-      - ![Imagen de swagger](docs/imagenes/webservices1.png)
-      - ![Imagen de swagger](docs/imagenes/webservices2.png)
+    </br>  </br>    ![Imagen de swagger](docs/imagenes/webservices1.png)
+    </br>  </br>    ![Imagen de swagger](docs/imagenes/webservices2.png)
 4. Compila y ejecuta la aplicación en un dispositivo o emulador Android.
 
 ## Uso
