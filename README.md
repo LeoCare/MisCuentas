@@ -4,7 +4,7 @@ Aplicacion Android para proyecto MisCuentas del ciclo DAM en MonteCastelo.
 
 [![Kotlin](https://img.shields.io/badge/Code-Kotlin-blueviolet)](https://kotlinlang.org/)
 [![LICENSE](https://img.shields.io/badge/Lisence-CC-%23e64545)](https://leocare.dev/docs/license/)
-![GitHub](https://img.shields.io/github/last-commit/LeoCare/ktor-Api-MisCuentas)
+![GitHub](https://img.shields.io/github/last-commit/LeoCare/MisCuentas)
 
 ![imagen](https://i.ytimg.com/vi/Iz08OTTjR04/maxresdefault.jpg)
 
@@ -34,6 +34,7 @@ La aplicación incluye funcionalidades como el registro de usuarios, la creació
 Los gastos y pagos registrados pueden tener una imagen adjunta como comprobante. 
 Los usuarios pueden ser locales (gestionados manualmente por cada usuario) o en línea (compartiendo una hoja de gastos con otros usuarios en la nube).
 
+---
 ## Notas Sobre el Desarrollo
 
 - La aplicación se apoya en ViewModel para gestionar los estados de la interfaz de usuario y facilitar el acceso a la base de datos.
@@ -120,7 +121,7 @@ En este proyecto se utilizan los siguientes plugins, librerias y servicios:
 - #### [APP Escritorio TodoCuentas](https://github.com/LeoCare/MisCuentas_desk)
 - #### [Servicio Windows](https://github.com/LeoCare/MailMyService)
 
-
+---
 ## Arquitectura de la Aplicación
 
 La arquitectura sigue el patrón MVVM (Model-View-ViewModel) utilizando las siguientes capas:
@@ -128,7 +129,7 @@ La arquitectura sigue el patrón MVVM (Model-View-ViewModel) utilizando las sigu
 - **Model:** Define los datos principales de la aplicación, incluyendo Registro, HojaCalculo, Participante, Gasto, Deuda y Pago. Estos modelos se sincronizan con la base de datos Room.
 - **ViewModel:** Gestiona la lógica de negocio y proporciona los datos requeridos por las vistas.
 - **View:** Implementada con Jetpack Compose. Incluye varios elementos visuales como botones personalizados, LazyColumn para listas de gastos y diálogos para confirmar acciones.
-
+---
 ## Ejemplos de Modelos
 
 A continuación se muestra un ejemplo de los modelos utilizados en la aplicación:
@@ -154,7 +155,7 @@ A continuación se muestra un ejemplo de los modelos utilizados en la aplicació
        val idParticipanteGasto: Long?
    )
    ```
-
+---
 ## Requisitos de Permisos
 
 Para utilizar la cámara y guardar imágenes, la aplicación solicita los siguientes permisos:
@@ -163,7 +164,7 @@ Para utilizar la cámara y guardar imágenes, la aplicación solicita los siguie
 
 La solición de permisos se gestiona utilizando rememberMultiplePermissionsState y depende de la versión de Android, diferenciando entre Android Tiramisu y versiones anteriores.
 
-
+---
 ## Instalación
 Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
 
@@ -174,10 +175,10 @@ Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
 2. Abre el proyecto en Android Studio.
 3. Configura las dependencias y la base de datos MySQL.
   - Una vez tengas la API funcionando, modifica los proveedores de Webservices en el fichero MisCuentasModule.kt, indicando la IP o direccion correspondiente...
-    </br>  </br>    ![Imagen de swagger](docs/imagenes/webservices1.png)
-    </br>  </br>    ![Imagen de swagger](docs/imagenes/webservices2.png)
+    </br>  </br>    ![Imagen del webservices](docs/imagenes/webservices1.png)
+    </br>  </br>    ![Imagen del webservices](docs/imagenes/webservices2.png)
 4. Compila y ejecuta la aplicación en un dispositivo o emulador Android.
-
+---
 ## Uso
 
 1. Regístrate o inicia sesión con tu huella digital.
@@ -186,7 +187,7 @@ Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
 4. Finaliza la hoja de gastos para ver el balance y las cantidades a pagar.
 5. Envía avisos de pago a los participantes para saldar las deudas.
 
-
+---
 ## Autor
 Mi nombre es <b>Leonardo David Care Prado</b>, soy tecnico en sistemas y desarrollador de aplicaciones multiplataforma, o eso espero con este proyecto...jjjjj.<br>
 A fecha de este año (2024) llevo 4 años realizando trabajos de desarrollo para la misma empresa, ademas de soporte y sistemas.<br>
