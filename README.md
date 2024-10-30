@@ -8,8 +8,6 @@ Aplicacion Android para proyecto MisCuentas del ciclo DAM en MonteCastelo.
 
 ![imagen](https://i.ytimg.com/vi/Iz08OTTjR04/maxresdefault.jpg)
 
-![imagen](https://blog.jetbrains.com/wp-content/uploads/2020/07/Ktor_blog_1280x800.png)
-
 - [App android con Kotlin para proyecto MisCuentas](#PROYECTO-MISCUENTAS-version-App-movil)
    - [Acerca de..](#acerca-de)
       - [Notas Sobre el Desarrollo](#Notas-Sobre-el-Desarrollo)
@@ -43,8 +41,8 @@ Los usuarios pueden ser locales (gestionados manualmente por cada usuario) o en 
 
 - La aplicación se apoya en ViewModel para gestionar los estados de la interfaz de usuario y facilitar el acceso a la base de datos.
 - Las imágenes capturadas se guardan en el directorio de DCIM/Camera y se referencian mediante su URI en la base de datos local.
-- Para mejorar la experiencia del usuario, se implementa un menú lateral solo disponible en la pantalla de Inicio, donde los usuarios pueden acceder fácilmente a las distintas funcionalidades.
-
+- Para mejorar la experiencia del usuario, se implementa un menú lateral solo disponible en la pantalla de Inicio, donde los usuarios pueden acceder fácilmente a las distintas funcionalidades. </br>
+![Imagen del menu lateral](docs/imagenes/menu_lateral.png)
 ### Tecnologías Utilizadas
 
 - **Kotlin:** Lenguaje principal de desarrollo para la app móvil.
@@ -57,34 +55,56 @@ Los usuarios pueden ser locales (gestionados manualmente por cada usuario) o en 
 ### Características
 
 1. Registro de Usuarios
-Permite a los usuarios registrarse en la aplicación proporcionando su nombre, correo electrónico y contraseña. Los registros se guardan en la base de datos local utilizando Room.
-
+Permite a los usuarios registrarse en la aplicación proporcionando su nombre, correo electrónico y contraseña. Los registros se guardan en la base de datos externa en MySql.
+   </br></br>
 2. Hojas de Cálculo para Gastos
-Los usuarios pueden crear hojas de cálculo para gestionar sus gastos. Cada hoja incluye:
-- **Participantes:** Los participantes en cada hoja están asociados al registro principal y pueden agregar gastos.
-- **Gastos:** Los participantes pueden registrar sus gastos, con detalles como concepto, tipo, importe y fecha.
-
-3. Balance y Deudas
+Los usuarios pueden crear hojas de cálculo para gestionar sus gastos. Se visualizan en 3 tipos:</br>
+   ![Imagen de las hojas](docs/imagenes/hojas.png)
+   - **Propietarias:** son aquellas creadas por el usuario en si mismo.
+   - **Invitado:** hojas creadas por otros usuarios, los cuales nos han unido y hemos aceptado participtar.
+   - **Sin Confirmar:** hojas creadas por otros usuarios, los cuales nos han unido y aun no hemos aceptado, teniendo la posibilidad de rechazar dicha invitacion.
+   </br></br>
+     
+    Cada hoja incluye:
+   - **Participantes:** Los participantes en cada hoja están asociados al registro principal y pueden agregar gastos.
+   - **Gastos:** Los participantes pueden registrar sus gastos, con detalles como concepto, tipo, importe y fecha.
+    </br></br>
+3. Participantes
+Los participates pueden ser Locales u Online. Los primeros son aquellos que gestionaremos nosotros, introduciendo sus gastos y demas, simulando una actividad por su parte.
+Los Online son usuarios que tienen la aplicacion y comparten la hoja con nosotros. Para que un usuario sea Online debemos agregarlo indicando su correo en la ventana PARTICIPANTES.
+   </br>   ![Imagen de las hojas](docs/imagenes/tipos_participantes.png)
+</br></br>
+4. Balance y Deudas
 La aplicación calcula automáticamente el balance de cada participante para conocer cómo se deben dividir los gastos y quién tiene deudas pendientes. Cada deuda es calculada en función del total de gastos y se registran las futuras liquidaciones.
-
-4. Captura de Fotografías y Almacenamiento
-Se proporciona una funcionalidad para tomar fotos (ej. recibos o comprobantes de gasto) y almacenarlas en la galería del dispositivo o en la base de datos local para referencia futura. Utilizamos FileProvider para la captura de imágenes y almacenaje en el dispositivo.
-
-5. Navegación en la Aplicación
+   </br>   ![Imagen de las resolucions](docs/imagenes/pagar.png) 
+   - **Resoluciones:** si debemos una cierta cantidad, la caja de resoluciones nos permitira seleccionar a quien hemos pagado, adjuntar un justificante y enviarle un correo informado.
+</br></br>
+5. Pagos
+Una vez finalizada la HOJA se debe proceder a saldar las deudas, quien las tenga. Estos pagos deben ser confirmados por el participante que ha recibido el pago. (DICHO PAGO NO SE REALIZA DESDE LA APP).</br>
+   ![Imagen de los pagos](docs/imagenes/pagos.png)
+    - **Pagos:** los pagos se veran en la parte inferior. En ellos se refleja si ya se ha confirmado dicho pago por parte del acreedor.
+</br></br>
+6. Captura de Fotografías y Almacenamiento
+Se proporciona una funcionalidad para tomar fotos (ej. recibos o comprobantes de gasto) y almacenarlas en la galería del dispositivo o en la base de datos local para referencia futura. 
+Utilizamos FileProvider para la captura de imágenes y almacenaje en el dispositivo.</br>
+   ![Imagen de las capturas](docs/imagenes/compartir.png)
+    - En la barra superior hay un boton con la opcion de compartir una captura de pantalla, por los distintos canales de comunicacion (EMAIL, WHATSAPP, SMS, ETC..)
+      </br></br>
+7. Navegación en la Aplicación
 La navegación está gestionada a través de Jetpack Navigation, proporcionando transiciones suaves entre diferentes pantallas como:
-- **Splash Screen:** Pantalla inicial de bienvenida.
-- **Inicio:** Menú con opciones como crear nuevas hojas, acceder a gastos y ver balances.
-- **Mis Hojas:** Para ver todas las hojas de cálculo creadas y administrarlas.
-- **Participantes:** Mostrar los participantes de cada hoja de cálculo.
-
-5. Mas caracteristicas
-- **Avisos de Pago**: Envía recordatorios de pago o solicitudes de pago a otros usuarios.
-- **Comprobantes Adjuntos**: Permite adjuntar imágenes a los gastos o pagos como comprobante.
-- **Usuarios Locales y en Línea**: Gestiona usuarios locales o compárte hojas de gastos con otros usuarios.
-- **Inicio de Sesión con Huella**: Inicia sesión de manera rápida y segura usando la huella digital.
-- **Compartir Capturas y Enlaces**: Comparte capturas de pantalla de las hojas de gastos o el enlace de descarga de la aplicación.
-- **Contacto con el Desarrollador**: Fácil acceso para contactar con el desarrollador y enviar sugerencias.
-- **Calificar la App**: Permite calificar la aplicación para mejorar la experiencia de usuario.
+   - **Splash Screen:** Pantalla inicial de bienvenida.
+   - **Inicio:** Menú con opciones como crear nuevas hojas, acceder a gastos y ver balances.
+   - **Mis Hojas:** Para ver todas las hojas de cálculo creadas y administrarlas.
+   - **Participantes:** Mostrar los participantes de cada hoja de cálculo.
+     </br></br>
+8. Mas caracteristicas
+ - **Avisos de Pago**: Envía recordatorios de pago o solicitudes de pago a otros usuarios.
+ - **Comprobantes Adjuntos**: Permite adjuntar imágenes a los gastos o pagos como comprobante.
+ - **Usuarios Locales y en Línea**: Gestiona usuarios locales o compárte hojas de gastos con otros usuarios.
+ - **Inicio de Sesión con Huella**: Inicia sesión de manera rápida y segura usando la huella digital.
+ - **Compartir Capturas y Enlaces**: Comparte capturas de pantalla de las hojas de gastos o el enlace de descarga de la aplicación.
+ - **Contacto con el Desarrollador**: Fácil acceso para contactar con el desarrollador y enviar sugerencias.
+ - **Calificar la App**: Permite calificar la aplicación para mejorar la experiencia de usuario.
 
 ### Librerias
 En este proyecto se utilizan los siguientes plugins, librerias y servicios:
@@ -156,6 +176,9 @@ Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
    ```
 2. Abre el proyecto en Android Studio.
 3. Configura las dependencias y la base de datos MySQL.
+  - Una vez tengas la API funcionando, modifica los proveedores de Webservices en el fichero MisCuentasModule.kt, indicando la IP o direccion correspondiente...
+      - ![Imagen de swagger](webservices1.png)
+      - ![Imagen de swagger](webservices2.png)
 4. Compila y ejecuta la aplicación en un dispositivo o emulador Android.
 
 ## Uso

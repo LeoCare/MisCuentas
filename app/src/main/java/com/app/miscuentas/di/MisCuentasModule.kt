@@ -187,7 +187,7 @@ object MisHojasModule {
     ): WebService {
         return Retrofit.Builder()
             .baseUrl("https://api-miscuentas.leondev.es/")
-            // .baseUrl("http://192.168.7.27:8080/") //config para pruebas locales con movil fisico
+            //.baseUrl("http://192.168.7.27:8080/") //config para pruebas locales
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient) // Usa el cliente que tiene el interceptor
             .build()
