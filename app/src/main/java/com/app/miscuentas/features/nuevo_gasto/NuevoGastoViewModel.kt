@@ -114,16 +114,14 @@ class NuevoGastoViewModel @Inject constructor (
                 withContext(Dispatchers.IO) {
                     //Insert desde API
                     val gastoAPIOk = insertGastoAPI(tipo, concepto, importe, fechaGasto, idParticipante, null)
-                    if(gastoAPIOk != null){
 
-                        //Insert en ROOM
-                        val insertRoomOK = insertGastoRoom(gastoAPIOk.idGasto, tipo, concepto, importe, fechaGasto, idParticipante)
-                        if(insertRoomOK) {
-                            vaciarTextFields()
-                            onInsertOKChanged(true)
-                        }
+                    val idGasto = gastoAPIOk?.idGasto ?:  0
+                    //Insert en ROOM
+                    val insertRoomOK = insertGastoRoom(idGasto, tipo, concepto, importe, fechaGasto, idParticipante)
+                    if(insertRoomOK) {
+                        vaciarTextFields()
+                        onInsertOKChanged(true)
                     }
-                    else onCierreSesionChanged(true)
                 }
             }
         }

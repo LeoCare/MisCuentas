@@ -46,7 +46,7 @@ class DataUpdates(
                     volcarHojas(idUsuarioLogin, idUsuario, "S")
                     volcarHojasNoPropietarias(usuario)
                 } else {
-                    Log.d(TAG, "No hay datos de usuarios local ni en red.")
+                    Log.d(TAG, "Imposible obtener usuario del servidor.")
                 }
             } catch (e: Exception) {
                 // Manejo de errores unificado

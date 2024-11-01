@@ -64,7 +64,7 @@ class PagosRepository(
                 throw Exception("Error al crear pago: ${response.code()} - ${response.message()}")
             }
         }catch (e: Exception) {
-            throw Exception("Error de red al crear pago: ${e.message}", e)
+            null
         }
     }
 

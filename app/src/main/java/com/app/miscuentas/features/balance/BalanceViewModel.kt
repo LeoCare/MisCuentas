@@ -157,16 +157,15 @@ class BalanceViewModel @Inject constructor(
                     try{
                         //Insert Pago desde Api
                         val pagoApi = pagosService.createPagoAPI(it.toDomain().toCrearDto())
+                        it.idPago = pagoApi?.idPago ?: 0
 
-                        pagoApi?.let { pago ->
-                            //Insert Pago Room
-                            val pagoInsertado = pagosService.insertPago(pago.toEntity())
-                            if (pagoInsertado > 0) { //si el pago se ha insertado
-                                if(acreedor.first.correo != null) { //Si tiene correo donde enviar el email
-                                    insertEmailPago(pago.idBalancePagado, pago.monto) //inserta linea para el envio automatico del email.
-                                }
-                                updateIfHojaBalanceada() //compruebo si esta balanceado en su totalidad
+                        //Insert Pago Room
+                        val pagoInsertado = pagosService.insertPago(it)
+                        if (pagoInsertado > 0) { //si el pago se ha insertado
+                            if(acreedor.first.correo != null) { //Si tiene correo donde enviar el email
+                                insertEmailPago(it.idBalancePagado, it.monto) //inserta linea para el envio automatico del email.
                             }
+                            updateIfHojaBalanceada() //compruebo si esta balanceado en su totalidad
                         }
                     }catch (e: Exception) {
                         onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
@@ -229,11 +228,11 @@ class BalanceViewModel @Inject constructor(
                     balancesService.putBalanceApi(balanceAcreedor.toDomain().toDto())
 
                 if (balanceDeudorApi != null && balanceAcreedorApi != null) {
-                    //Update Balances Room
-                    balancesService.updateBalance(balanceDeudor)
-                    balancesService.updateBalance(balanceAcreedor)
-
-                } else return false
+                    onPendienteSubirCambiosChanged(true)
+                }
+                //Update Balances Room
+                balancesService.updateBalance(balanceDeudor)
+                balancesService.updateBalance(balanceAcreedor)
             }
             return true
         }catch (e: Exception) {

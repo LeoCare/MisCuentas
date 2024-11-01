@@ -64,7 +64,7 @@ class BalancesRepository(
                 throw Exception("Error al crear balance: ${response.code()} - ${response.message()}")
             }
         } catch (e: Exception) {
-            throw Exception("Error de red al crear balance: ${e.message}", e)
+            null
         }
     }
 

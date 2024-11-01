@@ -103,9 +103,8 @@ class SplashViewModel @Inject constructor(
             val idUsuario = dataStoreConfig.getIdRegistroPreference()
             if (idUsuario != null) {
                 try {
-                    withContext(Dispatchers.IO) {
-                        dataUpdates.limpiarYVolcarLogin(idUsuario)
-                    }
+                    dataUpdates.limpiarYVolcarLogin(idUsuario)
+
                     onMensajeChanged("Datos actualizados!")
                     onContinuarChanged(true)
                 } catch (e: Exception) {

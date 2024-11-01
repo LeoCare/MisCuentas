@@ -259,21 +259,16 @@ class GastosViewModel @Inject constructor(
     private suspend fun insertBalancesForHoja(balances: List<Balance>): Boolean{
         val hojaEntity = gastosState.value.hojaAMostrar?.hoja
         hojaEntity?.let { hoja ->
-            try{
-                //Insert desde Api
-                balances.forEach { balance ->
-                    val idBalanceApi = balancesService.postBalanceApi(balance.toCrearDto())?.idBalance
-                    if (idBalanceApi != null) balance.idBalance = idBalanceApi
-                }
-
-                //Insert en Room
-                balancesService.insertBalancesForHoja(hoja, balances.toEntityList())
-
-                return true
-            }catch (e: Exception) {
-                onPendienteSubirCambiosChanged(true) //algo a fallado en las solicitudes
-                return false
+            //Insert desde Api
+            balances.forEach { balance ->
+                val balanceApi = balancesService.postBalanceApi(balance.toCrearDto())
+                balance.idBalance = balanceApi?.idBalance ?: 0
             }
+
+            //Insert en Room
+            balancesService.insertBalancesForHoja(hoja, balances.toEntityList())
+
+            return true
         }
         return false
     }

@@ -34,7 +34,7 @@ import com.app.miscuentas.data.model.Pago
 )
 data class DbPagoEntity(
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "idPago") val idPago: Long = 0,
+    @ColumnInfo(name = "idPago") var idPago: Long = 0,
     @ColumnInfo(name = "idParticipantePago", index = true) val idParticipantePago: Long,
     @ColumnInfo(name = "idBalance", index = true) val idBalance: Long,
     @ColumnInfo(name = "idBalancePagado", index = true) val idBalancePagado: Long,
