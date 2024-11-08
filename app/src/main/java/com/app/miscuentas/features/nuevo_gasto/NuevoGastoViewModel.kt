@@ -31,7 +31,6 @@ class NuevoGastoViewModel @Inject constructor (
     private val dataStoreConfig: DataStoreConfig
 ): ViewModel() {
 
-
     private val _nuevoGastoState = MutableStateFlow(NuevoGastoState())
     val nuevoGastoState: StateFlow<NuevoGastoState> = _nuevoGastoState
 
@@ -86,7 +85,7 @@ class NuevoGastoViewModel @Inject constructor (
     }
 
 
-        //Actualizo la hojaActual
+    //Actualizo la hojaActual
     suspend fun getHojaCalculo(){
         //Hoja a la cual sumarle este nuevo gasto
         val id = _nuevoGastoState.value.idHoja!!

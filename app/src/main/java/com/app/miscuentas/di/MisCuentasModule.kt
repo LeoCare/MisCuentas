@@ -127,8 +127,7 @@ object MisHojasModule {
         @WithoutInterceptor okHttpClientWithoutInterceptor: OkHttpClient
     ): WebService {
         return Retrofit.Builder()
-            .baseUrl("https://api-miscuentas.leondev.es/")
-            //.baseUrl("http://192.168.7.27:8080/")
+            .baseUrl("http://192.168.7.27:8080/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClientWithoutInterceptor)
             .build()
@@ -186,8 +185,7 @@ object MisHojasModule {
         @WithInterceptor okHttpClient: OkHttpClient
     ): WebService {
         return Retrofit.Builder()
-            .baseUrl("https://api-miscuentas.leondev.es/")
-            //.baseUrl("http://192.168.7.27:8080/") //config para pruebas locales
+            .baseUrl("http://192.168.7.27:8080/") //config para pruebas locales
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient) // Usa el cliente que tiene el interceptor
             .build()

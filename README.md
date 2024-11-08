@@ -167,17 +167,25 @@ La solición de permisos se gestiona utilizando rememberMultiplePermissionsState
 ---
 ## Instalación
 Necesitaras un entorno de desarrollo (IDE) como Android Studio o IntelliJ IDE.
+Para este ejemplo se usa un dispositivo Movil fisico en una conexion local con la API, por lo que, la configuracion se hará en base a esto.
 
 1. Clona este repositorio (si aun no lo tienes):
    ```bash
    git clone git@github.com:LeoCare/MisCuentas.git
    ```
 2. Abre el proyecto en Android Studio.
+3. Conecta el movil y acepta la trasferencia de archivos en él.
+   </br>  </br>    ![Imagen de configuracion](docs/imagenes/config1.png)
 3. Configura las dependencias y la base de datos MySQL.
   - Una vez tengas la API funcionando, modifica los proveedores de Webservices en el fichero MisCuentasModule.kt, indicando la IP o direccion correspondiente...
     </br>  </br>    ![Imagen del webservices](docs/imagenes/webservices1.png)
     </br>  </br>    ![Imagen del webservices](docs/imagenes/webservices2.png)
-4. Compila y ejecuta la aplicación en un dispositivo o emulador Android.
+4. Crear archivo xml para permitir conexiones no seguras.
+   </br>  </br>    ![Imagen de configuracion](docs/imagenes/config2.png)
+5. Configurar xml en el Manifest.
+   </br>  </br>    ![Imagen de configuracion](docs/imagenes/config3.png)
+6. Compila y ejecuta la aplicación.
+   </br>  </br>    ![Imagen de configuracion](docs/imagenes/config4.png)
 ---
 ## Uso
 
